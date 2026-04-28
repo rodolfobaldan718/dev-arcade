@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Truco - Edição Cyber</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #0d1117;
+            color: #c9d1d9;
+            overflow: hidden;
+        }
+        .cyber-btn {
+            background-color: #161b22;
+            border: 1px solid #30363d;
+            color: #58a6ff;
+            text-shadow: 0 0 5px #58a6ff;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 10px rgba(88, 166, 255, 0.3);
+        }
+        .cyber-btn:hover {
+            background-color: #58a6ff;
+            color: #0d1117;
+            box-shadow: 0 0 20px rgba(88, 166, 255, 0.7);
+            transform: translateY(-2px);
+        }
+        .cyber-btn:disabled {
+            background-color: #161b22;
+            color: #484f58;
+            border-color: #30363d;
+            cursor: not-allowed;
+            text-shadow: none;
+            box-shadow: none;
+            transform: none;
+        }
+        .modal-bg {
+            background-color: rgba(13, 17, 23, 0.9);
+            transition: opacity 0.3s ease-in-out;
+        }
+        .modal-content {
+            background-color: #161b22;
+            border: 1px solid #30363d;
+            box-shadow: 0 0 30px rgba(88, 166, 255, 0.3);
+            transform: scale(0.9);
+            transition: transform 0.3s ease-in-out;
+        }
+        .modal.active .modal-content {
+            transform: scale(1);
+        }
+        .modal.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        #gameCanvas {
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center h-screen">
+
+    <div id="gameContainer" class="w-full h-full flex flex-col items-center justify-center p-4 relative hidden">
+        <div class="w-full max-w-7xl mx-auto flex justify-between items-center absolute top-4 px-4">
+            <div class="flex items-center space-x-4">
+                <h2 class="text-2xl font-bold text-cyan-400">Nós: <span id="playerScore">0</span></h2>
+            </div>
+            <div class="flex items-center space-x-4">
+                <h2 class="text-2xl font-bold text-red-400">Eles: <span id="cpuScore">0</span></h2>
+            </div>
+        </div>
+
+        <canvas id="gameCanvas" class="w-full max-w-7xl aspect-video rounded-lg shadow-2xl shadow-cyan-500/10"></canvas>
+        
+        <div id="actionButtons" class="absolute bottom-4 flex space-x-2">
+             <button id="runMidRoundBtn" class="cyber-btn font-bold py-2 px-4 rounded-lg bg-red-500/20 border-red-500 text-red-400">CORRER</button>
+             <button id="trucoBtn" class="cyber-btn font-bold py-2 px-4 rounded-lg">TRUCO</button>
+        </div>
+        
+        <div id="trucoResponseButtons" class="absolute bottom-4 flex space-x-2 hidden">
+             <button id="acceptBtn" class="cyber-btn font-bold py-2 px-4 rounded-lg bg-green-500/20 border-green-500 text-green-400">ACEITAR</button>
+             <button id="runBtn" class="cyber-btn font-bold py-2 px-4 rounded-lg bg-red-500/20 border-red-500 text-red-400">CORRER</button>
+             <button id="raiseBtn" class="cyber-btn font-bold py-2 px-4 rounded-lg bg-blue-500/20 border-blue-500 text-blue-400">SEIS!</button>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div id="menuModal" class="modal active fixed inset-0 z-50 flex items-center justify-center modal-bg opacity-0 pointer-events-none">
+        <div class="modal-content rounded-xl p-8 text-center">
+            <h1 class="text-5xl font-bold mb-2 text-cyan-400" style="text-shadow: 0 0 10px #0ff;">TRUCO CYBER</h1>
+            <p class="text-gray-400 mb-8">Escolha o modo de jogo</p>
+            <div class="flex flex-col space-y-4">
+                <button onclick="startGame(2)" class="cyber-btn font-bold py-3 px-6 rounded-lg text-lg">1 vs 1</button>
+                <button onclick="startGame(4)" class="cyber-btn font-bold py-3 px-6 rounded-lg text-lg">2 vs 2</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="messageModal" class="modal fixed inset-0 z-50 flex items-center justify-center modal-bg opacity-0 pointer-events-none">
+        <div class="modal-content rounded-xl p-8 text-center max-w-sm">
+            <h2 id="messageTitle" class="text-3xl font-bold mb-4 text-cyan-400">Título</h2>
+            <p id="messageText" class="text-gray-300 mb-6">Mensagem aqui.</p>
+            <button id="messageBtn" class="cyber-btn font-bold py-2 px-6 rounded-lg">OK</button>
+        </div>
+    </div>
+
+    <script>
+        // --- Setup ---
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        const gameContainer = document.getElementById('gameContainer');
+        const playerScoreEl = document.getElementById('playerScore');
+        const cpuScoreEl = document.getElementById('cpuScore');
+        const trucoBtn = document.getElementById('trucoBtn');
+        const actionButtons = document.getElementById('actionButtons');
+        const trucoResponseButtons = document.getElementById('trucoResponseButtons');
+        const acceptBtn = document.getElementById('acceptBtn');
+        const runBtn = document.getElementById('runBtn');
+        const raiseBtn = document.getElementById('raiseBtn');
+        const runMidRoundBtn = document.getElementById('runMidRoundBtn');
+        const menuModal = document.getElementById('menuModal');
+        const messageModal = document.getElementById('messageModal');
+        const messageTitle = document.getElementById('messageTitle');
+        const messageText = document.getElementById('messageText');
+        
+        let game = {};
+
+        // --- Constantes do Jogo ---
+        const SUITS = { '♦': 'Ouros', '♠': 'Espadas', '♥': 'Copas', '♣': 'Paus' };
+        const RANKS = ['4', '5', '6', '7', 'Q', 'J', 'K', 'A', '2', '3'];
+        const RANK_VALUES = { '4': 0, '5': 1, '6': 2, '7': 3, 'Q': 4, 'J': 5, 'K': 6, 'A': 7, '2': 8, '3': 9 };
+        const MANILHA_VALUES = { '♦': 10, '♠': 11, '♥': 12, '♣': 13 };
+
+        const CARD_WIDTH = 100;
+        const CARD_HEIGHT = 140;
+        const CARD_ASPECT_RATIO = CARD_HEIGHT / CARD_WIDTH;
+
+        // --- Funções do Jogo ---
+        
+        function createDeck() {
+            const deck = [];
+            for (const suit of Object.keys(SUITS)) {
+                for (const rank of RANKS) {
+                    deck.push({ suit, rank, value: RANK_VALUES[rank] });
+                }
+            }
+            return deck;
+        }
+
+        function shuffleDeck(deck) {
+            for (let i = deck.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [deck[i], deck[j]] = [deck[j], deck[i]];
+            }
+        }
+
+        function getManilhas(vira) {
+            const viraIndex = RANKS.indexOf(vira.rank);
+            const manilhaRank = RANKS[(viraIndex + 1) % RANKS.length];
+            return manilhaRank;
+        }
+        
+        function getCardValue(card) {
+            if (!card) return -1;
+            if (card.rank === game.manilhaRank) {
+                return MANILHA_VALUES[card.suit];
+            }
+            return card.value;
+        }
+        
+        function dealCards() {
+            game.deck = createDeck();
+            shuffleDeck(game.deck);
+            game.vira = game.deck.pop();
+            game.manilhaRank = getManilhas(game.vira);
+
+            for(let i=0; i<game.players.length; i++) {
+                game.players[i].hand = game.deck.splice(0, 3);
+            }
+        }
+
+        function nextTurn() {
+            game.turn = (game.turn + 1) % game.playerCount;
+            updateButtons();
+            
+            const currentPlayer = game.players[game.turn];
+            if (currentPlayer.isCpu) {
+                // Check if there is a truco call to be answered by this CPU's team
+                if (game.trucoRequester !== null && game.trucoRequester % 2 !== currentPlayer.id % 2) {
+                    const respondingTeam = currentPlayer.id % 2;
+                    // The CPU should only auto-respond if it's on the opponent's team (team 1)
+                    if (respondingTeam !== 0) { 
+                        setTimeout(() => cpuRespondToTruco(currentPlayer), 1000);
+                    }
+                    // If player's team (team 0) is responding, do nothing and wait for user's click.
+                } else {
+                    setTimeout(cpuPlay, 1000);
+                }
+            }
+        }
+        
+        function endTurn() {
+            let winnerIndex = -1;
+            let highestValue = -1;
+            let tied = false;
+            
+            for(let i = 0; i < game.tableCards.length; i++) {
+                const cardPlay = game.tableCards[i];
+                if (!cardPlay) continue;
+
+                const cardValue = getCardValue(cardPlay.card);
+                if(cardValue > highestValue) {
+                    highestValue = cardValue;
+                    winnerIndex = cardPlay.playerIndex;
+                    tied = false;
+                } else if(cardValue === highestValue) {
+                    const winnerCardPlay = game.tableCards.find(c => c.playerIndex === winnerIndex);
+                    if(winnerCardPlay && getCardValue(winnerCardPlay.card) === highestValue){
+                       tied = true;
+                    }
+                }
+            }
+            
+            if(tied) {
+                game.roundWinners.push(-1); 
+            } else {
+                game.roundWinners.push(winnerIndex % 2); 
+            }
+            
+            game.tableCards = [];
+            game.roundStartPlayer = tied ? game.roundStartPlayer : winnerIndex;
+            game.turn = game.roundStartPlayer;
+            
+            checkRoundWinner();
+        }
+        
+        function checkRoundWinner() {
+            const playerTeamWins = game.roundWinners.filter(w => w === 0).length;
+            const cpuTeamWins = game.roundWinners.filter(w => w === 1).length;
+            const ties = game.roundWinners.filter(w => w === -1).length;
+
+            let roundWinner = null; 
+
+            if (playerTeamWins >= 2) roundWinner = 0;
+            else if (cpuTeamWins >= 2) roundWinner = 1;
+            else if (ties > 0) {
+                if (game.roundWinners[0] === -1) { 
+                    if (playerTeamWins === 1) roundWinner = 0;
+                    if (cpuTeamWins === 1) roundWinner = 1;
+                } else if (ties === game.roundWinners.length && ties > 0) { 
+                     roundWinner = -1; 
+                } else if (game.roundWinners.length >= 2 && (playerTeamWins === 1 || cpuTeamWins === 1)) {
+                     const winnerOfFirst = game.roundWinners.find(w => w !== -1);
+                     if(typeof winnerOfFirst !== 'undefined') roundWinner = winnerOfFirst;
+                }
+            }
+            
+            if (game.roundWinners.length === 3 && roundWinner === null) {
+                roundWinner = game.roundWinners.find(w => w !== -1);
+                if (typeof roundWinner === 'undefined') roundWinner = -1; 
+            }
+            
+            if (roundWinner !== null) {
+                setTimeout(() => endRound(roundWinner), 1000);
+            } else {
+                 if (game.players[game.turn].isCpu) {
+                    setTimeout(cpuPlay, 1000);
+                 }
+            }
+        }
+
+        function awardRoundPoints(winnerTeam, points) {
+            if (winnerTeam !== -1) {
+                if (winnerTeam === 0) game.playerScore += points;
+                else game.cpuScore += points;
+            }
+
+            playerScoreEl.textContent = game.playerScore;
+            cpuScoreEl.textContent = game.cpuScore;
+
+            if (game.playerScore >= 12 || game.cpuScore >= 12) {
+                setTimeout(() => {
+                    const winnerName = game.playerScore >= 12 ? "Nós" : "Eles";
+                    showMessage(`FIM DE JOGO!`, `${winnerName} vencemos!`, () => {
+                        gameContainer.classList.add('hidden');
+                        menuModal.classList.add('active');
+                    });
+                }, 1500);
+            } else {
+                setTimeout(startNewRound, 1500);
+            }
+        }
+
+        function endRound(winnerTeam) {
+             if (winnerTeam !== -1) {
+                const winnerName = winnerTeam === 0 ? "Nós" : "Eles";
+                showMessage(`${winnerName} ganhamos a rodada!`, `+${game.roundValue} ponto(s)`);
+                awardRoundPoints(winnerTeam, game.roundValue);
+            } else {
+                 showMessage("Rodada empatada!", "Ninguém marcou pontos.");
+                 awardRoundPoints(-1, 0); 
+            }
+        }
+
+        function startNewRound() {
+            game.roundValue = 1;
+            game.roundWinners = [];
+            game.tableCards = [];
+            game.dealer = (game.dealer + 1) % game.playerCount;
+            game.roundStartPlayer = (game.dealer + 1) % game.playerCount;
+            game.turn = game.roundStartPlayer;
+            
+            game.trucoValue = 0;
+            game.trucoRequester = null;
+            game.lastTrucoTeam = -1;
+            
+            dealCards();
+            updateButtons();
+            
+            if (game.players[game.turn].isCpu) {
+                setTimeout(cpuPlay, 1500);
+            }
+        }
+
+        function playCard(playerIndex, cardIndex) {
+            if (playerIndex !== game.turn) return;
+
+            const player = game.players[playerIndex];
+            const card = player.hand.splice(cardIndex, 1)[0];
+            
+            if (!card) return;
+
+            game.tableCards.push({ card, playerIndex });
+            game.lastPlayerToPlay = playerIndex;
+            
+            if (game.tableCards.length === game.playerCount) {
+                setTimeout(endTurn, 1000);
+            } else {
+                nextTurn();
+            }
+        }
+        
+        function getHandStrength(hand) {
+            if (!hand || hand.length === 0) return 0;
+            return hand.map(getCardValue).reduce((sum, value) => sum + value, 0);
+        }
+        
+        function cpuRespondToTruco(cpu) {
+            if (!cpu || !cpu.isCpu) return;
+
+            const handStrength = getHandStrength(cpu.hand);
+            const avgCardValue = handStrength / cpu.hand.length;
+
+            const canRaise = game.trucoValue < 12;
+            const THRESHOLD_TO_RAISE = 10;
+            const THRESHOLD_TO_ACCEPT = 6;
+
+            if (canRaise && avgCardValue >= THRESHOLD_TO_RAISE) {
+                handleTrucoResponse('raise');
+            } else if (avgCardValue >= THRESHOLD_TO_ACCEPT) {
+                handleTrucoResponse('accept');
+            } else {
+                handleTrucoResponse('run');
+            }
+        }
+
+        function cpuPlay() {
+            if (!game.players[game.turn].isCpu) return;
+
+            const cpu = game.players[game.turn];
+            const cpuTeam = game.turn % 2;
+
+            if (game.trucoRequester === null && game.lastTrucoTeam !== cpuTeam) {
+                const handStrength = getHandStrength(cpu.hand);
+                const avgCardValue = handStrength / (cpu.hand.length || 1);
+                const THRESHOLD_TO_CALL = 8;
+
+                if (game.roundValue < 12 && avgCardValue > THRESHOLD_TO_CALL) {
+                    callOrRaiseTruco();
+                    return; 
+                }
+            }
+
+            let highestOpponentCardValue = -1;
+            let highestPartnerCardValue = -1;
+
+            game.tableCards.forEach(play => {
+                const cardValue = getCardValue(play.card);
+                if (play.playerIndex % 2 === cpuTeam) {
+                    if (cardValue > highestPartnerCardValue) highestPartnerCardValue = cardValue;
+                } else {
+                    if (cardValue > highestOpponentCardValue) highestOpponentCardValue = cardValue;
+                }
+            });
+
+            const partnerIsWinning = highestPartnerCardValue > highestOpponentCardValue;
+            const sortedHand = [...cpu.hand].sort((a, b) => getCardValue(a) - getCardValue(b));
+            let cardToPlay;
+
+            if (partnerIsWinning) {
+                cardToPlay = sortedHand[0];
+            } else {
+                const winningCard = sortedHand.find(card => getCardValue(card) > highestOpponentCardValue);
+                cardToPlay = winningCard || sortedHand[0];
+            }
+            
+            const cardIndexInHand = cpu.hand.findIndex(card => card && cardToPlay && card.rank === cardToPlay.rank && card.suit === cardToPlay.suit);
+
+            if (cardIndexInHand !== -1) {
+                playCard(game.turn, cardIndexInHand);
+            } else if (cpu.hand.length > 0) {
+                playCard(game.turn, 0);
+            }
+        }
+
+        function callOrRaiseTruco() {
+            const playerTeam = game.turn % 2;
+            if (game.lastTrucoTeam === playerTeam) return;
+
+            let newValue;
+            if (game.roundValue === 1) newValue = 3;
+            else if (game.roundValue === 3) newValue = 6;
+            else if (game.roundValue === 6) newValue = 9;
+            else if (game.roundValue === 9) newValue = 12;
+            else return;
+
+            game.trucoValue = newValue;
+            game.trucoRequester = playerTeam;
+            
+            const betName = {3: "TRUCO", 6: "SEIS", 9: "NOVE", 12: "DOZE"}[newValue];
+            showMessage(`${betName}!`, `${playerTeam === 0 ? "Nós pedimos" : "Eles pediram"} ${betName}!`);
+            updateButtons();
+
+            const respondingTeam = 1 - playerTeam;
+            // Only have CPU auto-respond if the responding team is the opponent team (team 1)
+            if (respondingTeam !== 0) {
+                const respondingCpu = game.players.find(p => p.isCpu && p.id % 2 === respondingTeam);
+                if (respondingCpu) {
+                    setTimeout(() => cpuRespondToTruco(respondingCpu), 1500);
+                }
+            }
+        }
+
+        function runMidRound() {
+            if (game.turn % 2 !== 0) return; // Só o jogador pode clicar
+            
+            const runningTeam = 0; // Time do jogador
+            const winnerTeam = 1; // Time da CPU
+            const points = game.roundValue;
+
+            showMessage("Nós corremos!", `O time adversário ganhou ${points} ponto(s).`);
+            awardRoundPoints(winnerTeam, points);
+        }
+
+        function handleTrucoResponse(response) {
+            if (game.trucoRequester === null) return;
+            const requestingTeam = game.trucoRequester;
+            const respondingTeam = 1 - requestingTeam;
+
+            if (response === 'accept') {
+                game.roundValue = game.trucoValue;
+                game.lastTrucoTeam = requestingTeam;
+                showMessage("Aceito!", `A rodada vale agora ${game.roundValue} pontos!`);
+                game.trucoValue = 0;
+                game.trucoRequester = null;
+                updateButtons();
+                if(game.players[game.turn].isCpu) {
+                    setTimeout(cpuPlay, 1000);
+                }
+            } else if (response === 'run') {
+                const points = game.roundValue;
+                const winnerTeam = requestingTeam;
+                
+                const winnerName = winnerTeam === 0 ? "Nós" : "Eles";
+                showMessage("Correu!", `${winnerName} ganhamos ${points} ponto(s)!`);
+                
+                awardRoundPoints(winnerTeam, points);
+            } else if (response === 'raise') {
+                if (game.trucoValue >= 12) return;
+
+                let newValue;
+                if (game.trucoValue === 3) newValue = 6;
+                else if (game.trucoValue === 6) newValue = 9;
+                else if (game.trucoValue === 9) newValue = 12;
+                else return;
+
+                game.trucoValue = newValue;
+                game.trucoRequester = respondingTeam;
+                
+                const betName = {6: "SEIS", 9: "NOVE", 12: "DOZE"}[newValue];
+                showMessage(`${betName}!`, `${respondingTeam === 0 ? "Nós pedimos" : "Eles pediram"} ${betName}!`);
+                updateButtons();
+                
+                const newRespondingTeam = 1 - respondingTeam;
+                if (newRespondingTeam !== 0) {
+                    const respondingCpu = game.players.find(p => p.isCpu && p.id % 2 === newRespondingTeam);
+                    if (respondingCpu) {
+                        setTimeout(() => cpuRespondToTruco(respondingCpu), 1500);
+                    }
+                }
+            }
+        }
+
+        // --- Desenho no Canvas ---
+        
+        function drawCard(card, x, y, width, height, isFaceUp = true, highlight = false) {
+            const cornerRadius = 10;
+            ctx.save();
+            
+            if(highlight) {
+                 ctx.shadowColor = '#0ff';
+                 ctx.shadowBlur = 20;
+            }
+
+            ctx.fillStyle = isFaceUp ? '#c9d1d9' : '#161b22';
+            ctx.strokeStyle = isFaceUp ? '#58a6ff' : '#30363d';
+            ctx.lineWidth = 2;
+            
+            ctx.beginPath();
+            ctx.moveTo(x + cornerRadius, y);
+            ctx.lineTo(x + width - cornerRadius, y);
+            ctx.quadraticCurveTo(x + width, y, x + width, y + cornerRadius);
+            ctx.lineTo(x + width, y + height - cornerRadius);
+            ctx.quadraticCurveTo(x + width, y + height, x + width - cornerRadius, y + height);
+            ctx.lineTo(x + cornerRadius, y + height);
+            ctx.quadraticCurveTo(x, y + height, x, y + height - cornerRadius);
+            ctx.lineTo(x, y + cornerRadius);
+            ctx.quadraticCurveTo(x, y, x + cornerRadius, y);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+            
+            ctx.shadowColor = 'transparent';
+            ctx.shadowBlur = 0;
+
+            if (isFaceUp && card) {
+                const isManilha = card.rank === game.manilhaRank;
+                ctx.fillStyle = (card.suit === '♥' || card.suit === '♦') ? '#ff5555' : '#0d1117';
+                if(isManilha) ctx.fillStyle = '#0ff';
+
+                ctx.font = `bold ${width / 4}px Poppins`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                
+                const rankText = card.rank;
+                const suitText = card.suit;
+                
+                ctx.fillText(rankText, x + width * 0.2, y + height * 0.2);
+                ctx.fillText(suitText, x + width * 0.2, y + height * 0.4);
+                
+                ctx.save();
+                ctx.translate(x + width, y + height);
+                ctx.rotate(Math.PI);
+                ctx.fillText(rankText, width * 0.2, height * 0.2);
+                ctx.fillText(suitText, width * 0.2, height * 0.4);
+                ctx.restore();
+
+                 if (isManilha) {
+                    ctx.fillStyle = MANILHA_VALUES[card.suit] === 13 ? '#ffd700' : '#0ff'; // Zap é dourado
+                    ctx.font = `bold ${width / 2.5}px Poppins`;
+                    ctx.fillText(suitText, x + width / 2, y + height / 2);
+                 }
+            }
+            ctx.restore();
+        }
+
+        function drawGame() {
+            if (!game.players) return;
+            const { width, height } = canvas;
+            ctx.clearRect(0, 0, width, height);
+
+            ctx.fillStyle = '#0d1117';
+            ctx.fillRect(0, 0, width, height);
+            
+            const cardW = width / 12;
+            const cardH = cardW * CARD_ASPECT_RATIO;
+            
+            const positions = {
+                2: [ 
+                    { x: width / 2, y: height - cardH / 2 - 20, align: 'center' },
+                    { x: width / 2, y: cardH / 2 + 20, align: 'center' }, 
+                ],
+                4: [ 
+                    { x: width / 2, y: height - cardH / 2 - 20, align: 'center' }, 
+                    { x: 20 + cardH / 2, y: height/2, align: 'left', rotate: Math.PI / 2 },
+                    { x: width / 2, y: cardH / 2 + 20, align: 'center' }, 
+                    { x: width - 20 - cardH / 2, y: height/2, align: 'right', rotate: -Math.PI / 2 }
+                ]
+            };
+            
+            if (game.vira) {
+                drawCard(game.vira, width / 2 + 100, height / 2 - cardH / 2, cardW, cardH);
+            }
+            
+            game.tableCards.forEach(play => {
+                let cardX, cardY;
+                
+                if (game.playerCount === 2) {
+                     cardY = play.playerIndex === 0 ? height/2 - cardH - 10 : height/2 + 10;
+                     cardX = width/2 - cardW/2;
+                } else {
+                     switch(play.playerIndex) {
+                        case 0: cardX = width/2 - cardW/2; cardY = height/2; break; 
+                        case 1: cardX = width/2 - cardW - 20; cardY = height/2 - cardH/2; break;
+                        case 2: cardX = width/2 - cardW/2; cardY = height/2 - cardH - 10; break;
+                        case 3: cardX = width/2 + 20; cardY = height/2 - cardH/2; break;
+                     }
+                }
+                
+                drawCard(play.card, cardX, cardY, cardW, cardH, true);
+            });
+            
+            game.players.forEach((player, index) => {
+                if (!player) return;
+                const pos = positions[game.playerCount][index];
+                const totalWidth = player.hand.length * (cardW * 0.6);
+                
+                player.hand.forEach((card, i) => {
+                    let x, y;
+                    const isPlayerTurn = game.turn === index && index === 0;
+                    const highlight = isPlayerTurn && game.hoveredCard === i;
+                    const isPlayersTeam = index % 2 === 0;
+                    
+                    ctx.save();
+                    if(pos.rotate) {
+                        ctx.translate(pos.x, pos.y);
+                        ctx.rotate(pos.rotate);
+                        ctx.translate(-pos.x, -pos.y);
+                    }
+                    
+                    if (pos.align === 'center') {
+                       x = pos.x - totalWidth / 2 + i * (cardW * 0.6);
+                       y = pos.y - cardH / 2;
+                       if(highlight) y -= 20;
+                    } else if (pos.align === 'left') {
+                        x = pos.x - cardW / 2;
+                        y = pos.y - totalWidth/2 + i * (cardW * 0.6);
+                    } else if (pos.align === 'right') {
+                        x = pos.x - cardW / 2;
+                        y = pos.y - totalWidth/2 + i * (cardW * 0.6);
+                    }
+                    
+                    drawCard(card, x, y, cardW, cardH, isPlayersTeam, highlight);
+                    ctx.restore();
+                });
+            });
+
+            requestAnimationFrame(drawGame);
+        }
+        
+        // --- Controles e Eventos ---
+        
+        function resizeCanvas() {
+            const container = canvas.parentElement;
+            if (!container) return;
+            const { width } = container.getBoundingClientRect();
+            canvas.width = 1280;
+            canvas.height = 720;
+        }
+
+        function getMousePos(evt) {
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            return {
+                x: (evt.clientX - rect.left) * scaleX,
+                y: (evt.clientY - rect.top) * scaleY
+            };
+        }
+
+        canvas.addEventListener('mousemove', (e) => {
+            if (game.turn !== 0 || !game.players || !game.players[0]) {
+                 game.hoveredCard = -1;
+                 return;
+            }
+            const pos = getMousePos(e);
+            const player = game.players[0];
+            const cardW = canvas.width / 12;
+            const cardH = cardW * CARD_ASPECT_RATIO;
+            const pPos = { x: canvas.width / 2, y: canvas.height - cardH / 2 - 20 };
+            const totalWidth = player.hand.length * (cardW * 0.6);
+            
+            game.hoveredCard = -1;
+            for (let i = player.hand.length - 1; i >= 0; i--) {
+                const cardXStart = pPos.x - totalWidth / 2 + i * (cardW * 0.6);
+                const cardXEnd = i === player.hand.length - 1 ? cardXStart + cardW : cardXStart + (cardW * 0.6);
+                const cardY = pPos.y - cardH / 2;
+                if (pos.x >= cardXStart && pos.x <= cardXEnd && pos.y >= cardY && pos.y <= cardY + cardH) {
+                    game.hoveredCard = i;
+                    break;
+                }
+            }
+        });
+
+        canvas.addEventListener('click', (e) => {
+            if (game.turn === 0 && game.hoveredCard !== -1 && game.hoveredCard < game.players[0].hand.length) {
+                playCard(0, game.hoveredCard);
+                game.hoveredCard = -1;
+            }
+        });
+
+        trucoBtn.addEventListener('click', callOrRaiseTruco);
+        runMidRoundBtn.addEventListener('click', runMidRound);
+        acceptBtn.addEventListener('click', () => handleTrucoResponse('accept'));
+        runBtn.addEventListener('click', () => handleTrucoResponse('run'));
+        raiseBtn.addEventListener('click', () => handleTrucoResponse('raise'));
+        
+        window.addEventListener('resize', resizeCanvas);
+        
+        function showMessage(title, text, callback) {
+            messageTitle.textContent = title;
+            messageText.innerHTML = text;
+            messageModal.classList.add('active');
+            
+            const messageBtn = document.getElementById('messageBtn');
+            const newBtn = messageBtn.cloneNode(true);
+            messageBtn.parentNode.replaceChild(newBtn, messageBtn);
+            
+            newBtn.addEventListener('click', () => {
+                messageModal.classList.remove('active');
+                if (callback) callback();
+            }, { once: true });
+        }
+        
+        function updateButtons() {
+            if(!game || typeof game.turn === 'undefined') return;
+
+            const playerTeam = 0;
+            const currentTurnTeam = game.turn % 2;
+
+            if (game.trucoRequester !== null) { 
+                actionButtons.classList.add('hidden');
+                
+                if (game.trucoRequester % 2 !== playerTeam) {
+                    trucoResponseButtons.classList.remove('hidden');
+                    
+                    if (game.trucoValue >= 12) {
+                        raiseBtn.classList.add('hidden');
+                    } else {
+                        raiseBtn.classList.remove('hidden');
+                        const raiseValue = {3: "SEIS", 6: "NOVE", 9: "DOZE"}[game.trucoValue];
+                        raiseBtn.textContent = `${raiseValue}!`;
+                    }
+                } else {
+                    trucoResponseButtons.classList.add('hidden');
+                }
+
+            } else { 
+                trucoResponseButtons.classList.add('hidden');
+                actionButtons.classList.remove('hidden');
+                
+                const isPlayerTurn = currentTurnTeam === playerTeam;
+
+                const canPlayerCall = game.lastTrucoTeam !== playerTeam && game.roundValue < 12;
+                trucoBtn.disabled = !canPlayerCall || !isPlayerTurn;
+                runMidRoundBtn.disabled = !isPlayerTurn;
+                
+                trucoBtn.classList.remove('hidden');
+                if (game.roundValue === 1) trucoBtn.textContent = "TRUCO";
+                else if (game.roundValue === 3) trucoBtn.textContent = "SEIS";
+                else if (game.roundValue === 6) trucoBtn.textContent = "NOVE";
+                else if (game.roundValue === 9) trucoBtn.textContent = "DOZE";
+                else trucoBtn.classList.add('hidden');
+            }
+        }
+
+
+        // --- Inicialização do Jogo ---
+
+        function startGame(playerCount) {
+            game = {
+                playerCount,
+                playerScore: 0,
+                cpuScore: 0,
+                players: [],
+                dealer: Math.floor(Math.random() * playerCount),
+                hoveredCard: -1,
+            };
+
+            for (let i = 0; i < playerCount; i++) {
+                game.players.push({
+                    id: i,
+                    hand: [],
+                    isCpu: i !== 0, 
+                });
+            }
+            
+            menuModal.classList.remove('active');
+            gameContainer.classList.remove('hidden');
+            startNewRound();
+            resizeCanvas();
+            requestAnimationFrame(drawGame);
+        }
+
+    </script>
+</body>
+</html>
+

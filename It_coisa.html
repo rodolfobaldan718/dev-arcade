@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IT: A Coisa | Você vai flutuar também</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Creepster&family=Cinzel:wght@400;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        :root {
+            --blood-red: #8a0303;
+            --balloon-red: #cc0000;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #050505;
+            color: #e5e5e5;
+            overflow-x: hidden;
+        }
+
+        h1, h2, h3 {
+            font-family: 'Cinzel', serif;
+        }
+
+        .font-horror {
+            font-family: 'Creepster', cursive;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #111;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--blood-red);
+            border-radius: 4px;
+        }
+
+        /* Balloon Animation */
+        @keyframes float {
+            0% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(5deg); }
+            100% { transform: translateY(0px) rotate(0deg); }
+        }
+
+        .balloon {
+            animation: float 6s ease-in-out infinite;
+        }
+
+        /* Glitch Effect for Title */
+        .glitch {
+            position: relative;
+        }
+        .glitch::before, .glitch::after {
+            content: attr(data-text);
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        .glitch::before {
+            left: 2px;
+            text-shadow: -1px 0 red;
+            clip: rect(24px, 550px, 90px, 0);
+            animation: glitch-anim-2 3s infinite linear alternate-reverse;
+        }
+        .glitch::after {
+            left: -2px;
+            text-shadow: -1px 0 blue;
+            clip: rect(85px, 550px, 140px, 0);
+            animation: glitch-anim 2.5s infinite linear alternate-reverse;
+        }
+        @keyframes glitch-anim {
+            0% { clip: rect(14px, 9999px, 127px, 0); }
+            100% { clip: rect(76px, 9999px, 46px, 0); }
+        }
+        @keyframes glitch-anim-2 {
+            0% { clip: rect(65px, 9999px, 100px, 0); }
+            100% { clip: rect(10px, 9999px, 11px, 0); }
+        }
+
+        /* Rain Canvas z-index */
+        #rainCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0.4;
+        }
+
+        .glass-panel {
+            background: rgba(20, 20, 20, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 0, 0, 0.1);
+        }
+
+        .fade-in-section {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+            will-change: opacity, visibility;
+        }
+        .fade-in-section.is-visible {
+            opacity: 1;
+            transform: none;
+        }
+    </style>
+</head>
+<body class="relative">
+
+    <!-- Rain Effect Background -->
+    <canvas id="rainCanvas"></canvas>
+
+    <!-- Navigation -->
+    <nav class="fixed w-full z-50 transition-all duration-300" id="navbar">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                <div class="flex-shrink-0">
+                    <span class="font-horror text-4xl text-red-600 tracking-widest cursor-pointer hover:text-white transition-colors">IT</span>
+                </div>
+                <div class="hidden md:block">
+                    <div class="ml-10 flex items-baseline space-x-8">
+                        <a href="#home" class="hover:text-red-500 text-gray-300 px-3 py-2 rounded-md text-sm font-medium uppercase tracking-widest transition-colors">Início</a>
+                        <a href="#story" class="hover:text-red-500 text-gray-300 px-3 py-2 rounded-md text-sm font-medium uppercase tracking-widest transition-colors">A História</a>
+                        <a href="#losers" class="hover:text-red-500 text-gray-300 px-3 py-2 rounded-md text-sm font-medium uppercase tracking-widest transition-colors">O Clube</a>
+                        <a href="#pennywise" class="hover:text-red-500 text-red-600 px-3 py-2 rounded-md text-sm font-bold uppercase tracking-widest transition-colors">O Palhaço</a>
+                    </div>
+                </div>
+                <div class="-mr-2 flex md:hidden">
+                    <button type="button" onclick="toggleMobileMenu()" class="text-gray-400 hover:text-white focus:outline-none">
+                        <i data-lucide="menu" class="w-8 h-8"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <!-- Mobile Menu -->
+        <div class="md:hidden hidden bg-black/95 backdrop-blur-md absolute w-full border-b border-red-900/30" id="mobile-menu">
+            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                <a href="#home" class="text-gray-300 hover:text-red-500 block px-3 py-2 rounded-md text-base font-medium">Início</a>
+                <a href="#story" class="text-gray-300 hover:text-red-500 block px-3 py-2 rounded-md text-base font-medium">A História</a>
+                <a href="#losers" class="text-gray-300 hover:text-red-500 block px-3 py-2 rounded-md text-base font-medium">O Clube</a>
+                <a href="#pennywise" class="text-red-600 hover:text-white block px-3 py-2 rounded-md text-base font-bold">O Palhaço</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="home" class="relative h-screen flex items-center justify-center overflow-hidden">
+        <!-- Background Image Overlay -->
+        <div class="absolute inset-0 bg-[url('https://admin.cnnbrasil.com.br/wp-content/uploads/sites/12/2021/08/it.jpg?w=1200&h=900&crop=0')] bg-cover bg-center z-[-2] opacity-30 grayscale"></div>
+        <div class="absolute inset-0 bg-gradient-to-t from-[#050505] via-[#050505]/80 to-transparent z-[-1]"></div>
+
+        <div class="text-center z-10 px-4 relative">
+            <div class="mb-6 flex justify-center balloon">
+                <svg width="60" height="100" viewBox="0 0 100 150" class="drop-shadow-[0_0_15px_rgba(255,0,0,0.6)]">
+                    <path d="M50 0 C20 0 0 25 0 55 C0 90 45 100 50 110 C55 100 100 90 100 55 C100 25 80 0 50 0 Z" fill="#cc0000" />
+                    <line x1="50" y1="110" x2="50" y2="150" stroke="#fff" stroke-width="1" />
+                </svg>
+            </div>
+            <h1 class="text-6xl md:text-9xl font-horror text-white mb-2 tracking-tighter glitch" data-text="A COISA">A COISA</h1>
+            <h2 class="text-xl md:text-3xl text-red-600 tracking-[0.3em] font-bold uppercase mb-8">O medo vive em Derry</h2>
+            <p class="text-gray-400 max-w-xl mx-auto text-lg mb-10 italic">"Por 27 anos, eu sonhei com vocês. Desejei vocês. Senti falta de vocês."</p>
+            
+            <a href="#story" class="group relative inline-flex items-center justify-center px-8 py-3 overflow-hidden font-medium text-white transition duration-300 ease-out border border-red-900 rounded-full shadow-md group">
+                <span class="absolute inset-0 flex items-center justify-center w-full h-full text-white duration-300 -translate-x-full bg-red-800 group-hover:translate-x-0 ease">
+                    <i data-lucide="droplet" class="w-6 h-6"></i>
+                </span>
+                <span class="absolute flex items-center justify-center w-full h-full text-white transition-all duration-300 transform group-hover:translate-x-full ease">DESCUBRA A VERDADE</span>
+                <span class="relative invisible">DESCUBRA A VERDADE</span>
+            </a>
+        </div>
+    </section>
+
+    <!-- Story Section -->
+    <section id="story" class="py-24 relative z-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-16 items-center fade-in-section">
+                <div class="relative group">
+                    <div class="absolute -inset-1 bg-gradient-to-r from-red-600 to-gray-900 rounded-lg blur opacity-25 group-hover:opacity-75 transition duration-1000 group-hover:duration-200"></div>
+                    <div class="relative bg-black rounded-lg p-1 border border-gray-800">
+                        <img src="https://images.unsplash.com/photo-1473862170180-84427c485aca?q=80&w=2070&auto=format&fit=crop" alt="Rua escura e chuvosa" class="rounded w-full object-cover h-[400px] grayscale hover:grayscale-0 transition duration-700">
+                        <div class="absolute bottom-4 right-4 bg-red-700 text-white text-xs px-2 py-1 rounded font-bold uppercase">Derry, Maine</div>
+                    </div>
+                </div>
+                <div>
+                    <h2 class="text-4xl md:text-5xl font-bold text-white mb-6 border-l-4 border-red-700 pl-6">O que acontece em Derry...</h2>
+                    <p class="text-gray-400 text-lg leading-relaxed mb-6">
+                        Quando crianças começam a desaparecer na cidade de Derry, no Maine, um grupo de jovens desajustados precisa enfrentar seus maiores medos. Eles irão confrontar uma força maligna que assume a forma de um palhaço chamado Pennywise, cujo histórico de assassinatos e violência remonta a séculos.
+                    </p>
+                    <p class="text-gray-400 text-lg leading-relaxed mb-8">
+                        O mal ressurge a cada 27 anos para se alimentar do medo das crianças de Derry. Desta vez, o "Clube dos Perdedores" jurou acabar com isso de uma vez por todas.
+                    </p>
+                    
+                    <div class="flex items-center gap-4 text-red-500 font-bold uppercase tracking-widest text-sm">
+                        <i data-lucide="skull" class="w-5 h-5"></i>
+                        <span>Terror</span>
+                        <span class="w-1 h-1 bg-red-500 rounded-full"></span>
+                        <span>Suspense</span>
+                        <span class="w-1 h-1 bg-red-500 rounded-full"></span>
+                        <span>Sobrenatural</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Barquinho Separator -->
+    <div class="w-full h-32 relative overflow-hidden flex items-center justify-center bg-gradient-to-b from-[#050505] to-[#0a0a0a]">
+        <div class="absolute w-full h-[1px] bg-gray-800"></div>
+        <div class="bg-[#050505] px-4 z-10">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-yellow-500 animate-bounce">
+                <path d="M2 12h20"></path>
+                <path d="M5.5 12l6.5 8 6.5-8"></path>
+                <path d="M12 2l-6.5 10h13L12 2z"></path>
+            </svg>
+        </div>
+    </div>
+
+    <!-- Characters (Losers Club) -->
+    <section id="losers" class="py-24 relative z-10 overflow-hidden">
+        <!-- Background Image Losers Club (Bikes/Retro vibe) -->
+        <div class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1485965120184-e220f721d03e?q=80&w=2070&auto=format&fit=crop')] bg-cover bg-center bg-fixed opacity-20 z-0 grayscale hover:grayscale-0 transition duration-700 ease-in-out"></div>
+        <!-- Background Overlay gradient -->
+        <div class="absolute inset-0 bg-gradient-to-b from-black via-gray-950/80 to-black z-0"></div>
+
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div class="text-center mb-16 fade-in-section">
+                <h2 class="text-4xl md:text-5xl font-bold text-white mb-4">O Clube dos Perdedores</h2>
+                <p class="text-gray-500 max-w-2xl mx-auto">Unidos pelo destino. Separados pelo medo. Reencontrados pelo juramento.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- Card 1 -->
+                <div class="glass-panel p-6 rounded-lg relative overflow-hidden group hover:-translate-y-2 transition duration-300 fade-in-section">
+                    <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-100 transition duration-300">
+                        <i data-lucide="bike" class="w-8 h-8 text-red-600"></i>
+                    </div>
+                    <h3 class="text-2xl text-white font-bold mb-2 group-hover:text-red-500 transition-colors">Bill Denbrough</h3>
+                    <p class="text-red-700 text-sm font-bold uppercase mb-4">O Líder</p>
+                    <p class="text-gray-400 text-sm mb-4">Assombrado pela morte de seu irmão Georgie, Bill lidera o grupo em sua cruzada contra a Coisa. Sua gagueira esconde uma coragem inabalável.</p>
+                </div>
+
+                <!-- Card 2 -->
+                <div class="glass-panel p-6 rounded-lg relative overflow-hidden group hover:-translate-y-2 transition duration-300 fade-in-section" style="transition-delay: 100ms;">
+                     <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-100 transition duration-300">
+                        <i data-lucide="heart" class="w-8 h-8 text-red-600"></i>
+                    </div>
+                    <h3 class="text-2xl text-white font-bold mb-2 group-hover:text-red-500 transition-colors">Beverly Marsh</h3>
+                    <p class="text-red-700 text-sm font-bold uppercase mb-4">O Coração</p>
+                    <p class="text-gray-400 text-sm mb-4">A única garota do grupo. Beverly luta contra seus próprios demônios em casa, o que a torna a mais destemida contra Pennywise.</p>
+                </div>
+
+                <!-- Card 3 -->
+                <div class="glass-panel p-6 rounded-lg relative overflow-hidden group hover:-translate-y-2 transition duration-300 fade-in-section" style="transition-delay: 200ms;">
+                     <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-100 transition duration-300">
+                        <i data-lucide="glasses" class="w-8 h-8 text-red-600"></i>
+                    </div>
+                    <h3 class="text-2xl text-white font-bold mb-2 group-hover:text-red-500 transition-colors">Richie Tozier</h3>
+                    <p class="text-red-700 text-sm font-bold uppercase mb-4">A Voz</p>
+                    <p class="text-gray-400 text-sm mb-4">Usa o humor e as vozes engraçadas como escudo para esconder seu pavor. Ele é leal até o fim, apesar de nunca calar a boca.</p>
+                </div>
+                
+                 <!-- Card 4 -->
+                 <div class="glass-panel p-6 rounded-lg relative overflow-hidden group hover:-translate-y-2 transition duration-300 fade-in-section" style="transition-delay: 300ms;">
+                    <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-100 transition duration-300">
+                       <i data-lucide="pill" class="w-8 h-8 text-red-600"></i>
+                   </div>
+                   <h3 class="text-2xl text-white font-bold mb-2 group-hover:text-red-500 transition-colors">Eddie Kaspbrak</h3>
+                   <p class="text-red-700 text-sm font-bold uppercase mb-4">O Hipocondríaco</p>
+                   <p class="text-gray-400 text-sm mb-4">Pequeno, asmático e protegido pela mãe. Eddie descobre que é muito mais forte do que seus remédios o faziam acreditar.</p>
+               </div>
+
+               <!-- Card 5 -->
+               <div class="glass-panel p-6 rounded-lg relative overflow-hidden group hover:-translate-y-2 transition duration-300 fade-in-section" style="transition-delay: 400ms;">
+                    <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-100 transition duration-300">
+                       <i data-lucide="book" class="w-8 h-8 text-red-600"></i>
+                   </div>
+                   <h3 class="text-2xl text-white font-bold mb-2 group-hover:text-red-500 transition-colors">Ben Hanscom</h3>
+                   <p class="text-red-700 text-sm font-bold uppercase mb-4">O Historiador</p>
+                   <p class="text-gray-400 text-sm mb-4">O novo garoto da cidade que passa seu tempo na biblioteca. Ele desenterra o passado sombrio de Derry.</p>
+               </div>
+
+               <!-- Card 6 -->
+               <div class="glass-panel p-6 rounded-lg relative overflow-hidden group hover:-translate-y-2 transition duration-300 fade-in-section" style="transition-delay: 500ms;">
+                    <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-100 transition duration-300">
+                       <i data-lucide="shield" class="w-8 h-8 text-red-600"></i>
+                   </div>
+                   <h3 class="text-2xl text-white font-bold mb-2 group-hover:text-red-500 transition-colors">Mike Hanlon</h3>
+                   <p class="text-red-700 text-sm font-bold uppercase mb-4">O Guardião</p>
+                   <p class="text-gray-400 text-sm mb-4">O único que ficou em Derry. Ele chama os outros de volta quando o ciclo de 27 anos recomeça.</p>
+               </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pennywise Section -->
+    <section id="pennywise" class="py-32 relative flex items-center justify-center overflow-hidden">
+        <!-- Background Image Pennywise/Clown -->
+        <div class="absolute inset-0 bg-[url('https://rollingstone.com.br/wp-content/uploads/bill-skarsgard-it-2-reprod.jpg')] bg-cover bg-center bg-fixed opacity-30 z-0 grayscale hover:grayscale-0 transition duration-700 ease-in-out"></div>
+        <!-- Background Overlay red gradient -->
+        <div class="absolute inset-0 bg-gradient-to-b from-black via-red-950/50 to-black z-0 mix-blend-multiply"></div>
+        
+        <div class="max-w-5xl mx-auto px-4 relative z-10 text-center fade-in-section">
+            <div class="mb-8 inline-block">
+                <div class="w-24 h-24 mx-auto bg-red-600 rounded-full blur-[50px] animate-pulse opacity-50"></div>
+                <img src="https://api.iconify.design/noto:clown-face.svg" class="w-24 h-24 mx-auto -mt-24 grayscale brightness-50 contrast-150 drop-shadow-[0_0_10px_rgba(255,0,0,0.5)]" alt="Icone Palhaço">
+            </div>
+            
+            <h2 class="text-5xl md:text-7xl font-horror text-white mb-6">PENNYWISE</h2>
+            <blockquote class="text-2xl md:text-4xl text-gray-300 font-serif italic mb-8 relative">
+                <span class="text-red-700 text-6xl absolute -top-8 -left-8">"</span>
+                Nós todos flutuamos aqui embaixo. E você também vai flutuar!
+                <span class="text-red-700 text-6xl absolute -bottom-12 -right-8">"</span>
+            </blockquote>
+            
+            <div class="mt-12 flex flex-col md:flex-row gap-6 justify-center">
+                <div class="text-center p-4 border border-red-900/30 rounded bg-black/50 backdrop-blur">
+                    <h4 class="text-red-500 font-bold text-xl mb-1">FORÇA</h4>
+                    <p class="text-gray-400 text-sm">Manipulação da Realidade</p>
+                </div>
+                <div class="text-center p-4 border border-red-900/30 rounded bg-black/50 backdrop-blur">
+                    <h4 class="text-red-500 font-bold text-xl mb-1">ORIGEM</h4>
+                    <p class="text-gray-400 text-sm">Macroverso (Além do Espaço)</p>
+                </div>
+                <div class="text-center p-4 border border-red-900/30 rounded bg-black/50 backdrop-blur">
+                    <h4 class="text-red-500 font-bold text-xl mb-1">FRAQUEZA</h4>
+                    <p class="text-gray-400 text-sm">Coragem e Crença Coletiva</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-black border-t border-gray-900 py-12 relative z-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-6">
+            <div class="text-center md:text-left">
+                <span class="font-horror text-3xl text-red-700 tracking-widest block mb-2">IT</span>
+                <p class="text-gray-500 text-xs uppercase tracking-widest">Baseado na obra de Stephen King</p>
+            </div>
+            
+            <div class="flex space-x-6">
+                <a href="#" class="text-gray-500 hover:text-red-600 transition-colors"><i data-lucide="instagram" class="w-6 h-6"></i></a>
+                <a href="#" class="text-gray-500 hover:text-red-600 transition-colors"><i data-lucide="twitter" class="w-6 h-6"></i></a>
+                <a href="#" class="text-gray-500 hover:text-red-600 transition-colors"><i data-lucide="facebook" class="w-6 h-6"></i></a>
+            </div>
+            
+            <div class="text-gray-600 text-sm">
+                &copy; 2024 Derry Public Works. All rights reserved.
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script>
+        // Initialize Lucide Icons
+        lucide.createIcons();
+
+        // Navbar Scroll Effect
+        const navbar = document.getElementById('navbar');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 50) {
+                navbar.classList.add('bg-black/90', 'backdrop-blur-sm', 'shadow-lg');
+            } else {
+                navbar.classList.remove('bg-black/90', 'backdrop-blur-sm', 'shadow-lg');
+            }
+        });
+
+        // Mobile Menu Toggle
+        const mobileMenu = document.getElementById('mobile-menu');
+        function toggleMobileMenu() {
+            mobileMenu.classList.toggle('hidden');
+        }
+
+        // Intersection Observer for Fade In
+        const observerOptions = {
+            root: null,
+            rootMargin: '0px',
+            threshold: 0.1
+        };
+
+        const observer = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('is-visible');
+                    observer.unobserve(entry.target); // Only animate once
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.fade-in-section').forEach(section => {
+            observer.observe(section);
+        });
+
+        // --- Rain Effect Implementation ---
+        const canvas = document.getElementById('rainCanvas');
+        const ctx = canvas.getContext('2d');
+
+        let width = canvas.width = window.innerWidth;
+        let height = canvas.height = window.innerHeight;
+
+        window.addEventListener('resize', () => {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+        });
+
+        class Drop {
+            constructor() {
+                this.reset();
+                // Initialize y randomly so they don't all start at top
+                this.y = Math.random() * height;
+            }
+
+            reset() {
+                this.x = Math.random() * width;
+                this.y = -10;
+                this.speed = Math.random() * 10 + 10; // Fast rain
+                this.length = Math.random() * 20 + 10;
+                this.opacity = Math.random() * 0.2 + 0.1;
+            }
+
+            fall() {
+                this.y += this.speed;
+                if (this.y > height) {
+                    this.reset();
+                }
+            }
+
+            draw() {
+                ctx.beginPath();
+                ctx.strokeStyle = `rgba(170, 180, 200, ${this.opacity})`;
+                ctx.lineWidth = 1;
+                ctx.moveTo(this.x, this.y);
+                ctx.lineTo(this.x, this.y + this.length);
+                ctx.stroke();
+            }
+        }
+
+        const drops = [];
+        const dropCount = 150; // Number of raindrops
+
+        for (let i = 0; i < dropCount; i++) {
+            drops.push(new Drop());
+        }
+
+        function animateRain() {
+            ctx.clearRect(0, 0, width, height);
+            
+            drops.forEach(drop => {
+                drop.fall();
+                drop.draw();
+            });
+
+            requestAnimationFrame(animateRain);
+        }
+
+        animateRain();
+    </script>
+</body>
+</html>

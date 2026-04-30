@@ -909,31 +909,31 @@
     });
   });
 
-  // Active nav on scroll
-  const sections = document.querySelectorAll('[id]');
+  // Active nav on scroll — corrigido
+  const sections = document.querySelectorAll('section[id]');
   const navLinks = document.querySelectorAll('.sidebar-nav a');
 
-  new IntersectionObserver(entries => {
-    entries.forEach(e => {
-      if (e.isIntersecting) {
-        navLinks.forEach(a => {
-          a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id);
-        });
+  function updateActiveNav() {
+    let current = '';
+    // Ponto de referência: 35% do topo da viewport
+    const triggerPoint = window.innerHeight * 0.35;
+
+    sections.forEach(section => {
+      const rect = section.getBoundingClientRect();
+      // Marca a seção cujo topo já passou pelo ponto de referência
+      if (rect.top <= triggerPoint) {
+        current = section.id;
       }
     });
-  }, { threshold: 0.35 }).observe(document.getElementById('projetos') || document.body);
 
-  sections.forEach(s => {
-    new IntersectionObserver(entries => {
-      entries.forEach(e => {
-        if (e.isIntersecting) {
-          navLinks.forEach(a => {
-            a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id);
-          });
-        }
-      });
-    }, { threshold: 0.35 }).observe(s);
-  });
+    navLinks.forEach(a => {
+      a.classList.toggle('active', a.getAttribute('href') === '#' + current);
+    });
+  }
+
+  window.addEventListener('scroll', updateActiveNav, { passive: true });
+  // Executa imediatamente para definir o estado inicial correto
+  updateActiveNav();
 </script>
 
 </body>

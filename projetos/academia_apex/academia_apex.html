@@ -1,0 +1,3138 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>APEX GYM — Eleve Seus Limites</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@300;400;500;600;700&family=Barlow:wght@300;400;500&display=swap"
+    rel="stylesheet">
+  <style>
+    /* ─────────────────────────────────────────
+   VARIÁVEIS GLOBAIS DE COR E TIPOGRAFIA
+───────────────────────────────────────── */
+    :root {
+      --vermelho: #FF1E2D;
+      --vermelho-escuro: #CC0011;
+      --dourado: #F0B429;
+      --preto: #070709;
+      --escuro: #0E0E12;
+      --escuro2: #161620;
+      --cinza: #8A8A9A;
+      --claro: #E8E8F0;
+      --branco: #FAFAFA;
+    }
+
+    *,
+    *::before,
+    *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      font-size: 16px;
+    }
+
+    body {
+      background: var(--preto);
+      color: var(--claro);
+      font-family: 'Barlow', sans-serif;
+      overflow-x: hidden;
+      cursor: none;
+    }
+
+    /* ─────────────────────────────────────────
+   PONTEIRO PERSONALIZADO
+───────────────────────────────────────── */
+    .ponteiro {
+      width: 12px;
+      height: 12px;
+      background: var(--vermelho);
+      border-radius: 50%;
+      position: fixed;
+      top: 0;
+      left: 0;
+      pointer-events: none;
+      z-index: 9999;
+      transition: transform 0.1s ease;
+      mix-blend-mode: difference;
+    }
+
+    .ponteiro-anel {
+      width: 40px;
+      height: 40px;
+      border: 1.5px solid rgba(255, 30, 45, 0.5);
+      border-radius: 50%;
+      position: fixed;
+      top: 0;
+      left: 0;
+      pointer-events: none;
+      z-index: 9998;
+      transition: transform 0.18s ease, width 0.3s, height 0.3s, border-color 0.3s;
+    }
+
+    body:hover .ponteiro-anel.expandido {
+      width: 60px;
+      height: 60px;
+      border-color: var(--vermelho);
+    }
+
+    /* ─────────────────────────────────────────
+   TEXTURA DE RUÍDO SOBRE A PÁGINA
+───────────────────────────────────────── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 1000;
+      opacity: 0.35;
+    }
+
+    /* ─────────────────────────────────────────
+   NAVEGAÇÃO PRINCIPAL
+───────────────────────────────────────── */
+    nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 500;
+      padding: 1.5rem 4rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: background 0.4s, padding 0.4s, backdrop-filter 0.4s;
+    }
+
+    /* Estilo ao rolar a página */
+    nav.rolado {
+      background: rgba(7, 7, 9, 0.92);
+      backdrop-filter: blur(12px);
+      padding: 1rem 4rem;
+      border-bottom: 1px solid rgba(255, 30, 45, 0.15);
+    }
+
+    .logomarca {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 2rem;
+      letter-spacing: 0.08em;
+      color: var(--branco);
+      text-decoration: none;
+    }
+
+    .logomarca span {
+      color: var(--vermelho);
+    }
+
+    .nav-itens {
+      display: flex;
+      gap: 2.5rem;
+      list-style: none;
+    }
+
+    .nav-itens a {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 600;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--cinza);
+      text-decoration: none;
+      position: relative;
+      transition: color 0.3s;
+    }
+
+    /* Sublinhado deslizante ao passar o mouse */
+    .nav-itens a::after {
+      content: '';
+      position: absolute;
+      bottom: -4px;
+      left: 0;
+      width: 0;
+      height: 1.5px;
+      background: var(--vermelho);
+      transition: width 0.3s ease;
+    }
+
+    .nav-itens a:hover {
+      color: var(--branco);
+    }
+
+    .nav-itens a:hover::after {
+      width: 100%;
+    }
+
+    .nav-botao {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--branco);
+      background: var(--vermelho);
+      padding: 0.65rem 1.6rem;
+      border: none;
+      cursor: none;
+      text-decoration: none;
+      clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
+      transition: background 0.3s, transform 0.2s;
+    }
+
+    .nav-botao:hover {
+      background: var(--vermelho-escuro);
+      transform: translateY(-1px);
+    }
+
+    /* ─────────────────────────────────────────
+   HERÓI — SEÇÃO PRINCIPAL
+───────────────────────────────────────── */
+    #heroi {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      position: relative;
+      overflow: hidden;
+      padding: 0 4rem;
+    }
+
+    .heroi-fundo {
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 60% 80% at 70% 50%, rgba(255, 30, 45, 0.07) 0%, transparent 60%),
+        radial-gradient(ellipse 40% 60% at 20% 80%, rgba(240, 180, 41, 0.04) 0%, transparent 50%),
+        var(--preto);
+    }
+
+    /* Grade de linhas decorativas no fundo */
+    .heroi-linhas {
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255, 30, 45, 0.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 30, 45, 0.06) 1px, transparent 1px);
+      background-size: 60px 60px;
+      mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 30%, transparent 80%);
+    }
+
+    /* Número gigante decorativo com parallax */
+    .heroi-numero {
+      position: absolute;
+      right: 4rem;
+      top: 50%;
+      transform: translateY(-50%);
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(200px, 30vw, 480px);
+      color: transparent;
+      -webkit-text-stroke: 1px rgba(255, 30, 45, 0.08);
+      line-height: 1;
+      user-select: none;
+      will-change: transform;
+    }
+
+    .heroi-conteudo {
+      position: relative;
+      z-index: 2;
+      max-width: 700px;
+    }
+
+    /* Rótulo acima do título principal */
+    .heroi-rotulo {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--vermelho);
+      margin-bottom: 1.2rem;
+      opacity: 0;
+      transform: translateY(20px);
+      animation: subirAparecer 0.8s 0.2s forwards;
+    }
+
+    .heroi-titulo {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(70px, 10vw, 140px);
+      line-height: 0.92;
+      letter-spacing: 0.02em;
+      color: var(--branco);
+      margin-bottom: 1.8rem;
+      opacity: 0;
+      transform: translateY(30px);
+      animation: subirAparecer 0.9s 0.4s forwards;
+    }
+
+    .heroi-titulo em {
+      font-style: normal;
+      color: var(--vermelho);
+      display: block;
+    }
+
+    .heroi-descricao {
+      font-size: 1.05rem;
+      line-height: 1.7;
+      color: var(--cinza);
+      max-width: 480px;
+      margin-bottom: 2.5rem;
+      opacity: 0;
+      transform: translateY(20px);
+      animation: subirAparecer 0.8s 0.6s forwards;
+    }
+
+    .heroi-acoes {
+      display: flex;
+      gap: 1.2rem;
+      align-items: center;
+      opacity: 0;
+      transform: translateY(20px);
+      animation: subirAparecer 0.8s 0.8s forwards;
+    }
+
+    /* Botão principal com efeito de preenchimento */
+    .botao-principal {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--branco);
+      background: var(--vermelho);
+      padding: 1rem 2.4rem;
+      border: none;
+      cursor: none;
+      text-decoration: none;
+      display: inline-block;
+      clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 14px 100%, 0 calc(100% - 14px));
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.2s;
+    }
+
+    .botao-principal::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: var(--vermelho-escuro);
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 0.3s ease;
+    }
+
+    .botao-principal span {
+      position: relative;
+      z-index: 1;
+    }
+
+    .botao-principal:hover::before {
+      transform: scaleX(1);
+    }
+
+    .botao-principal:hover {
+      transform: translateY(-2px);
+    }
+
+    /* Botão secundário com seta deslizante */
+    .botao-secundario {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--cinza);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      transition: color 0.3s, gap 0.3s;
+    }
+
+    .botao-secundario svg {
+      transition: transform 0.3s;
+    }
+
+    .botao-secundario:hover {
+      color: var(--branco);
+      gap: 1rem;
+    }
+
+    .botao-secundario:hover svg {
+      transform: translateX(4px);
+    }
+
+    /* Indicador de rolar para baixo */
+    .heroi-rolar {
+      position: absolute;
+      bottom: 2rem;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+      opacity: 0;
+      animation: aparecer 1s 1.2s forwards;
+    }
+
+    .rolar-linha {
+      width: 1px;
+      height: 50px;
+      background: linear-gradient(to bottom, var(--vermelho), transparent);
+      animation: pulsarScroll 2s infinite;
+    }
+
+    .rolar-texto {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 0.7rem;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--cinza);
+      writing-mode: vertical-rl;
+    }
+
+    /* ─────────────────────────────────────────
+   SEÇÃO DE NÚMEROS / ESTATÍSTICAS
+───────────────────────────────────────── */
+    #numeros {
+      padding: 5rem 4rem;
+      background: var(--escuro);
+      border-top: 1px solid rgba(255, 30, 45, 0.1);
+      border-bottom: 1px solid rgba(255, 30, 45, 0.1);
+    }
+
+    .numeros-grade {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0;
+    }
+
+    .numero-item {
+      padding: 2rem 3rem;
+      text-align: center;
+      border-right: 1px solid rgba(255, 255, 255, 0.05);
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity 0.6s, transform 0.6s;
+    }
+
+    .numero-item:last-child {
+      border-right: none;
+    }
+
+    .numero-item.visivel {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .numero-valor {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(3rem, 5vw, 5rem);
+      color: var(--branco);
+      line-height: 1;
+      margin-bottom: 0.3rem;
+    }
+
+    .numero-valor span {
+      color: var(--vermelho);
+    }
+
+    .numero-legenda {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--cinza);
+    }
+
+    /* ─────────────────────────────────────────
+   ELEMENTOS COMPARTILHADOS ENTRE SEÇÕES
+───────────────────────────────────────── */
+    section {
+      position: relative;
+    }
+
+    /* Rótulo acima dos títulos de seção */
+    .secao-rotulo {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--vermelho);
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .secao-rotulo::before {
+      content: '';
+      display: block;
+      width: 30px;
+      height: 1.5px;
+      background: var(--vermelho);
+    }
+
+    .secao-titulo {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(2.8rem, 5vw, 5rem);
+      line-height: 1;
+      letter-spacing: 0.03em;
+      color: var(--branco);
+      margin-bottom: 1.5rem;
+    }
+
+    .secao-titulo em {
+      font-style: normal;
+      color: var(--vermelho);
+    }
+
+    /* Classe de animação: aparece ao entrar na tela */
+    .revelar {
+      opacity: 0;
+      transform: translateY(40px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+
+    .revelar.visivel {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ─────────────────────────────────────────
+   SEÇÃO DE MODALIDADES
+───────────────────────────────────────── */
+    #modalidades {
+      padding: 8rem 4rem;
+      background: var(--preto);
+    }
+
+    .modalidades-cabecalho {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-bottom: 4rem;
+    }
+
+    .modalidades-descricao {
+      max-width: 340px;
+      font-size: 0.95rem;
+      color: var(--cinza);
+      line-height: 1.7;
+    }
+
+    .modalidades-grade {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5px;
+      background: rgba(255, 30, 45, 0.08);
+    }
+
+    /* Cartão de cada modalidade */
+    .modalidade-cartao {
+      background: var(--escuro);
+      padding: 3rem 2.5rem;
+      position: relative;
+      overflow: hidden;
+      cursor: none;
+      opacity: 0;
+      transform: translateY(30px) scale(0.98);
+      transition: opacity 0.6s, transform 0.6s, background 0.3s;
+    }
+
+    .modalidade-cartao.visivel {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+
+    /* Barra vermelha que desliza na parte inferior ao hover */
+    .modalidade-cartao::before {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 3px;
+      background: var(--vermelho);
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 0.4s ease;
+    }
+
+    .modalidade-cartao:hover {
+      background: var(--escuro2);
+    }
+
+    .modalidade-cartao:hover::before {
+      transform: scaleX(1);
+    }
+
+    .modalidade-icone {
+      width: 56px;
+      height: 56px;
+      background: rgba(255, 30, 45, 0.1);
+      border: 1px solid rgba(255, 30, 45, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 1.8rem;
+      clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px));
+      transition: background 0.3s;
+    }
+
+    .modalidade-cartao:hover .modalidade-icone {
+      background: rgba(255, 30, 45, 0.2);
+    }
+
+    .modalidade-icone svg {
+      color: var(--vermelho);
+    }
+
+    /* Número decorativo em marca d'água */
+    .modalidade-numero {
+      position: absolute;
+      top: 1.5rem;
+      right: 2rem;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 5rem;
+      color: transparent;
+      -webkit-text-stroke: 1px rgba(255, 255, 255, 0.04);
+      line-height: 1;
+      user-select: none;
+    }
+
+    .modalidade-nome {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--branco);
+      margin-bottom: 0.8rem;
+    }
+
+    .modalidade-texto {
+      font-size: 0.9rem;
+      color: var(--cinza);
+      line-height: 1.7;
+    }
+
+    /* ─────────────────────────────────────────
+   SEÇÃO DE TREINADORES
+───────────────────────────────────────── */
+    #treinadores {
+      padding: 8rem 4rem;
+      background: var(--escuro);
+    }
+
+    .treinadores-grade {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1px;
+      background: rgba(255, 255, 255, 0.04);
+      margin-top: 4rem;
+    }
+
+    .treinador-cartao {
+      background: var(--escuro);
+      overflow: hidden;
+      position: relative;
+      cursor: none;
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity 0.6s, transform 0.6s;
+    }
+
+    .treinador-cartao.visivel {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Caixa que contém a foto do treinador */
+    .treinador-foto-caixa {
+      width: 100%;
+      aspect-ratio: 3/4;
+      position: relative;
+      overflow: hidden;
+      background: var(--escuro2);
+    }
+
+    .treinador-foto {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center top;
+      display: none;
+      transition: transform 0.6s ease;
+    }
+
+    .treinador-cartao:hover .treinador-foto {
+      transform: scale(1.04);
+    }
+
+    /* Placeholder exibido quando não há foto */
+    .treinador-reserva {
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(160deg, #1a1020 0%, #0e0e12 60%, #0a0e14 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 1.2rem;
+      position: absolute;
+      inset: 0;
+    }
+
+    .treinador-reserva::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle 80px at 50% 35%, rgba(255, 30, 45, 0.12) 0%, transparent 70%),
+        repeating-linear-gradient(45deg,
+          transparent,
+          transparent 18px,
+          rgba(255, 30, 45, 0.025) 18px,
+          rgba(255, 30, 45, 0.025) 19px);
+      pointer-events: none;
+    }
+
+    /* Círculo com iniciais do treinador */
+    .treinador-iniciais {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      border: 1.5px solid rgba(255, 30, 45, 0.35);
+      background: rgba(255, 30, 45, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.8rem;
+      letter-spacing: 0.05em;
+      color: rgba(255, 30, 45, 0.7);
+      position: relative;
+      z-index: 1;
+    }
+
+    .treinador-reserva-legenda {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.25);
+      text-align: center;
+      line-height: 1.6;
+      position: relative;
+      z-index: 1;
+    }
+
+    .treinador-reserva-legenda span {
+      display: block;
+      color: rgba(255, 30, 45, 0.4);
+      font-size: 0.65rem;
+      font-weight: 500;
+      letter-spacing: 0.05em;
+      text-transform: none;
+      margin-top: 0.2rem;
+      font-family: 'Barlow', monospace;
+    }
+
+    /* Área de nome e especialidade */
+    .treinador-info {
+      padding: 1.5rem 1.8rem;
+      background: var(--escuro);
+      border-top: 2px solid var(--vermelho);
+      position: relative;
+      transform: translateY(0);
+      transition: transform 0.4s ease;
+    }
+
+    .treinador-cartao:hover .treinador-info {
+      transform: translateY(-4px);
+    }
+
+    .treinador-nome {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 1.3rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--branco);
+      letter-spacing: 0.05em;
+    }
+
+    .treinador-especialidade {
+      font-size: 0.8rem;
+      color: var(--vermelho);
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-top: 0.2rem;
+    }
+
+    /* Sobreposição com estatísticas ao passar o mouse */
+    .treinador-sobreposicao {
+      position: absolute;
+      inset: 0;
+      background: rgba(7, 7, 9, 0.85);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 1rem;
+      opacity: 0;
+      transition: opacity 0.4s ease;
+    }
+
+    .treinador-cartao:hover .treinador-sobreposicao {
+      opacity: 1;
+    }
+
+    .treinador-estatistica {
+      text-align: center;
+    }
+
+    .treinador-estatistica-numero {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 2.5rem;
+      color: var(--branco);
+      line-height: 1;
+    }
+
+    .treinador-estatistica-numero span {
+      color: var(--vermelho);
+    }
+
+    .treinador-estatistica-legenda {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 0.7rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--cinza);
+    }
+
+    /* ─────────────────────────────────────────
+   SEÇÃO DE PLANOS E PREÇOS
+───────────────────────────────────────── */
+    #planos {
+      padding: 8rem 4rem;
+      background: var(--preto);
+    }
+
+    .planos-grade {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5px;
+      margin-top: 4rem;
+      background: rgba(255, 30, 45, 0.06);
+    }
+
+    .plano-cartao {
+      background: var(--escuro);
+      padding: 3rem 2.5rem;
+      position: relative;
+      overflow: hidden;
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity 0.6s, transform 0.6s, background 0.3s;
+    }
+
+    .plano-cartao.visivel {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Plano em destaque (mais popular) */
+    .plano-cartao.destaque {
+      background: var(--escuro2);
+    }
+
+    .plano-cartao.destaque::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--vermelho), var(--dourado));
+    }
+
+    .plano-emblema {
+      display: inline-block;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--preto);
+      background: var(--dourado);
+      padding: 0.3rem 0.8rem;
+      margin-bottom: 1.5rem;
+      clip-path: polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px));
+    }
+
+    .plano-nome {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--cinza);
+      margin-bottom: 1.2rem;
+    }
+
+    .plano-preco {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 5rem;
+      line-height: 1;
+      color: var(--branco);
+      margin-bottom: 0.2rem;
+    }
+
+    .plano-preco sup {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 1.5rem;
+      font-weight: 600;
+      vertical-align: super;
+      color: var(--vermelho);
+    }
+
+    .plano-periodo {
+      font-size: 0.82rem;
+      color: var(--cinza);
+      margin-bottom: 2rem;
+      padding-bottom: 2rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .plano-beneficios {
+      list-style: none;
+      margin-bottom: 2.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.8rem;
+    }
+
+    .plano-beneficios li {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      font-size: 0.88rem;
+      color: var(--claro);
+    }
+
+    /* Ícone de verificação para benefícios ativos */
+    .plano-beneficios li::before {
+      content: '';
+      width: 16px;
+      height: 16px;
+      background: rgba(255, 30, 45, 0.15);
+      border: 1px solid rgba(255, 30, 45, 0.4);
+      border-radius: 50%;
+      flex-shrink: 0;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8' viewBox='0 0 8 8'%3E%3Cpath d='M1.5 4L3.5 6L6.5 2' stroke='%23FF1E2D' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: center;
+    }
+
+    /* Benefício indisponível no plano */
+    .plano-beneficios li.inativo {
+      color: var(--cinza);
+      opacity: 0.5;
+    }
+
+    .plano-beneficios li.inativo::before {
+      background: rgba(255, 255, 255, 0.04);
+      border-color: rgba(255, 255, 255, 0.1);
+      background-image: none;
+    }
+
+    /* Botão de escolha do plano com preenchimento animado */
+    .botao-plano {
+      display: block;
+      text-align: center;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      padding: 1rem;
+      border: 1.5px solid rgba(255, 30, 45, 0.4);
+      color: var(--vermelho);
+      text-decoration: none;
+      cursor: none;
+      position: relative;
+      overflow: hidden;
+      transition: color 0.3s;
+      clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
+    }
+
+    .botao-plano::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: var(--vermelho);
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 0.3s ease;
+      z-index: 0;
+    }
+
+    .botao-plano span {
+      position: relative;
+      z-index: 1;
+    }
+
+    .botao-plano:hover {
+      color: var(--branco);
+    }
+
+    .botao-plano:hover::before {
+      transform: scaleX(1);
+    }
+
+    /* Variante do botão para o plano em destaque */
+    .botao-destaque {
+      background: var(--vermelho);
+      border-color: var(--vermelho);
+      color: var(--branco);
+    }
+
+    .botao-destaque::before {
+      background: var(--vermelho-escuro);
+    }
+
+    /* ─────────────────────────────────────────
+   SEÇÃO DE DEPOIMENTOS (CARROSSEL)
+───────────────────────────────────────── */
+    #depoimentos {
+      padding: 8rem 4rem;
+      background: var(--escuro);
+      overflow: hidden;
+    }
+
+    /* Caixa com máscara de gradiente nas bordas */
+    .depoimentos-trilha-caixa {
+      overflow: hidden;
+      margin-top: 4rem;
+      position: relative;
+    }
+
+    .depoimentos-trilha-caixa::before,
+    .depoimentos-trilha-caixa::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 120px;
+      z-index: 2;
+    }
+
+    .depoimentos-trilha-caixa::before {
+      left: 0;
+      background: linear-gradient(to right, var(--escuro), transparent);
+    }
+
+    .depoimentos-trilha-caixa::after {
+      right: 0;
+      background: linear-gradient(to left, var(--escuro), transparent);
+    }
+
+    /* Trilha animada que rola continuamente */
+    .depoimentos-trilha {
+      display: flex;
+      gap: 1.5rem;
+      animation: rolaTrilha 30s linear infinite;
+      width: max-content;
+    }
+
+    .depoimentos-trilha:hover {
+      animation-play-state: paused;
+    }
+
+    .depoimento-cartao {
+      width: 380px;
+      flex-shrink: 0;
+      background: var(--preto);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      padding: 2rem 2.2rem;
+      position: relative;
+    }
+
+    /* Aspas decorativas */
+    .depoimento-cartao::before {
+      content: '"';
+      position: absolute;
+      top: 1rem;
+      right: 1.5rem;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 6rem;
+      color: rgba(255, 30, 45, 0.1);
+      line-height: 1;
+    }
+
+    .depoimento-estrelas {
+      display: flex;
+      gap: 3px;
+      margin-bottom: 1rem;
+    }
+
+    .depoimento-estrelas span {
+      color: var(--dourado);
+      font-size: 0.9rem;
+    }
+
+    .depoimento-texto {
+      font-size: 0.9rem;
+      line-height: 1.7;
+      color: var(--claro);
+      margin-bottom: 1.5rem;
+    }
+
+    .depoimento-autor {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+    }
+
+    .depoimento-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: var(--vermelho);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--branco);
+      flex-shrink: 0;
+    }
+
+    .depoimento-nome {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700;
+      font-size: 0.9rem;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--branco);
+    }
+
+    .depoimento-cargo {
+      font-size: 0.78rem;
+      color: var(--cinza);
+    }
+
+    /* ─────────────────────────────────────────
+   SEÇÃO DE CHAMADA PARA AÇÃO (CTA)
+───────────────────────────────────────── */
+    #chamada {
+      padding: 8rem 4rem;
+      background: var(--preto);
+      position: relative;
+      overflow: hidden;
+      text-align: center;
+    }
+
+    #chamada::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse 70% 70% at 50% 50%, rgba(255, 30, 45, 0.1) 0%, transparent 65%);
+    }
+
+    /* Texto gigante decorativo no fundo */
+    .chamada-fundo-texto {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(100px, 18vw, 260px);
+      color: transparent;
+      -webkit-text-stroke: 1px rgba(255, 30, 45, 0.06);
+      white-space: nowrap;
+      user-select: none;
+    }
+
+    .chamada-conteudo {
+      position: relative;
+      z-index: 2;
+    }
+
+    .chamada-titulo {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(3rem, 6vw, 7rem);
+      line-height: 0.95;
+      color: var(--branco);
+      margin-bottom: 1.5rem;
+    }
+
+    .chamada-titulo em {
+      color: var(--vermelho);
+      font-style: normal;
+    }
+
+    .chamada-subtitulo {
+      font-size: 1rem;
+      color: var(--cinza);
+      max-width: 500px;
+      margin: 0 auto 2.5rem;
+      line-height: 1.7;
+    }
+
+    /* Formulário de captura de e-mail */
+    .chamada-formulario {
+      display: flex;
+      gap: 0;
+      max-width: 480px;
+      margin: 0 auto;
+    }
+
+    .chamada-campo {
+      flex: 1;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-right: none;
+      padding: 1rem 1.4rem;
+      color: var(--branco);
+      font-family: 'Barlow', sans-serif;
+      font-size: 0.9rem;
+      outline: none;
+      transition: border-color 0.3s;
+    }
+
+    .chamada-campo::placeholder {
+      color: var(--cinza);
+    }
+
+    .chamada-campo:focus {
+      border-color: rgba(255, 30, 45, 0.5);
+    }
+
+    .chamada-enviar {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      background: var(--vermelho);
+      color: var(--branco);
+      border: none;
+      padding: 1rem 2rem;
+      cursor: none;
+      transition: background 0.3s;
+    }
+
+    .chamada-enviar:hover {
+      background: var(--vermelho-escuro);
+    }
+
+    /* ─────────────────────────────────────────
+   RODAPÉ
+───────────────────────────────────────── */
+    footer {
+      background: var(--escuro);
+      border-top: 1px solid rgba(255, 30, 45, 0.1);
+      padding: 4rem 4rem 2rem;
+    }
+
+    .rodape-grade {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 3rem;
+      margin-bottom: 3rem;
+      padding-bottom: 3rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .rodape-marca .logomarca {
+      display: block;
+      margin-bottom: 1rem;
+    }
+
+    .rodape-descricao {
+      font-size: 0.88rem;
+      color: var(--cinza);
+      line-height: 1.7;
+      max-width: 300px;
+    }
+
+    .rodape-titulo {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--vermelho);
+      margin-bottom: 1.2rem;
+    }
+
+    .rodape-itens {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+    }
+
+    .rodape-itens a {
+      font-size: 0.88rem;
+      color: var(--cinza);
+      text-decoration: none;
+      transition: color 0.3s;
+    }
+
+    .rodape-itens a:hover {
+      color: var(--branco);
+    }
+
+    .rodape-base {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .rodape-direitos {
+      font-size: 0.78rem;
+      color: var(--cinza);
+    }
+
+    .rodape-direitos span {
+      color: var(--vermelho);
+    }
+
+    .redes-sociais {
+      display: flex;
+      gap: 1rem;
+    }
+
+    /* Ícone de rede social — forma geométrica angular (clip-path) */
+    .rede-link {
+      width: 42px;
+      height: 42px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--cinza);
+      text-decoration: none;
+      position: relative;
+      overflow: hidden;
+      clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px));
+      transition: color 0.3s, border-color 0.3s;
+      cursor: none;
+    }
+
+    /* Fundo vermelho que desliza ao hover */
+    .rede-link::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: rgba(255, 30, 45, 0.15);
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 0.35s ease;
+      z-index: 0;
+    }
+
+    .rede-link svg {
+      position: relative;
+      z-index: 1;
+      transition: transform 0.3s ease;
+    }
+
+    .rede-link:hover {
+      border-color: rgba(255, 30, 45, 0.5);
+      color: var(--vermelho);
+    }
+
+    .rede-link:hover::before {
+      transform: scaleX(1);
+    }
+
+    .rede-link:hover svg {
+      transform: scale(1.15);
+    }
+
+    /* ─────────────────────────────────────────
+   FAIXA MARQUEE (ROLANTE)
+───────────────────────────────────────── */
+    .faixa-rolante {
+      background: var(--vermelho);
+      padding: 0.75rem 0;
+      overflow: hidden;
+      border-top: none;
+    }
+
+    .faixa-interior {
+      display: flex;
+      animation: animFaixaRolante 18s linear infinite;
+      width: max-content;
+    }
+
+    .faixa-item {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1rem;
+      letter-spacing: 0.2em;
+      color: rgba(255, 255, 255, 0.9);
+      padding: 0 2.5rem;
+      display: flex;
+      align-items: center;
+      gap: 2.5rem;
+      white-space: nowrap;
+    }
+
+    .faixa-ponto {
+      width: 5px;
+      height: 5px;
+      background: rgba(255, 255, 255, 0.5);
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    /* ─────────────────────────────────────────
+   TRANSIÇÃO DE PÁGINA (OVERLAY VERMELHO)
+───────────────────────────────────────── */
+    .transicao-pagina {
+      position: fixed;
+      inset: 0;
+      background: var(--vermelho);
+      z-index: 9990;
+      transform: translateX(-100%);
+      pointer-events: none;
+    }
+
+    /* ─────────────────────────────────────────
+   ANIMAÇÕES GLOBAIS
+───────────────────────────────────────── */
+    @keyframes subirAparecer {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes aparecer {
+      to {
+        opacity: 1;
+      }
+    }
+
+    @keyframes pulsarScroll {
+
+      0%,
+      100% {
+        opacity: 0.3;
+        transform: scaleY(1);
+      }
+
+      50% {
+        opacity: 1;
+        transform: scaleY(1.1);
+      }
+    }
+
+    @keyframes rolaTrilha {
+      from {
+        transform: translateX(0);
+      }
+
+      to {
+        transform: translateX(-50%);
+      }
+    }
+
+    @keyframes animFaixaRolante {
+      from {
+        transform: translateX(0);
+      }
+
+      to {
+        transform: translateX(-50%);
+      }
+    }
+
+    @keyframes flutuar {
+
+      0%,
+      100% {
+        transform: translateY(-50%) translateX(0);
+      }
+
+      50% {
+        transform: translateY(-50%) translateX(-20px);
+      }
+    }
+
+    /* ─────────────────────────────────────────
+   LINHA DECORATIVA VERTICAL
+───────────────────────────────────────── */
+    .linha-decorativa {
+      position: absolute;
+      top: 0;
+      right: 15%;
+      width: 1px;
+      height: 100%;
+      background: linear-gradient(to bottom, transparent, rgba(255, 30, 45, 0.12) 40%, rgba(255, 30, 45, 0.12) 60%, transparent);
+      pointer-events: none;
+    }
+
+    /* ─────────────────────────────────────────
+   TELA DE CARREGAMENTO INICIAL
+───────────────────────────────────────── */
+    #tela-carregando {
+      position: fixed;
+      inset: 0;
+      z-index: 9995;
+      background: var(--preto);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2.5rem;
+      transition: none;
+      pointer-events: all;
+    }
+
+    /* Animação de saída: sobe e some */
+    #tela-carregando.esconder {
+      animation: carregadorSair 0.9s cubic-bezier(0.77, 0, 0.175, 1) forwards;
+    }
+
+    @keyframes carregadorSair {
+      0% {
+        clip-path: inset(0 0 0 0);
+      }
+
+      100% {
+        clip-path: inset(0 0 100% 0);
+      }
+    }
+
+    .carregador-logomarca {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 4rem;
+      letter-spacing: 0.12em;
+      color: var(--branco);
+      opacity: 0;
+      animation: carregadorLogoEntrar 0.7s 0.1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+
+    .carregador-logomarca span {
+      color: var(--vermelho);
+    }
+
+    @keyframes carregadorLogoEntrar {
+      from {
+        opacity: 0;
+        transform: translateY(16px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .carregador-slogan {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.35em;
+      text-transform: uppercase;
+      color: var(--cinza);
+      margin-top: -2rem;
+      opacity: 0;
+      animation: carregadorLogoEntrar 0.6s 0.3s forwards;
+    }
+
+    .carregador-barra-caixa {
+      width: min(320px, 70vw);
+      height: 2px;
+      background: rgba(255, 255, 255, 0.06);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .carregador-barra {
+      height: 100%;
+      width: 0%;
+      background: var(--vermelho);
+      transition: width 0.25s ease;
+      position: relative;
+    }
+
+    /* Bolinha brilhante na ponta da barra */
+    .carregador-barra::after {
+      content: '';
+      position: absolute;
+      right: 0;
+      top: -2px;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--vermelho);
+      box-shadow: 0 0 8px var(--vermelho);
+    }
+
+    .carregador-porcentagem {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1rem;
+      letter-spacing: 0.2em;
+      color: var(--cinza);
+      min-width: 48px;
+      text-align: center;
+    }
+
+    .carregador-base {
+      display: flex;
+      align-items: center;
+      gap: 1.2rem;
+      margin-top: -1rem;
+    }
+
+    .carregador-pontos {
+      display: flex;
+      gap: 5px;
+    }
+
+    .carregador-pontos span {
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: var(--vermelho);
+      animation: pontoPulsar 1.2s infinite ease-in-out;
+    }
+
+    .carregador-pontos span:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+
+    .carregador-pontos span:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+
+    @keyframes pontoPulsar {
+
+      0%,
+      80%,
+      100% {
+        transform: scale(0.6);
+        opacity: 0.3;
+      }
+
+      40% {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+
+    .carregador-status {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--cinza);
+      min-width: 130px;
+    }
+
+    /* Bloqueia o scroll enquanto a página ainda está carregando */
+    body.carregando {
+      overflow: hidden;
+    }
+
+    /* ─────────────────────────────────────────
+   GALERIA DE FOTOS DO AMBIENTE
+───────────────────────────────────────── */
+    #galeria {
+      padding: 8rem 4rem;
+      background: var(--preto);
+      overflow: hidden;
+    }
+
+    .galeria-cabecalho {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-bottom: 3.5rem;
+    }
+
+    .galeria-cabecalho-texto {
+      max-width: 500px;
+    }
+
+    .galeria-subtitulo {
+      font-size: 0.95rem;
+      color: var(--cinza);
+      line-height: 1.7;
+      max-width: 340px;
+    }
+
+    /* Grade mosaico com células de tamanhos diferentes */
+    .galeria-mosaico {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      grid-template-rows: 280px 280px;
+      gap: 6px;
+    }
+
+    .foto-item {
+      position: relative;
+      overflow: hidden;
+      cursor: none;
+      opacity: 0;
+      transform: scale(0.96);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+
+    .foto-item.visivel {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    /* Posicionamento específico de cada foto no mosaico */
+    .foto-item:nth-child(1) {
+      grid-column: span 5;
+      grid-row: span 2;
+    }
+
+    .foto-item:nth-child(2) {
+      grid-column: span 4;
+      grid-row: span 1;
+    }
+
+    .foto-item:nth-child(3) {
+      grid-column: span 3;
+      grid-row: span 1;
+    }
+
+    .foto-item:nth-child(4) {
+      grid-column: span 3;
+      grid-row: span 1;
+    }
+
+    .foto-item:nth-child(5) {
+      grid-column: span 4;
+      grid-row: span 1;
+    }
+
+    .foto-item img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94), filter 0.5s ease;
+      filter: brightness(0.82) saturate(0.9);
+    }
+
+    /* Zoom e escurecimento ao passar o mouse */
+    .foto-item:hover img {
+      transform: scale(1.07);
+      filter: brightness(0.55) saturate(1.1);
+    }
+
+    /* Gradiente sobreposto à foto */
+    .foto-sobreposicao {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(7, 7, 9, 0.85) 0%, transparent 55%);
+      pointer-events: none;
+      transition: background 0.4s;
+    }
+
+    .foto-item:hover .foto-sobreposicao {
+      background: linear-gradient(to top, rgba(7, 7, 9, 0.7) 0%, rgba(255, 30, 45, 0.08) 100%);
+    }
+
+    /* Legenda que aparece ao hover */
+    .foto-legenda {
+      position: absolute;
+      bottom: 1.4rem;
+      left: 1.4rem;
+      right: 1.4rem;
+      transform: translateY(6px);
+      opacity: 0;
+      transition: opacity 0.35s ease, transform 0.35s ease;
+    }
+
+    .foto-item:hover .foto-legenda {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .foto-etiqueta {
+      display: inline-block;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--preto);
+      background: var(--vermelho);
+      padding: 0.2rem 0.6rem;
+      margin-bottom: 0.4rem;
+      clip-path: polygon(0 0, calc(100% - 5px) 0, 100% 5px, 100% 100%, 5px 100%, 0 calc(100% - 5px));
+    }
+
+    .foto-titulo {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--branco);
+      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+    }
+
+    /* Botão de ampliar (lupa) no canto da foto */
+    .foto-ampliar {
+      position: absolute;
+      top: 1.2rem;
+      right: 1.2rem;
+      width: 36px;
+      height: 36px;
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(6px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transform: scale(0.8);
+      transition: opacity 0.35s, transform 0.35s, background 0.3s;
+    }
+
+    .foto-item:hover .foto-ampliar {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    .foto-ampliar:hover {
+      background: var(--vermelho);
+      border-color: var(--vermelho);
+    }
+
+    .foto-ampliar svg {
+      color: #fff;
+    }
+
+    /* ─────────────────────────────────────────
+   VISOR DE IMAGEM EM TELA CHEIA (LIGHTBOX)
+───────────────────────────────────────── */
+    #visor-imagem {
+      position: fixed;
+      inset: 0;
+      z-index: 9000;
+      background: rgba(7, 7, 9, 0.97);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.35s ease;
+    }
+
+    #visor-imagem.aberto {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    #visor-imagem img {
+      max-width: min(90vw, 1100px);
+      max-height: 85vh;
+      object-fit: contain;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      transform: scale(0.94);
+      transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    #visor-imagem.aberto img {
+      transform: scale(1);
+    }
+
+    .visor-fechar {
+      position: absolute;
+      top: 1.5rem;
+      right: 1.5rem;
+      width: 44px;
+      height: 44px;
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: none;
+      transition: background 0.3s;
+    }
+
+    .visor-fechar:hover {
+      background: var(--vermelho);
+      border-color: var(--vermelho);
+    }
+
+    .visor-fechar svg {
+      color: #fff;
+    }
+
+    .visor-legenda {
+      position: absolute;
+      bottom: 2rem;
+      left: 50%;
+      transform: translateX(-50%);
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 600;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.5);
+      white-space: nowrap;
+    }
+
+    /* Botões de navegação anterior/próxima */
+    .visor-navegar {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 50px;
+      height: 50px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: none;
+      transition: background 0.3s;
+    }
+
+    .visor-navegar:hover {
+      background: var(--vermelho);
+      border-color: var(--vermelho);
+    }
+
+    .visor-navegar svg {
+      color: #fff;
+    }
+
+    .visor-anterior {
+      left: 1.5rem;
+    }
+
+    .visor-proximo {
+      right: 1.5rem;
+    }
+
+    /* ─────────────────────────────────────────
+   FAIXA DE MINIATURAS (STRIP ROLANTE)
+───────────────────────────────────────── */
+    .galeria-faixa {
+      margin-top: 6px;
+      display: flex;
+      gap: 6px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Desvanecer nas bordas com gradiente */
+    .galeria-faixa::before,
+    .galeria-faixa::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 80px;
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    .galeria-faixa::before {
+      left: 0;
+      background: linear-gradient(to right, var(--preto), transparent);
+    }
+
+    .galeria-faixa::after {
+      right: 0;
+      background: linear-gradient(to left, var(--preto), transparent);
+    }
+
+    .faixa-trilha {
+      display: flex;
+      gap: 6px;
+      animation: faixaRolar 22s linear infinite;
+      width: max-content;
+    }
+
+    .faixa-trilha:hover {
+      animation-play-state: paused;
+    }
+
+    .faixa-miniatura {
+      width: 180px;
+      height: 110px;
+      flex-shrink: 0;
+      overflow: hidden;
+      position: relative;
+      cursor: none;
+    }
+
+    .faixa-miniatura img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      filter: brightness(0.7) saturate(0.8);
+      transition: transform 0.5s ease, filter 0.4s;
+    }
+
+    .faixa-miniatura:hover img {
+      transform: scale(1.1);
+      filter: brightness(0.9) saturate(1.1);
+    }
+
+    @keyframes faixaRolar {
+      from {
+        transform: translateX(0);
+      }
+
+      to {
+        transform: translateX(-50%);
+      }
+    }
+
+    /* ─────────────────────────────────────────
+   RESPONSIVO — DISPOSITIVOS MÓVEIS
+───────────────────────────────────────── */
+    @media (max-width: 900px) {
+      nav {
+        padding: 1.2rem 1.5rem;
+      }
+
+      .nav-itens,
+      .nav-botao {
+        display: none;
+      }
+
+      #heroi {
+        padding: 0 1.5rem;
+      }
+
+      .heroi-numero {
+        display: none;
+      }
+
+      #numeros {
+        padding: 4rem 1.5rem;
+      }
+
+      .numeros-grade {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .numero-item {
+        border-right: none;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      }
+
+      #modalidades,
+      #galeria,
+      #treinadores,
+      #planos,
+      #depoimentos,
+      #chamada {
+        padding: 5rem 1.5rem;
+      }
+
+      .galeria-cabecalho {
+        flex-direction: column;
+        gap: 1.5rem;
+        align-items: flex-start;
+      }
+
+      .galeria-mosaico {
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: 200px 200px 200px;
+      }
+
+      .foto-item:nth-child(1) {
+        grid-column: span 2;
+        grid-row: span 1;
+      }
+
+      .foto-item:nth-child(2) {
+        grid-column: span 1;
+        grid-row: span 1;
+      }
+
+      .foto-item:nth-child(3) {
+        grid-column: span 1;
+        grid-row: span 1;
+      }
+
+      .foto-item:nth-child(4) {
+        grid-column: span 1;
+        grid-row: span 1;
+      }
+
+      .foto-item:nth-child(5) {
+        grid-column: span 1;
+        grid-row: span 1;
+      }
+
+      .modalidades-cabecalho {
+        flex-direction: column;
+        gap: 1.5rem;
+        align-items: flex-start;
+      }
+
+      .modalidades-grade,
+      .treinadores-grade,
+      .planos-grade {
+        grid-template-columns: 1fr;
+      }
+
+      footer {
+        padding: 3rem 1.5rem 2rem;
+      }
+
+      .rodape-grade {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .rodape-base {
+        flex-direction: column;
+        gap: 1.5rem;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ─────────────────────────────────────────
+     TELA DE CARREGAMENTO
+     Aparece até que todos os recursos sejam carregados
+───────────────────────────────────────── -->
+  <div id="tela-carregando">
+    <div class="carregador-logomarca">APEX<span>.</span></div>
+    <div class="carregador-slogan">Eleve seus limites</div>
+    <div class="carregador-barra-caixa">
+      <div class="carregador-barra" id="barraPorcentagem"></div>
+    </div>
+    <div class="carregador-base">
+      <div class="carregador-pontos">
+        <span></span><span></span><span></span>
+      </div>
+      <div class="carregador-status" id="textoStatus">Carregando...</div>
+      <div class="carregador-porcentagem" id="numeroPorcentagem">0%</div>
+    </div>
+  </div>
+
+  <!-- Ponteiro personalizado (bolinha e anel) -->
+  <div class="ponteiro" id="ponteiro"></div>
+  <div class="ponteiro-anel" id="ponteiroAnel"></div>
+
+  <!-- Overlay de transição entre seções -->
+  <div class="transicao-pagina" id="transicaoPagina"></div>
+
+  <!-- ─────────────────────────────────────────
+     NAVEGAÇÃO PRINCIPAL
+───────────────────────────────────────── -->
+  <nav id="barraNave">
+    <a href="#" class="logomarca">APEX<span>.</span></a>
+    <ul class="nav-itens">
+      <li><a href="#modalidades">Modalidades</a></li>
+      <li><a href="#treinadores">Treinadores</a></li>
+      <li><a href="#planos">Planos</a></li>
+      <li><a href="#depoimentos">Depoimentos</a></li>
+    </ul>
+    <a href="#chamada" class="nav-botao">Começar Agora</a>
+  </nav>
+
+  <!-- ─────────────────────────────────────────
+     SEÇÃO HERÓI
+───────────────────────────────────────── -->
+  <section id="heroi">
+    <div class="heroi-fundo"></div>
+    <div class="heroi-linhas"></div>
+    <div class="heroi-numero" id="heroinumero">01</div>
+    <div class="heroi-conteudo">
+      <p class="heroi-rotulo">Academia Premium • Desde 2010</p>
+      <h1 class="heroi-titulo">
+        Forge
+        <em>Seu Corpo.</em>
+        Domine Seus Limites.
+      </h1>
+      <p class="heroi-descricao">Treinamento de alta performance em um ambiente projetado para extrair o melhor de você.
+        Tecnologia, ciência e dedicação em cada treino.</p>
+      <div class="heroi-acoes">
+        <a href="#chamada" class="botao-principal"><span>Experimente Grátis</span></a>
+        <a href="#modalidades" class="botao-secundario">
+          Ver Modalidades
+          <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+          </svg>
+        </a>
+      </div>
+    </div>
+    <div class="heroi-rolar">
+      <span class="rolar-texto">Scroll</span>
+      <div class="rolar-linha"></div>
+    </div>
+  </section>
+
+  <!-- ─────────────────────────────────────────
+     FAIXA ROLANTE DE MODALIDADES
+───────────────────────────────────────── -->
+  <div class="faixa-rolante">
+    <div class="faixa-interior" id="faixaInterior"></div>
+  </div>
+
+  <!-- ─────────────────────────────────────────
+     SEÇÃO DE NÚMEROS / ESTATÍSTICAS
+───────────────────────────────────────── -->
+  <section id="numeros">
+    <div class="numeros-grade">
+      <div class="numero-item">
+        <div class="numero-valor"><span class="contador" data-alvo="3200">0</span><span>+</span></div>
+        <div class="numero-legenda">Membros Ativos</div>
+      </div>
+      <div class="numero-item">
+        <div class="numero-valor"><span class="contador" data-alvo="45">0</span><span>+</span></div>
+        <div class="numero-legenda">Modalidades</div>
+      </div>
+      <div class="numero-item">
+        <div class="numero-valor"><span class="contador" data-alvo="28">0</span><span>+</span></div>
+        <div class="numero-legenda">Treinadores</div>
+      </div>
+      <div class="numero-item">
+        <div class="numero-valor"><span class="contador" data-alvo="14">0</span><span></span><span>Anos</span></div>
+        <div class="numero-legenda">De Excelência</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────────────────────────────────────
+     SEÇÃO DE MODALIDADES
+───────────────────────────────────────── -->
+  <section id="modalidades">
+    <div class="linha-decorativa"></div>
+    <div class="modalidades-cabecalho">
+      <div>
+        <p class="secao-rotulo revelar">O que oferecemos</p>
+        <h2 class="secao-titulo revelar">Nossas <em>Modalidades</em></h2>
+      </div>
+      <p class="modalidades-descricao revelar">Cada modalidade é projetada para maximizar seus resultados com técnicas
+        avançadas e equipamentos de ponta.</p>
+    </div>
+    <div class="modalidades-grade">
+      <div class="modalidade-cartao">
+        <div class="modalidade-numero">01</div>
+        <div class="modalidade-icone">
+          <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
+          </svg>
+        </div>
+        <h3 class="modalidade-nome">Musculação</h3>
+        <p class="modalidade-texto">Equipamentos de última geração, zonas separadas para cada grupo muscular e
+          acompanhamento técnico especializado.</p>
+      </div>
+      <div class="modalidade-cartao">
+        <div class="modalidade-numero">02</div>
+        <div class="modalidade-icone">
+          <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M15.362 5.214A8.252 8.252 0 0112 21 8.25 8.25 0 016.038 7.048 8.287 8.287 0 009 9.6a8.983 8.983 0 013.361-6.867 8.21 8.21 0 003 2.48z" />
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M12 18a3.75 3.75 0 00.495-7.467 5.99 5.99 0 00-1.925 3.546 5.974 5.974 0 01-2.133-1A3.75 3.75 0 0012 18z" />
+          </svg>
+        </div>
+        <h3 class="modalidade-nome">CrossFit</h3>
+        <p class="modalidade-texto">Treinos de alta intensidade que combinam força, resistência e condicionamento
+          funcional para resultados acelerados.</p>
+      </div>
+      <div class="modalidade-cartao">
+        <div class="modalidade-numero">03</div>
+        <div class="modalidade-icone">
+          <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 011.043-3.296 3.746 3.746 0 013.296-1.043A3.746 3.746 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.296 1.043 3.746 3.746 0 011.043 3.296A3.745 3.745 0 0121 12z" />
+          </svg>
+        </div>
+        <h3 class="modalidade-nome">Personal Training</h3>
+        <p class="modalidade-texto">Plano 100% personalizado com treinadores certificados. Avaliações periódicas e
+          ajuste contínuo de protocolo.</p>
+      </div>
+      <div class="modalidade-cartao">
+        <div class="modalidade-numero">04</div>
+        <div class="modalidade-icone">
+          <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
+          </svg>
+        </div>
+        <h3 class="modalidade-nome">Yoga & Pilates</h3>
+        <p class="modalidade-texto">Equilíbrio entre corpo e mente. Flexibilidade, postura e controle corporal com
+          instrutores especializados.</p>
+      </div>
+      <div class="modalidade-cartao">
+        <div class="modalidade-numero">05</div>
+        <div class="modalidade-icone">
+          <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        <h3 class="modalidade-nome">Cardio Zone</h3>
+        <p class="modalidade-texto">50+ equipamentos de última geração com telas interativas, monitoramento cardíaco e
+          programas adaptáveis ao seu nível.</p>
+      </div>
+      <div class="modalidade-cartao">
+        <div class="modalidade-numero">06</div>
+        <div class="modalidade-icone">
+          <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456z" />
+          </svg>
+        </div>
+        <h3 class="modalidade-nome">Nutrição & Performance</h3>
+        <p class="modalidade-texto">Consultoria nutricional integrada ao seu treino. Suplementação orientada e
+          protocolos alimentares de elite.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────────────────────────────────────
+     GALERIA DE FOTOS DO AMBIENTE
+───────────────────────────────────────── -->
+  <section id="galeria">
+    <div class="galeria-cabecalho">
+      <div class="galeria-cabecalho-texto">
+        <p class="secao-rotulo revelar">Nosso Ambiente</p>
+        <h2 class="secao-titulo revelar">Estrutura <em>World Class</em></h2>
+      </div>
+      <p class="galeria-subtitulo revelar">Equipamentos de última geração em um espaço projetado para performance
+        máxima. Conheça cada detalhe da APEX.</p>
+    </div>
+
+    <!-- Grade mosaico com 5 fotos de diferentes tamanhos -->
+    <div class="galeria-mosaico">
+
+      <!-- Foto de destaque — Sala de Musculação (ocupa 2 linhas) -->
+      <div class="foto-item" data-legenda="Sala de Musculação">
+        <img src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=900&q=82&auto=format&fit=crop"
+          alt="Sala de musculação APEX" loading="lazy">
+        <div class="foto-sobreposicao"></div>
+        <div class="foto-legenda">
+          <div class="foto-etiqueta">Zona 01</div>
+          <div class="foto-titulo">Sala de Musculação</div>
+        </div>
+        <div class="foto-ampliar" onclick="abrirVisor(0)">
+          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
+          </svg>
+        </div>
+      </div>
+
+      <!-- Foto — Pesos Livres -->
+      <div class="foto-item" data-legenda="Área de Pesos Livres">
+        <img src="https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=700&q=82&auto=format&fit=crop"
+          alt="Área de pesos livres APEX" loading="lazy">
+        <div class="foto-sobreposicao"></div>
+        <div class="foto-legenda">
+          <div class="foto-etiqueta">Zona 02</div>
+          <div class="foto-titulo">Pesos Livres</div>
+        </div>
+        <div class="foto-ampliar" onclick="abrirVisor(1)">
+          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
+          </svg>
+        </div>
+      </div>
+
+      <!-- Foto — Box CrossFit -->
+      <div class="foto-item" data-legenda="Box CrossFit">
+        <img src="https://images.unsplash.com/photo-1526506118085-60ce8714f8c5?w=600&q=82&auto=format&fit=crop"
+          alt="Box CrossFit APEX" loading="lazy">
+        <div class="foto-sobreposicao"></div>
+        <div class="foto-legenda">
+          <div class="foto-etiqueta">Zona 03</div>
+          <div class="foto-titulo">Box CrossFit</div>
+        </div>
+        <div class="foto-ampliar" onclick="abrirVisor(2)">
+          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
+          </svg>
+        </div>
+      </div>
+
+      <!-- Foto — Cardio Zone -->
+      <div class="foto-item" data-legenda="Cardio Zone">
+        <img src="https://images.unsplash.com/photo-1571902943202-507ec2618e8f?w=600&q=82&auto=format&fit=crop"
+          alt="Cardio zone APEX" loading="lazy">
+        <div class="foto-sobreposicao"></div>
+        <div class="foto-legenda">
+          <div class="foto-etiqueta">Zona 04</div>
+          <div class="foto-titulo">Cardio Zone</div>
+        </div>
+        <div class="foto-ampliar" onclick="abrirVisor(3)">
+          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
+          </svg>
+        </div>
+      </div>
+
+      <!-- Foto — Sala Funcional -->
+      <div class="foto-item" data-legenda="Sala Funcional">
+        <img src="https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=700&q=82&auto=format&fit=crop"
+          alt="Sala funcional APEX" loading="lazy">
+        <div class="foto-sobreposicao"></div>
+        <div class="foto-legenda">
+          <div class="foto-etiqueta">Zona 05</div>
+          <div class="foto-titulo">Sala Funcional</div>
+        </div>
+        <div class="foto-ampliar" onclick="abrirVisor(4)">
+          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
+          </svg>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Faixa de miniaturas com rolagem automática -->
+    <div class="galeria-faixa">
+      <div class="faixa-trilha" id="faixaTrilha">
+        <div class="faixa-miniatura"><img
+            src="https://images.unsplash.com/photo-1540497077202-7c8a3999166f?w=400&q=75&auto=format&fit=crop"
+            alt="Academia" loading="lazy"></div>
+        <div class="faixa-miniatura"><img
+            src="https://images.unsplash.com/photo-1593079831268-3381b0db4a77?w=400&q=75&auto=format&fit=crop"
+            alt="Equipamentos" loading="lazy"></div>
+        <div class="faixa-miniatura"><img
+            src="https://images.unsplash.com/photo-1581009137042-c552e485697a?w=400&q=75&auto=format&fit=crop"
+            alt="Treino" loading="lazy"></div>
+        <div class="faixa-miniatura"><img
+            src="https://images.unsplash.com/photo-1605296867304-46d5465a13f1?w=400&q=75&auto=format&fit=crop"
+            alt="Sala de pesos" loading="lazy"></div>
+        <div class="faixa-miniatura"><img
+            src="https://images.unsplash.com/photo-1567013127542-490d757e51fc?w=400&q=75&auto=format&fit=crop"
+            alt="Equipamentos de musculação" loading="lazy"></div>
+        <div class="faixa-miniatura"><img
+            src="https://images.unsplash.com/photo-1534258936925-c58bed479fcb?w=400&q=75&auto=format&fit=crop"
+            alt="Ambiente da academia" loading="lazy"></div>
+        <div class="faixa-miniatura"><img
+            src="https://images.unsplash.com/photo-1549060279-7e168fcee0c2?w=400&q=75&auto=format&fit=crop"
+            alt="Halteres" loading="lazy"></div>
+        <div class="faixa-miniatura"><img
+            src="https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?w=400&q=75&auto=format&fit=crop"
+            alt="Treino funcional" loading="lazy"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Visor de imagem em tela cheia (lightbox) -->
+  <div id="visor-imagem" role="dialog" aria-label="Visualização de imagem">
+    <button class="visor-fechar" onclick="fecharVisor()" aria-label="Fechar">
+      <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    </button>
+    <button class="visor-navegar visor-anterior" onclick="navegarVisor(-1)" aria-label="Anterior">
+      <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+      </svg>
+    </button>
+    <img id="visorFotoAtual" src="" alt="">
+    <button class="visor-navegar visor-proximo" onclick="navegarVisor(1)" aria-label="Próxima">
+      <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+      </svg>
+    </button>
+    <div class="visor-legenda" id="visorLegenda"></div>
+  </div>
+
+  <!-- ─────────────────────────────────────────
+     SEÇÃO DE TREINADORES
+───────────────────────────────────────── -->
+  <section id="treinadores">
+    <div style="text-align: center; margin-bottom: 4rem;">
+      <p class="secao-rotulo revelar" style="justify-content: center;">Nossa Equipe</p>
+      <h2 class="secao-titulo revelar">Treinadores <em>Elite</em></h2>
+    </div>
+    <div class="treinadores-grade">
+
+      <!-- ═══════════════════════════════════════════════
+         TREINADOR 1 — Rafael Costa
+         Para adicionar foto: substitua src="" pelo caminho
+         ex: src="fotos/rafael.jpg" — proporção ideal 3:4
+    ═══════════════════════════════════════════════ -->
+      <div class="treinador-cartao">
+        <div class="treinador-foto-caixa">
+          <img class="treinador-foto" src="" alt="Rafael Costa — Musculação & Hipertrofia"
+            onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+            onload="this.style.display='block'; this.nextElementSibling.style.display='none';">
+          <div class="treinador-reserva">
+            <div class="treinador-iniciais">RC</div>
+            <div class="treinador-reserva-legenda">Adicione a foto<br><span>src="caminho/da/foto.jpg"</span></div>
+          </div>
+        </div>
+        <div class="treinador-sobreposicao">
+          <div class="treinador-estatistica">
+            <div class="treinador-estatistica-numero">8<span>+</span></div>
+            <div class="treinador-estatistica-legenda">Anos Exp.</div>
+          </div>
+          <div class="treinador-estatistica">
+            <div class="treinador-estatistica-numero">150<span>+</span></div>
+            <div class="treinador-estatistica-legenda">Alunos</div>
+          </div>
+        </div>
+        <div class="treinador-info">
+          <div class="treinador-nome">Rafael Costa</div>
+          <div class="treinador-especialidade">Musculação & Hipertrofia</div>
+        </div>
+      </div>
+
+      <!-- ═══════════════════════════════════════════════
+         TREINADOR 2 — Juliana Mendes
+         Para adicionar foto: src="fotos/juliana.jpg"
+    ═══════════════════════════════════════════════ -->
+      <div class="treinador-cartao">
+        <div class="treinador-foto-caixa">
+          <img class="treinador-foto" src="" alt="Juliana Mendes — CrossFit & Funcional"
+            onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+            onload="this.style.display='block'; this.nextElementSibling.style.display='none';">
+          <div class="treinador-reserva">
+            <div class="treinador-iniciais">JM</div>
+            <div class="treinador-reserva-legenda">Adicione a foto<br><span>src="caminho/da/foto.jpg"</span></div>
+          </div>
+        </div>
+        <div class="treinador-sobreposicao">
+          <div class="treinador-estatistica">
+            <div class="treinador-estatistica-numero">6<span>+</span></div>
+            <div class="treinador-estatistica-legenda">Anos Exp.</div>
+          </div>
+          <div class="treinador-estatistica">
+            <div class="treinador-estatistica-numero">200<span>+</span></div>
+            <div class="treinador-estatistica-legenda">Alunos</div>
+          </div>
+        </div>
+        <div class="treinador-info">
+          <div class="treinador-nome">Juliana Mendes</div>
+          <div class="treinador-especialidade">CrossFit & Funcional</div>
+        </div>
+      </div>
+
+      <!-- ═══════════════════════════════════════════════
+         TREINADOR 3 — Bruno Alves
+         Para adicionar foto: src="fotos/bruno.jpg"
+    ═══════════════════════════════════════════════ -->
+      <div class="treinador-cartao">
+        <div class="treinador-foto-caixa">
+          <img class="treinador-foto" src="" alt="Bruno Alves — Personal & Performance"
+            onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+            onload="this.style.display='block'; this.nextElementSibling.style.display='none';">
+          <div class="treinador-reserva">
+            <div class="treinador-iniciais">BA</div>
+            <div class="treinador-reserva-legenda">Adicione a foto<br><span>src="caminho/da/foto.jpg"</span></div>
+          </div>
+        </div>
+        <div class="treinador-sobreposicao">
+          <div class="treinador-estatistica">
+            <div class="treinador-estatistica-numero">11<span>+</span></div>
+            <div class="treinador-estatistica-legenda">Anos Exp.</div>
+          </div>
+          <div class="treinador-estatistica">
+            <div class="treinador-estatistica-numero">90<span>+</span></div>
+            <div class="treinador-estatistica-legenda">Alunos</div>
+          </div>
+        </div>
+        <div class="treinador-info">
+          <div class="treinador-nome">Bruno Alves</div>
+          <div class="treinador-especialidade">Personal & Performance</div>
+        </div>
+      </div>
+
+      <!-- ═══════════════════════════════════════════════
+         TREINADOR 4 — Camila Torres
+         Para adicionar foto: src="fotos/camila.jpg"
+    ═══════════════════════════════════════════════ -->
+      <div class="treinador-cartao">
+        <div class="treinador-foto-caixa">
+          <img class="treinador-foto" src="" alt="Camila Torres — Yoga & Pilates"
+            onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+            onload="this.style.display='block'; this.nextElementSibling.style.display='none';">
+          <div class="treinador-reserva">
+            <div class="treinador-iniciais">CT</div>
+            <div class="treinador-reserva-legenda">Adicione a foto<br><span>src="caminho/da/foto.jpg"</span></div>
+          </div>
+        </div>
+        <div class="treinador-sobreposicao">
+          <div class="treinador-estatistica">
+            <div class="treinador-estatistica-numero">5<span>+</span></div>
+            <div class="treinador-estatistica-legenda">Anos Exp.</div>
+          </div>
+          <div class="treinador-estatistica">
+            <div class="treinador-estatistica-numero">120<span>+</span></div>
+            <div class="treinador-estatistica-legenda">Alunos</div>
+          </div>
+        </div>
+        <div class="treinador-info">
+          <div class="treinador-nome">Camila Torres</div>
+          <div class="treinador-especialidade">Yoga & Pilates</div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ─────────────────────────────────────────
+     SEÇÃO DE PLANOS E PREÇOS
+───────────────────────────────────────── -->
+  <section id="planos">
+    <div style="text-align: center;">
+      <p class="secao-rotulo revelar" style="justify-content: center;">Investimento</p>
+      <h2 class="secao-titulo revelar">Planos e <em>Preços</em></h2>
+    </div>
+    <div class="planos-grade">
+      <!-- Plano Básico -->
+      <div class="plano-cartao">
+        <div class="plano-nome">Básico</div>
+        <div class="plano-preco"><sup>R$</sup>99</div>
+        <div class="plano-periodo">/mês — sem fidelidade</div>
+        <ul class="plano-beneficios">
+          <li>Acesso à musculação</li>
+          <li>Cardio zone ilimitado</li>
+          <li>Vestiários premium</li>
+          <li>App APEX</li>
+          <li class="inativo">Personal trainer</li>
+          <li class="inativo">Aulas coletivas</li>
+          <li class="inativo">Avaliação física</li>
+        </ul>
+        <a href="checkout.html?plano=basico" class="botao-plano"><span>Escolher Plano</span></a>
+      </div>
+      <!-- Plano Pro (destaque) -->
+      <div class="plano-cartao destaque">
+        <div class="plano-emblema">Mais Popular</div>
+        <div class="plano-nome">Pro</div>
+        <div class="plano-preco"><sup>R$</sup>189</div>
+        <div class="plano-periodo">/mês — contrato anual</div>
+        <ul class="plano-beneficios">
+          <li>Acesso completo 24h</li>
+          <li>Cardio zone ilimitado</li>
+          <li>Vestiários premium</li>
+          <li>App APEX + métricas</li>
+          <li>2 aulas coletivas/semana</li>
+          <li>Avaliação física mensal</li>
+          <li class="inativo">Personal exclusivo</li>
+        </ul>
+        <a href="checkout.html?plano=pro" class="botao-plano botao-destaque"><span>Escolher Plano</span></a>
+      </div>
+      <!-- Plano Elite -->
+      <div class="plano-cartao">
+        <div class="plano-nome">Elite</div>
+        <div class="plano-preco"><sup>R$</sup>349</div>
+        <div class="plano-periodo">/mês — contrato anual</div>
+        <ul class="plano-beneficios">
+          <li>Acesso VIP 24h</li>
+          <li>Todas as modalidades</li>
+          <li>Vestiários + spa</li>
+          <li>App APEX completo</li>
+          <li>Aulas coletivas ilimitadas</li>
+          <li>Avaliação física quinzenal</li>
+          <li>4 sessões personal/mês</li>
+        </ul>
+        <a href="checkout.html?plano=elite" class="botao-plano"><span>Escolher Plano</span></a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────────────────────────────────────
+     SEÇÃO DE DEPOIMENTOS
+───────────────────────────────────────── -->
+  <section id="depoimentos">
+    <div style="text-align: center; margin-bottom: 4rem;">
+      <p class="secao-rotulo revelar" style="justify-content: center;">Depoimentos</p>
+      <h2 class="secao-titulo revelar">O que nossos <em>Membros</em> dizem</h2>
+    </div>
+    <div class="depoimentos-trilha-caixa">
+      <div class="depoimentos-trilha" id="trilhaDepoimentos">
+        <div class="depoimento-cartao">
+          <div class="depoimento-estrelas"><span>★</span><span>★</span><span>★</span><span>★</span><span>★</span></div>
+          <p class="depoimento-texto">Em 6 meses na APEX, perdi 18kg e ganhei uma musculatura que nunca imaginei ter. Os
+            treinadores são excepcionais e o ambiente é incomparável.</p>
+          <div class="depoimento-autor">
+            <div class="depoimento-avatar">MR</div>
+            <div>
+              <div class="depoimento-nome">Marcos R.</div>
+              <div class="depoimento-cargo">Membro há 8 meses</div>
+            </div>
+          </div>
+        </div>
+        <div class="depoimento-cartao">
+          <div class="depoimento-estrelas"><span>★</span><span>★</span><span>★</span><span>★</span><span>★</span></div>
+          <p class="depoimento-texto">A estrutura é de outro nível. Nunca precisei esperar por equipamentos, e o app
+            integrado ao meu treino mudou minha consistência completamente.</p>
+          <div class="depoimento-autor">
+            <div class="depoimento-avatar">AF</div>
+            <div>
+              <div class="depoimento-nome">Ana F.</div>
+              <div class="depoimento-cargo">Membra há 1 ano</div>
+            </div>
+          </div>
+        </div>
+        <div class="depoimento-cartao">
+          <div class="depoimento-estrelas"><span>★</span><span>★</span><span>★</span><span>★</span><span>★</span></div>
+          <p class="depoimento-texto">Treinei em muitas academias, mas a APEX é única. O plano Elite vale cada centavo —
+            personal trainer e spa no mesmo lugar é comodidade real.</p>
+          <div class="depoimento-autor">
+            <div class="depoimento-avatar">CL</div>
+            <div>
+              <div class="depoimento-nome">Carlos L.</div>
+              <div class="depoimento-cargo">Membro Elite há 2 anos</div>
+            </div>
+          </div>
+        </div>
+        <div class="depoimento-cartao">
+          <div class="depoimento-estrelas"><span>★</span><span>★</span><span>★</span><span>★</span><span>★</span></div>
+          <p class="depoimento-texto">As aulas de CrossFit da Juliana são transformadoras. Meu condicionamento nunca foi
+            tão alto. Comunidade incrível, todo mundo se motiva junto.</p>
+          <div class="depoimento-autor">
+            <div class="depoimento-avatar">PS</div>
+            <div>
+              <div class="depoimento-nome">Patrícia S.</div>
+              <div class="depoimento-cargo">Membra há 10 meses</div>
+            </div>
+          </div>
+        </div>
+        <div class="depoimento-cartao">
+          <div class="depoimento-estrelas"><span>★</span><span>★</span><span>★</span><span>★</span><span>★</span></div>
+          <p class="depoimento-texto">Após cirurgia no joelho, a equipe montou um protocolo de reabilitação incrível.
+            Voltei a treinar pesado em 4 meses. Profissionalismo acima do esperado.</p>
+          <div class="depoimento-autor">
+            <div class="depoimento-avatar">FO</div>
+            <div>
+              <div class="depoimento-nome">Felipe O.</div>
+              <div class="depoimento-cargo">Membro há 3 anos</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────────────────────────────────────
+     CHAMADA PARA AÇÃO (CTA)
+───────────────────────────────────────── -->
+  <section id="chamada">
+    <div class="chamada-fundo-texto">APEX</div>
+    <div class="chamada-conteudo">
+      <p class="secao-rotulo revelar" style="justify-content: center;">Primeira Semana Grátis</p>
+      <h2 class="chamada-titulo revelar">Comece sua<br><em>Transformação</em><br>Hoje.</h2>
+      <p class="chamada-subtitulo revelar">Sem compromisso. Sem taxas de adesão. Experimente 7 dias gratuitamente e
+        descubra por que somos a academia número 1 da região.</p>
+      <div class="chamada-formulario revelar">
+        <input type="email" class="chamada-campo" placeholder="Seu melhor e-mail">
+        <button class="chamada-enviar">Começar Agora</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────────────────────────────────────
+     RODAPÉ
+───────────────────────────────────────── -->
+  <footer>
+    <div class="rodape-grade">
+      <div class="rodape-marca">
+        <a href="#" class="logomarca">APEX<span>.</span></a>
+        <p class="rodape-descricao">Academia premium com foco em performance, tecnologia e resultados reais. O seu
+          melhor começa aqui.</p>
+      </div>
+      <div>
+        <div class="rodape-titulo">Modalidades</div>
+        <ul class="rodape-itens">
+          <li><a href="#">Musculação</a></li>
+          <li><a href="#">CrossFit</a></li>
+          <li><a href="#">Personal Training</a></li>
+          <li><a href="#">Yoga & Pilates</a></li>
+          <li><a href="#">Cardio Zone</a></li>
+        </ul>
+      </div>
+      <div>
+        <div class="rodape-titulo">Academia</div>
+        <ul class="rodape-itens">
+          <li><a href="#">Sobre nós</a></li>
+          <li><a href="#">Nossa equipe</a></li>
+          <li><a href="#">Planos</a></li>
+          <li><a href="#">Blog</a></li>
+          <li><a href="#">Contato</a></li>
+        </ul>
+      </div>
+      <div>
+        <div class="rodape-titulo">Contato</div>
+        <ul class="rodape-itens">
+          <li><a href="#">Av. Paulista, 1200</a></li>
+          <li><a href="#">São Paulo — SP</a></li>
+          <li><a href="#">(11) 4002-8922</a></li>
+          <li><a href="#">contato@apexgym.com.br</a></li>
+          <li><a href="#">Seg–Dom: 5h–23h</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="rodape-base">
+      <p class="rodape-direitos">© 2025 APEX GYM. Feito com <span>♥</span> e muito suor.</p>
+      <div class="redes-sociais">
+
+        <!-- Instagram -->
+        <a href="#" class="rede-link" aria-label="Instagram">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
+            <circle cx="12" cy="12" r="4"/>
+            <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/>
+          </svg>
+        </a>
+
+        <!-- Facebook -->
+        <a href="#" class="rede-link" aria-label="Facebook">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/>
+          </svg>
+        </a>
+
+        <!-- YouTube -->
+        <a href="#" class="rede-link" aria-label="YouTube">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22.54 6.42a2.78 2.78 0 0 0-1.95-1.96C18.88 4 12 4 12 4s-6.88 0-8.59.46A2.78 2.78 0 0 0 1.46 6.42 29 29 0 0 0 1 12a29 29 0 0 0 .46 5.58 2.78 2.78 0 0 0 1.95 1.96C5.12 20 12 20 12 20s6.88 0 8.59-.46a2.78 2.78 0 0 0 1.96-1.96A29 29 0 0 0 23 12a29 29 0 0 0-.46-5.58z"/>
+            <polygon points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02" fill="currentColor" stroke="none"/>
+          </svg>
+        </a>
+
+        <!-- TikTok -->
+        <a href="#" class="rede-link" aria-label="TikTok">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+            <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.69a8.18 8.18 0 0 0 4.78 1.52V6.76a4.85 4.85 0 0 1-1.01-.07z"/>
+          </svg>
+        </a>
+
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    /* ─────────────────────────────────────────
+       PONTEIRO PERSONALIZADO COM ANEL SEGUIDOR
+    ───────────────────────────────────────── */
+    const ponteiro = document.getElementById('ponteiro');
+    const anel = document.getElementById('ponteiroAnel');
+
+    /* Posição real do mouse */
+    let mx = 0, my = 0;
+    /* Posição suavizada do anel */
+    let rx = 0, ry = 0;
+
+    document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+
+    function animarPonteiro() {
+      /* Bolinha segue o mouse instantaneamente */
+      ponteiro.style.transform = `translate(${mx - 6}px, ${my - 6}px)`;
+      /* Anel segue com interpolação suave (efeito de inércia) */
+      rx += (mx - rx - 20) * 0.12;
+      ry += (my - ry - 20) * 0.12;
+      anel.style.transform = `translate(${rx}px, ${ry}px)`;
+      requestAnimationFrame(animarPonteiro);
+    }
+    animarPonteiro();
+
+    /* Expande o anel ao passar sobre elementos interativos */
+    document.querySelectorAll('a, button, .modalidade-cartao, .treinador-cartao, .plano-cartao').forEach(el => {
+      el.addEventListener('mouseenter', () => anel.classList.add('expandido'));
+      el.addEventListener('mouseleave', () => anel.classList.remove('expandido'));
+    });
+
+    /* ─────────────────────────────────────────
+       NAVEGAÇÃO — FUNDO AO ROLAR A PÁGINA
+    ───────────────────────────────────────── */
+    const barraNave = document.getElementById('barraNave');
+    window.addEventListener('scroll', () => {
+      /* Adiciona a classe 'rolado' quando o usuário desce mais de 60px */
+      barraNave.classList.toggle('rolado', window.scrollY > 60);
+    });
+
+    /* ─────────────────────────────────────────
+       EFEITO PARALLAX NO NÚMERO DO HERÓI
+    ───────────────────────────────────────── */
+    const heroinumero = document.getElementById('heroinumero');
+    window.addEventListener('scroll', () => {
+      const rolagem = window.scrollY;
+      /* Move o número para baixo conforme o usuário rola */
+      heroinumero.style.transform = `translateY(calc(-50% + ${rolagem * 0.3}px))`;
+    });
+
+    /* ─────────────────────────────────────────
+       FAIXA ROLANTE — DUPLICAR CONTEÚDO PARA LOOP INFINITO
+    ───────────────────────────────────────── */
+    const itensFaixa = ['Musculação', 'CrossFit', 'Personal', 'Yoga', 'Pilates', 'Cardio', 'Performance', 'Nutrição', 'Spa & Wellness', 'Avaliação Física'];
+    const faixaInterior = document.getElementById('faixaInterior');
+
+    /* Repete 4x para garantir loop sem espaço vazio */
+    const conteudoCompleto = [...itensFaixa, ...itensFaixa, ...itensFaixa, ...itensFaixa].map(texto =>
+      `<span class="faixa-item">${texto}<span class="faixa-ponto"></span></span>`
+    ).join('');
+    faixaInterior.innerHTML = conteudoCompleto;
+
+    /* ─────────────────────────────────────────
+       DEPOIMENTOS — DUPLICAR CARTÕES PARA LOOP INFINITO
+    ───────────────────────────────────────── */
+    const trilhaDepoimentos = document.getElementById('trilhaDepoimentos');
+    /* Duplica o HTML para que o carrossel pareça infinito */
+    trilhaDepoimentos.innerHTML += trilhaDepoimentos.innerHTML;
+
+    /* ─────────────────────────────────────────
+       OBSERVADOR DE INTERSEÇÃO — REVELAR ELEMENTOS
+       Dispara animações quando o elemento entra na tela
+    ───────────────────────────────────────── */
+    const observador = new IntersectionObserver((entradas) => {
+      entradas.forEach(entrada => {
+        if (entrada.isIntersecting) {
+          /* Respeita o delay individual de cada elemento */
+          setTimeout(() => entrada.target.classList.add('visivel'), entrada.target.dataset.atraso || 0);
+        }
+      });
+    }, { threshold: 0.15 });
+
+    /* Registra todos os elementos para observar */
+    document.querySelectorAll('.revelar').forEach(el => observador.observe(el));
+    document.querySelectorAll('.numero-item').forEach((el, i) => { el.dataset.atraso = i * 100; observador.observe(el); });
+    document.querySelectorAll('.modalidade-cartao').forEach((el, i) => { el.dataset.atraso = i * 80; observador.observe(el); });
+    document.querySelectorAll('.treinador-cartao').forEach((el, i) => { el.dataset.atraso = i * 100; observador.observe(el); });
+    document.querySelectorAll('.plano-cartao').forEach((el, i) => { el.dataset.atraso = i * 120; observador.observe(el); });
+
+    /* Observa também os itens da galeria de fotos */
+    document.querySelectorAll('.foto-item').forEach((el, i) => {
+      el.style.transitionDelay = `${i * 0.1}s`;
+      observador.observe(el);
+    });
+
+    /* ─────────────────────────────────────────
+       CONTADOR ANIMADO DE NÚMEROS
+       Incrementa do zero até o valor-alvo ao entrar na tela
+    ───────────────────────────────────────── */
+    const contadores = document.querySelectorAll('.contador');
+    const observadorContador = new IntersectionObserver((entradas) => {
+      entradas.forEach(entrada => {
+        if (entrada.isIntersecting) {
+          const elemento = entrada.target;
+          const valorAlvo = parseInt(elemento.dataset.alvo);
+          const duracao = 1800; /* duração total em ms */
+          const passo = valorAlvo / (duracao / 16);
+          let valorAtual = 0;
+
+          /* Incrementa a cada frame (~16ms) */
+          const temporizador = setInterval(() => {
+            valorAtual = Math.min(valorAtual + passo, valorAlvo);
+            elemento.textContent = Math.floor(valorAtual).toLocaleString('pt-BR');
+            if (valorAtual >= valorAlvo) clearInterval(temporizador);
+          }, 16);
+
+          /* Para de observar após disparar uma vez */
+          observadorContador.unobserve(elemento);
+        }
+      });
+    }, { threshold: 0.5 });
+
+    contadores.forEach(c => observadorContador.observe(c));
+
+    /* ─────────────────────────────────────────
+       TRANSIÇÃO SUAVE ENTRE SEÇÕES (OVERLAY VERMELHO)
+    ───────────────────────────────────────── */
+    const transicao = document.getElementById('transicaoPagina');
+
+    document.querySelectorAll('a[href^="#"]').forEach(link => {
+      link.addEventListener('click', e => {
+        const destino = document.querySelector(link.getAttribute('href'));
+        if (!destino) return;
+        e.preventDefault();
+
+        /* Entrada do overlay da esquerda */
+        transicao.style.transition = 'transform 0.4s cubic-bezier(0.77,0,0.175,1)';
+        transicao.style.transform = 'translateX(0)';
+
+        setTimeout(() => {
+          /* Rola para a seção de destino instantaneamente (coberto pelo overlay) */
+          destino.scrollIntoView({ behavior: 'instant' });
+          /* Saída do overlay para a direita */
+          transicao.style.transition = 'transform 0.5s cubic-bezier(0.77,0,0.175,1) 0.05s';
+          transicao.style.transform = 'translateX(100%)';
+          /* Reseta posição sem animação para a próxima transição */
+          setTimeout(() => { transicao.style.transform = 'translateX(-100%)'; transicao.style.transition = 'none'; }, 550);
+        }, 420);
+      });
+    });
+
+    /* ─────────────────────────────────────────
+       TELA DE CARREGAMENTO INICIAL
+    ───────────────────────────────────────── */
+    (function () {
+      const telaCarregando = document.getElementById('tela-carregando');
+      const barra = document.getElementById('barraPorcentagem');
+      const porcentagem = document.getElementById('numeroPorcentagem');
+      const statusTexto = document.getElementById('textoStatus');
+
+      /* Etapas de progresso com mensagens de status */
+      const etapas = [
+        { em: 15, mensagem: 'Carregando recursos...' },
+        { em: 40, mensagem: 'Preparando estilos...' },
+        { em: 70, mensagem: 'Iniciando animações...' },
+        { em: 90, mensagem: 'Quase pronto...' },
+        { em: 100, mensagem: 'Pronto!' },
+      ];
+
+      /* Bloqueia o scroll durante o carregamento */
+      document.body.classList.add('carregando');
+
+      let valorAtual = 0;
+      let etapaAtual = 0;
+
+      /* Atualiza a barra de progresso e o texto de status */
+      function definirProgresso(val) {
+        valorAtual = Math.min(val, 100);
+        barra.style.width = valorAtual + '%';
+        porcentagem.textContent = Math.floor(valorAtual) + '%';
+
+        /* Encontra a etapa correspondente ao valor atual */
+        for (let i = etapas.length - 1; i >= 0; i--) {
+          if (valorAtual >= etapas[i].em) {
+            if (etapaAtual !== i) {
+              etapaAtual = i;
+              statusTexto.textContent = etapas[i].mensagem;
+            }
+            break;
+          }
+        }
+      }
+
+      /* Simulação de progresso — avança devagar para não "travar" na aparência */
+      let simulado = 0;
+      const temporizadorSimulado = setInterval(() => {
+        /* Desacelera conforme se aproxima de 85% — evento real completa até 100% */
+        const passo = simulado < 40 ? 1.8 : simulado < 70 ? 0.9 : simulado < 85 ? 0.3 : 0;
+        simulado = Math.min(simulado + passo, 85);
+        definirProgresso(simulado);
+      }, 60);
+
+      /* Dispensa a tela de carregamento após o evento real de carregamento */
+      function dispensar() {
+        clearInterval(temporizadorSimulado);
+        definirProgresso(100);
+        setTimeout(() => {
+          telaCarregando.classList.add('esconder');
+          document.body.classList.remove('carregando');
+          /* Remove o elemento do DOM após a animação de saída */
+          setTimeout(() => telaCarregando.remove(), 950);
+        }, 380);
+      }
+
+      /* Verifica se a página já carregou completamente */
+      if (document.readyState === 'complete') {
+        setTimeout(dispensar, 300);
+      } else {
+        window.addEventListener('load', () => setTimeout(dispensar, 300));
+        /* Segurança: dispensa após 6 segundos mesmo se o load não disparar */
+        setTimeout(dispensar, 6000);
+      }
+    })();
+
+    /* ─────────────────────────────────────────
+       VISOR DE IMAGEM EM TELA CHEIA (LIGHTBOX)
+    ───────────────────────────────────────── */
+
+    /* Dados das fotos exibidas no visor */
+    const dadosVisor = [
+      { src: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=1400&q=90&auto=format&fit=crop', legenda: 'Sala de Musculação' },
+      { src: 'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=1400&q=90&auto=format&fit=crop', legenda: 'Pesos Livres' },
+      { src: 'https://images.unsplash.com/photo-1526506118085-60ce8714f8c5?w=1400&q=90&auto=format&fit=crop', legenda: 'Box CrossFit' },
+      { src: 'https://images.unsplash.com/photo-1571902943202-507ec2618e8f?w=1400&q=90&auto=format&fit=crop', legenda: 'Cardio Zone' },
+      { src: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=1400&q=90&auto=format&fit=crop', legenda: 'Sala Funcional' },
+    ];
+
+    let indiceVisor = 0;
+    const visor = document.getElementById('visor-imagem');
+    const visorFoto = document.getElementById('visorFotoAtual');
+    const visorLeg = document.getElementById('visorLegenda');
+
+    /* Transição suave ao trocar fotos */
+    visorFoto.style.transition = 'opacity 0.18s ease';
+
+    /* Abre o visor na foto de índice especificado */
+    function abrirVisor(indice) {
+      indiceVisor = indice;
+      visorFoto.src = dadosVisor[indice].src;
+      visorLeg.textContent = `${String(indice + 1).padStart(2, '0')} / ${String(dadosVisor.length).padStart(2, '0')} — ${dadosVisor[indice].legenda}`;
+      visor.classList.add('aberto');
+      document.body.style.overflow = 'hidden'; /* Bloqueia scroll enquanto o visor está aberto */
+    }
+
+    /* Fecha o visor e restaura o scroll */
+    function fecharVisor() {
+      visor.classList.remove('aberto');
+      document.body.style.overflow = '';
+    }
+
+    /* Navega para a foto anterior ou próxima */
+    function navegarVisor(direcao) {
+      indiceVisor = (indiceVisor + direcao + dadosVisor.length) % dadosVisor.length;
+      visorFoto.style.opacity = '0';
+      setTimeout(() => {
+        visorFoto.src = dadosVisor[indiceVisor].src;
+        visorLeg.textContent = `${String(indiceVisor + 1).padStart(2, '0')} / ${String(dadosVisor.length).padStart(2, '0')} — ${dadosVisor[indiceVisor].legenda}`;
+        visorFoto.style.opacity = '1';
+      }, 180);
+    }
+
+    /* Fecha o visor ao clicar no fundo escuro */
+    visor.addEventListener('click', e => { if (e.target === visor) fecharVisor(); });
+
+    /* Navegação por teclado no visor */
+    document.addEventListener('keydown', e => {
+      if (!visor.classList.contains('aberto')) return;
+      if (e.key === 'Escape') fecharVisor();
+      if (e.key === 'ArrowLeft') navegarVisor(-1);
+      if (e.key === 'ArrowRight') navegarVisor(1);
+    });
+
+    /* ─────────────────────────────────────────
+       FAIXA DE MINIATURAS — DUPLICAR PARA LOOP INFINITO
+    ───────────────────────────────────────── */
+    const faixaTrilha = document.getElementById('faixaTrilha');
+    if (faixaTrilha) faixaTrilha.innerHTML += faixaTrilha.innerHTML;
+
+    /* ─────────────────────────────────────────
+       DELAYS ESCALONADOS NOS CARTÕES DAS GRADES
+    ───────────────────────────────────────── */
+    document.querySelectorAll('.modalidade-cartao').forEach((cartao, i) => {
+      cartao.style.transitionDelay = `${i * 0.08}s`;
+    });
+    document.querySelectorAll('.treinador-cartao').forEach((cartao, i) => {
+      cartao.style.transitionDelay = `${i * 0.1}s`;
+    });
+    document.querySelectorAll('.plano-cartao').forEach((cartao, i) => {
+      cartao.style.transitionDelay = `${i * 0.12}s`;
+    });
+  </script>
+</body>
+
+</html>

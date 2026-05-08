@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Matrix: Despertar</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #000;
+            color: #00FF41;
+            font-family: 'Share Tech Mono', monospace;
+            overflow: hidden; /* Esconde as barras de rolagem */
+        }
+        canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: -1; /* Coloca o canvas atrás de todo o conteúdo */
+            width: 100vw;
+            height: 100vh;
+        }
+        .content-container {
+            position: relative;
+            z-index: 1;
+            overflow-y: auto; /* Permite rolar o conteúdo */
+            height: 100vh;
+            padding: 2rem;
+            text-shadow: 0 0 5px #00FF41, 0 0 10px #00FF41;
+            background-color: rgba(0, 0, 0, 0.8); /* Fundo semi-transparente para legibilidade */
+        }
+        .content-container::-webkit-scrollbar {
+            width: 8px;
+        }
+        .content-container::-webkit-scrollbar-track {
+            background: #000;
+        }
+        .content-container::-webkit-scrollbar-thumb {
+            background-color: #00FF41;
+            border-radius: 4px;
+            border: 2px solid #000;
+        }
+        .glitch {
+            animation: glitch 1.5s linear infinite;
+        }
+        @keyframes glitch {
+            2%,64% { transform: translate(2px,0) skew(0deg); }
+            4%,60% { transform: translate(-2px,0) skew(0deg); }
+            62% { transform: translate(0,0) skew(5deg); }
+        }
+
+        /* Animação de Carregamento */
+        #loader {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            background-color: #000;
+            z-index: 9999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.75s ease;
+        }
+        .loader-text {
+            font-size: 2rem;
+            color: #00FF41;
+            text-shadow: 0 0 5px #00FF41, 0 0 10px #00FF41;
+        }
+        #loader.hidden {
+            opacity: 0;
+            pointer-events: none; /* Impede interação durante o fade-out */
+        }
+
+        /* Estilos do Carrossel */
+        .carousel-container {
+            position: relative; margin: auto; border: 1px solid #00FF41;
+            border-radius: 0.5rem; box-shadow: 0 0 15px rgba(0,255,65,0.5);
+            padding: 10px; background: rgba(0, 15, 0, 0.5);
+        }
+        .carousel-slide { display: none; }
+        .carousel-slide img { width: 100%; height: auto; border-radius: 0.25rem; object-fit: cover; aspect-ratio: 16/9; }
+        .prev, .next {
+            cursor: pointer; position: absolute; top: 50%; width: auto; padding: 16px;
+            margin-top: -22px; color: white; font-weight: bold; font-size: 24px;
+            transition: 0.6s ease; border-radius: 0 3px 3px 0; user-select: none;
+            background-color: rgba(0, 255, 65, 0.3); text-shadow: 0 0 10px #000;
+        }
+        .next { right: 10px; border-radius: 3px 0 0 3px; }
+        .prev { left: 10px; }
+        .prev:hover, .next:hover { background-color: rgba(0, 255, 65, 0.8); text-shadow: 0 0 15px #fff; }
+        .fade { animation-name: fade; animation-duration: 1.5s; }
+        @keyframes fade { from {opacity: .4} to {opacity: 1} }
+        
+        /* Estilos genéricos para as seções da API */
+        .api-section {
+            margin-bottom: 3rem; padding: 1rem; border: 1px solid #00FF41;
+            border-radius: 0.5rem; box-shadow: 0 0 15px rgba(0,255,65,0.5);
+        }
+        .api-section input, .api-section textarea {
+            background-color: rgba(0, 20, 0, 0.8); border: 1px solid #00FF41;
+            color: #00FF41; width: 100%; padding: 10px; border-radius: 4px; resize: vertical;
+        }
+        .api-section input:focus, .api-section textarea:focus { outline: none; box-shadow: 0 0 10px #00FF41; }
+        .api-section button {
+            background-color: transparent; border: 1px solid #00FF41; color: #00FF41;
+            padding: 10px 20px; cursor: pointer; transition: all 0.3s ease;
+            width: 100%; margin-top: 1rem;
+        }
+        .api-section button:hover:not(:disabled) { background-color: #00FF41; color: #000; box-shadow: 0 0 15px #00FF41; }
+        .api-section button:disabled { cursor: not-allowed; opacity: 0.5; }
+        .api-response-box {
+            margin-top: 1rem; padding: 1rem; background-color: rgba(0, 20, 0, 0.8);
+            border: 1px solid #00FF41; min-height: 100px; white-space: pre-wrap; line-height: 1.6;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .blinking-cursor { animation: blink 1s step-end infinite; }
+        @keyframes blink { from, to { color: transparent } 50% { color: #00FF41; } }
+        
+        /* Estilos específicos */
+        #matrix-code-snippet {
+            background-color: #020502; padding: 1rem; border: 1px dashed #00FF41;
+            border-radius: 4px; word-break: break-all; text-align: center;
+            font-size: 1.1rem; letter-spacing: 2px; margin-bottom: 1rem;
+        }
+        .image-preview-box {
+            margin-top: 1rem; border: 1px dashed #00FF41; padding: 0.5rem;
+            min-height: 100px; display: flex; align-items: center; justify-content: center;
+        }
+        .image-preview-box img { max-width: 100%; max-height: 300px; border-radius: 4px; }
+        /* Estilo para o botão de upload de arquivo */
+        .file-upload-btn {
+            border: 1px solid #00FF41; padding: 10px; border-radius: 4px;
+            display: inline-block; cursor: pointer; text-align: center; width: 100%;
+        }
+        .file-upload-btn:hover { background-color: #00FF41; color: #000; }
+        input[type="file"] { display: none; }
+        .spinner {
+            width: 56px; height: 56px; border-radius: 50%;
+            border: 9px solid #00FF41;
+            border-right-color: transparent;
+            animation: spinner-d3wgkg 1s infinite linear;
+        }
+        @keyframes spinner-d3wgkg { to { transform: rotate(1turn); } }
+    </style>
+</head>
+<body>
+    <!-- Animação de Carregamento -->
+    <div id="loader">
+        <div class="loader-text glitch">CONECTANDO À MATRIX...</div>
+    </div>
+
+    <!-- Canvas para o efeito de chuva digital -->
+    <canvas id="matrix-canvas"></canvas>
+
+    <!-- Conteúdo do site -->
+    <div class="content-container">
+        <div class="max-w-4xl mx-auto">
+            <h1 class="text-4xl md:text-6xl font-bold text-center mb-4 glitch">THE MATRIX</h1>
+            <p class="text-center text-lg mb-12">>> A realidade é apenas uma ilusão <<</p>
+
+            <!-- Seção: Sinopse -->
+            <div class="mb-12 p-4 border border-green-500 rounded-lg shadow-[0_0_15px_rgba(0,255,65,0.5)]">
+                <h2 class="text-2xl md:text-3xl font-bold mb-4">> system.load("sinopse.txt")</h2>
+                <p class="text-base md:text-lg leading-relaxed">
+                    Em um futuro distópico, Thomas Anderson (Keanu Reeves), um programador de computador, leva uma vida dupla. De dia, é um profissional respeitado; à noite, um hacker conhecido como Neo. Suas dúvidas o levam a um encontro com Morpheus (Laurence Fishburne), que revela a chocante verdade: o mundo que ele conhece é uma simulação de realidade virtual, a Matrix, criada por máquinas para subjugar a humanidade.
+                </p>
+            </div>
+
+            <!-- Seção: Carrossel de Imagens -->
+            <div class="mb-12">
+                <h2 class="text-2xl md:text-3xl font-bold mb-4 text-center">> system.load("imagens.gallery")</h2>
+                <div class="carousel-container">
+                    <div class="carousel-slide fade"><img src="https://media.wired.com/photos/5926df62cefba457b079a74c/master/w_2560%2Cc_limit/The-Matrix-bullet-time.jpg" alt="Neo desviando de balas em 'bullet time'" onerror="this.onerror=null;this.src='https://placehold.co/800x450/000000/00FF41?text=Erro+de+Sinal';"></div>
+                    <div class="carousel-slide fade"><img src="https://static1.srcdn.com/wordpress/wp-content/uploads/2020/02/Morpheus-Red-Pill-Blue-Pill-The-Matrix.jpg" alt="Morpheus oferecendo a pílula vermelha e a pílula azul" onerror="this.onerror=null;this.src='https://placehold.co/800x450/000000/00FF41?text=Erro+de+Sinal';"></div>
+                    <div class="carousel-slide fade"><img src="https://static1.cbrimages.com/wordpress/wp-content/uploads/2022/08/The-Matrix-Agent-Smith.jpg" alt="Agente Smith ajustando seu óculos" onerror="this.onerror=null;this.src='https://placehold.co/800x450/000000/00FF41?text=Erro+de+Sinal';"></div>
+                    <div class="carousel-slide fade"><img src="https://www.digitalartsonline.co.uk/cmsdata/features/3694332/matrix-code-social.jpg" alt="Chuva digital verde com código da Matrix" onerror="this.onerror=null;this.src='https://placehold.co/800x450/000000/00FF41?text=Erro+de+Sinal';"></div>
+                    <div class="carousel-slide fade"><img src="https://static0.srcdn.com/wordpress/wp-content/uploads/2021/11/trinity-laurence-fishburne-the-matrix-4.jpg" alt="Trinity em uma cena de ação" onerror="this.onerror=null;this.src='https://placehold.co/800x450/000000/00FF41?text=Erro+de+Sinal';"></div>
+                    <div class="carousel-slide fade"><img src="https://www.denofgeek.com/wp-content/uploads/2021/12/the-matrix-resurrections-neo-in-pod.jpg?fit=1200%2C675" alt="Neo acordando no mundo real dentro de sua cápsula" onerror="this.onerror=null;this.src='https://placehold.co/800x450/000000/00FF41?text=Erro+de+Sinal';"></div>
+                    <a class="prev" onclick="plusSlides(-1)">&#10094;</a>
+                    <a class="next" onclick="plusSlides(1)">&#10095;</a>
+                </div>
+            </div>
+
+            <!-- Seção: Gerador de Déjà Vu -->
+            <div id="deja-vu-section" class="api-section">
+                <h2 class="text-2xl md:text-3xl font-bold mb-4">> Gerador de Déjà Vu</h2>
+                <p class="mb-4">Uma falha na Matrix. Geralmente acontece quando eles mudam algo. Descreva uma cena e veja a falha se manifestar.</p>
+                <input type="text" id="deja-vu-prompt" placeholder="Ex: um gato preto em um corredor">
+                <button id="generate-deja-vu-btn">✨> Gerar Falha na Realidade</button>
+                <div id="deja-vu-image-container" class="image-preview-box mt-4">
+                    <span class="text-gray-400">> O sinal de saída aparecerá aqui...</span>
+                </div>
+            </div>
+
+            <!-- Seção: Analisador de Imagem -->
+            <div id="image-analyzer-section" class="api-section">
+                <h2 class="text-2xl md:text-3xl font-bold mb-4">> Analisador de Imagem: É o Mundo Real?</h2>
+                <p class="mb-4">Faça o upload de uma imagem. Nossos analistas de sinal irão procurar por falhas na Matrix. A verdade pode estar bem na sua frente.</p>
+                <label for="image-upload" class="file-upload-btn">> Selecionar Imagem do Dispositivo</label>
+                <input type="file" id="image-upload" accept="image/*">
+                <div id="image-preview" class="image-preview-box"><span class="text-gray-400">> Aguardando sinal de entrada...</span></div>
+                <button id="analyze-image-btn" disabled>✨> Analisar Imagem</button>
+                <div id="analysis-report-container" class="mt-4 hidden">
+                    <h3 class="text-xl font-semibold mb-2">> Relatório de Análise:</h3>
+                    <div id="analysis-report" class="api-response-box"></div>
+                </div>
+            </div>
+
+            <!-- Seção: Decifre o Código -->
+            <div id="decoder-section" class="api-section">
+                <h2 class="text-2xl md:text-3xl font-bold mb-4">> Decifre o Código</h2>
+                <p class="mb-4">Nem tudo é o que parece. Há mensagens ocultas no fluxo de dados. Olhe mais de perto.</p>
+                <div id="matrix-code-snippet"></div>
+                <button id="decode-btn">✨> Decifrar Código</button>
+                <div id="decoded-message-container" class="mt-4 hidden">
+                    <h3 class="text-xl font-semibold mb-2">> Mensagem Oculta:</h3>
+                    <div id="decoded-message" class="api-response-box"></div>
+                </div>
+            </div>
+
+            <!-- Seção do Criador de Personagem com Gemini API -->
+            <div id="character-creator-section" class="api-section">
+                <h2 class="text-2xl md:text-3xl font-bold mb-4">> Crie seu Operador de Zion</h2>
+                <p class="mb-4">Descreva seu guerreiro da resistência. Forneça algumas características-chave e a IA irá gerar um perfil para seu operador em Zion.</p>
+                <input type="text" id="character-keywords" placeholder="Ex: piloto veloz, leal, especialista em fuga">
+                <button id="create-character-btn">✨> Gerar Perfil de Operador</button>
+                <div id="character-profile-container" class="mt-4 hidden">
+                    <h3 class="text-xl font-semibold mb-2">> Perfil do Operador:</h3>
+                    <div id="character-profile" class="api-response-box"></div>
+                </div>
+            </div>
+
+            <!-- Seção do Simulador de Upload de Habilidades com Gemini API -->
+            <div id="skill-upload-section" class="api-section">
+                <h2 class="text-2xl md:text-3xl font-bold mb-4">> Simulador de Upload de Habilidades</h2>
+                <p class="mb-4">Operador, de qual habilidade você precisa? "Eu sei Kung Fu."</p>
+                <input type="text" id="skill-input" placeholder="Ex: Kung Fu, pilotar um helicóptero, mestre de xadrez">
+                <button id="upload-skill-btn">✨> Fazer Upload da Habilidade</button>
+                <div id="upload-log-container" class="mt-4 hidden">
+                    <h3 class="text-xl font-semibold mb-2">> Log de Upload:</h3>
+                    <div id="upload-log" class="api-response-box"></div>
+                </div>
+            </div>
+
+            <!-- Seção do Planejador de Missão com Gemini API -->
+            <div id="mission-planner-section" class="api-section">
+                <h2 class="text-2xl md:text-3xl font-bold mb-4">> Planejador de Missão de Zion</h2>
+                <p class="mb-4">A guerra exige estratégia. Descreva um objetivo e o mainframe de Zion irá gerar um plano de ataque.</p>
+                <input type="text" id="mission-objective" placeholder="Ex: resgatar um potencial de um prédio vigiado">
+                <button id="plan-mission-btn">✨> Gerar Plano de Missão</button>
+                <div id="mission-plan-container" class="mt-4 hidden">
+                    <h3 class="text-xl font-semibold mb-2">> Briefing da Missão:</h3>
+                    <div id="mission-plan" class="api-response-box"></div>
+                </div>
+            </div>
+
+            <!-- Seção do Oráculo com Gemini API -->
+            <div id="oracle-section" class="api-section">
+                <h2 class="text-2xl md:text-3xl font-bold mb-4">> Converse com o Oráculo</h2>
+                <p class="mb-4">Faça sua pergunta à Fonte. Mas lembre-se, a resposta pode não ser a que você espera, mas sim a que você precisa ouvir.</p>
+                <textarea id="user-question" placeholder="Digite sua pergunta aqui..." rows="3"></textarea>
+                <button id="ask-oracle-btn">✨> Enviar Pergunta</button>
+                <div id="oracle-response-container" class="mt-4">
+                    <h3 class="text-xl font-semibold mb-2">> Resposta do Oráculo:</h3>
+                    <div id="oracle-response" class="api-response-box">Aguardando sua escolha...<span class="blinking-cursor">_</span></div>
+                    <div id="oracle-audio-controls" class="mt-2"></div>
+                </div>
+            </div>
+
+            <!-- Seção de Interrogação do Agente com Gemini API -->
+            <div id="agent-interrogation-section" class="api-section">
+                <h2 class="text-2xl md:text-3xl font-bold mb-4">> Interrogar um Agente</h2>
+                <p class="mb-4">Você capturou um Agente. Ele é obrigado a responder. Mas cuidado, suas palavras são como um vírus.</p>
+                <textarea id="agent-question" placeholder="Faça sua pergunta ao programa..." rows="3"></textarea>
+                <button id="ask-agent-btn">✨> Iniciar Interrogatório</button>
+                <div id="agent-response-container" class="mt-4">
+                    <h3 class="text-xl font-semibold mb-2">> Resposta do Agente:</h3>
+                    <div id="agent-response" class="api-response-box">...<span class="blinking-cursor">_</span></div>
+                </div>
+            </div>
+            
+            <footer class="text-center mt-12 text-sm text-green-700">
+                <p>Conexão encerrada. Desconectando da Matrix...</p>
+            </footer>
+        </div>
+    </div>
+
+    <script>
+        // #############################################################################
+        // # IMPORTANTE: INSIRA SUA CHAVE DA API DO GEMINI AQUI                       #
+        // # 1. Obtenha sua chave em: https://aistudio.google.com/app/apikey         #
+        // # 2. Cole a chave na linha abaixo, substituindo "COLE_SUA_CHAVE_AQUI"     #
+        // #############################################################################
+        const API_KEY = "AIzaSyC2DppLudNZHrxPjIhUZJJ25dOvt9lP4Qg"; 
+
+        // --- CONSTANTES GLOBAIS ---
+        const KATAKANA = 'アァカサタナハマヤャラワガザダバパイィキシチニヒミリヰギジヂビピウゥクスツヌフムユュルグズブヅプエェケセテネヘメレヱゲゼデベペオォコソトノホモヨョロヲゴゾドボポヴッン';
+        const ALPHABET = KATAKANA + 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        const FONT_SIZE = 16;
+        const API_URL_GENERATE_TEXT = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${API_KEY}`;
+        const API_URL_IMAGE_GEN = `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict?key=${API_KEY}`;
+        const API_URL_TTS = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${API_KEY}`;
+        let currentOracleResponse = "";
+        let uploadedImageBase64 = "";
+
+        // --- EFEITO DE CHUVA DIGITAL ---
+        const canvas = document.getElementById('matrix-canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+        const columns = Math.floor(canvas.width / FONT_SIZE);
+        const rainDrops = Array(columns).fill(1);
+        function draw() {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#00FF41'; ctx.font = FONT_SIZE + 'px monospace';
+            rainDrops.forEach((y, i) => {
+                const text = ALPHABET.charAt(Math.floor(Math.random() * ALPHABET.length));
+                ctx.fillText(text, i * FONT_SIZE, y * FONT_SIZE);
+                rainDrops[i] = (y * FONT_SIZE > canvas.height && Math.random() > 0.975) ? 0 : y + 1;
+            });
+        }
+        setInterval(draw, 33);
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+            const newColumns = Math.floor(canvas.width / FONT_SIZE);
+            while(rainDrops.length < newColumns) { rainDrops.push(1); }
+            rainDrops.length = newColumns;
+        });
+
+        // --- LÓGICA DO CARROSSEL ---
+        let slideIndex = 1;
+        function plusSlides(n) { showSlides(slideIndex += n); }
+        function showSlides(n) {
+            let slides = document.getElementsByClassName("carousel-slide");
+            if (slides.length === 0) return;
+            if (n > slides.length) { slideIndex = 1 }
+            if (n < 1) { slideIndex = slides.length }
+            for (let i = 0; i < slides.length; i++) { slides[i].style.display = "none"; }
+            slides[slideIndex - 1].style.display = "block";
+        }
+        
+        // --- FUNÇÕES UTILITÁRIAS ---
+        function typeWriter(element, text, i = 0, onComplete = () => {}) {
+            if (i === 0) element.innerHTML = '';
+            if (i < text.length) {
+                element.innerHTML += text.charAt(i);
+                setTimeout(() => typeWriter(element, text, i + 1, onComplete), 25);
+            } else {
+                element.innerHTML += '<span class="blinking-cursor">_</span>';
+                onComplete();
+            }
+        }
+        
+        // --- FUNÇÕES DE ÁUDIO (TTS) ---
+        function base64ToArrayBuffer(base64) {
+            const binaryString = window.atob(base64); const len = binaryString.length;
+            const bytes = new Uint8Array(len);
+            for (let i = 0; i < len; i++) { bytes[i] = binaryString.charCodeAt(i); }
+            return bytes.buffer;
+        }
+        function pcmToWav(pcmData, sampleRate) {
+            const numChannels = 1, bytesPerSample = 2, blockAlign = numChannels * bytesPerSample;
+            const byteRate = sampleRate * blockAlign, dataSize = pcmData.byteLength;
+            const buffer = new ArrayBuffer(44 + dataSize); const view = new DataView(buffer);
+            function writeString(view, offset, string) { for (let i = 0; i < string.length; i++) { view.setUint8(offset + i, string.charCodeAt(i)); } }
+            writeString(view, 0, 'RIFF'); view.setUint32(4, 36 + dataSize, true); writeString(view, 8, 'WAVE');
+            writeString(view, 12, 'fmt '); view.setUint32(16, 16, true); view.setUint16(20, 1, true);
+            view.setUint16(22, numChannels, true); view.setUint32(24, sampleRate, true); view.setUint32(28, byteRate, true);
+            view.setUint16(32, blockAlign, true); view.setUint16(34, bytesPerSample * 8, true);
+            writeString(view, 36, 'data'); view.setUint32(40, dataSize, true);
+            const pcmAsBytes = new Uint8Array(pcmData);
+            for (let i = 0; i < dataSize; i++) { view.setUint8(44 + i, pcmAsBytes[i]); }
+            return new Blob([view], { type: 'audio/wav' });
+        }
+
+        function checkApiKey() {
+            if (API_KEY === "COLE_SUA_CHAVE_AQUI" || API_KEY === "") {
+                const allApiSections = document.querySelectorAll('.api-section');
+                allApiSections.forEach(section => {
+                    const button = section.querySelector('button');
+                    if(button) button.disabled = true;
+                    const responseBox = section.querySelector('.api-response-box, .image-preview-box');
+                    if(responseBox) {
+                        responseBox.innerHTML = '<span class="text-red-500">> ERRO DE CONEXÃO: Chave da API não configurada. Insira sua chave no arquivo HTML para se conectar à Fonte.</span>';
+                    }
+                });
+                return false;
+            }
+            return true;
+        }
+        
+        // --- LÓGICA DO GERADOR DE DÉJÀ VU ---
+        const dejaVuPromptInput = document.getElementById('deja-vu-prompt');
+        const generateDejaVuBtn = document.getElementById('generate-deja-vu-btn');
+        const dejaVuImageContainer = document.getElementById('deja-vu-image-container');
+
+        generateDejaVuBtn.addEventListener('click', async () => {
+            if (!checkApiKey()) return;
+            const userPrompt = dejaVuPromptInput.value;
+            if (!userPrompt.trim()) {
+                dejaVuImageContainer.innerHTML = '<span class="text-gray-400">> É preciso um pensamento para criar uma falha. Descreva uma cena.</span>';
+                return;
+            }
+            generateDejaVuBtn.disabled = true;
+            generateDejaVuBtn.innerText = 'Alterando o código da Matrix...';
+            dejaVuImageContainer.innerHTML = '<div class="spinner"></div>';
+            const fullPrompt = `Create a photorealistic image with a subtle glitch or "déjà vu" effect, in the style of The Matrix movie. The scene is: ${userPrompt}. The glitch should be a subtle repetition or distortion, creating an uncanny feeling. The image should have a slight green tint and a cinematic quality.`;
+            const payload = { instances: [{ prompt: fullPrompt }], parameters: { "sampleCount": 1 } };
+            try {
+                const response = await fetch(API_URL_IMAGE_GEN, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const result = await response.json();
+                if (result.predictions && result.predictions.length > 0 && result.predictions[0].bytesBase64Encoded) {
+                    const imageUrl = `data:image/png;base64,${result.predictions[0].bytesBase64Encoded}`;
+                    dejaVuImageContainer.innerHTML = `<img src="${imageUrl}" alt="Imagem de Déjà Vu gerada por IA">`;
+                } else { throw new Error("Resposta de imagem inválida da API."); }
+            } catch (error) {
+                console.error("Déjà Vu Generation Error:", error);
+                dejaVuImageContainer.innerHTML = '<span class="text-red-500">> ERRO: A alteração falhou. Os Agentes podem ter notado.</span>';
+            } finally {
+                generateDejaVuBtn.disabled = false;
+                generateDejaVuBtn.innerText = '✨> Gerar Outra Falha';
+            }
+        });
+        
+        // --- LÓGICA DO ANALISADOR DE IMAGEM ---
+        const imageUploadInput = document.getElementById('image-upload');
+        const imagePreviewDiv = document.getElementById('image-preview');
+        const analyzeImageBtn = document.getElementById('analyze-image-btn');
+        const analysisReportContainer = document.getElementById('analysis-report-container');
+        const analysisReportDiv = document.getElementById('analysis-report');
+
+        imageUploadInput.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file && checkApiKey()) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    imagePreviewDiv.innerHTML = `<img src="${e.target.result}" alt="Preview da Imagem">`;
+                    uploadedImageBase64 = e.target.result.split(',')[1];
+                    analyzeImageBtn.disabled = false;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        analyzeImageBtn.addEventListener('click', async () => {
+            if (!uploadedImageBase64 || !checkApiKey()) return;
+            analyzeImageBtn.disabled = true; analyzeImageBtn.innerText = 'Processando sinal...';
+            analysisReportContainer.classList.remove('hidden');
+            analysisReportDiv.innerHTML = 'Varrendo a imagem...<span class="blinking-cursor">_</span>';
+            const prompt = "Você é um analista de sinais de Zion. Analise esta imagem em busca de anomalias que sugiram que ela é uma construção dentro da Matrix. Procure por repetições, geometria impossível, ou qualquer coisa que pareça 'estranha'. Apresente suas descobertas em um relatório conciso, começando com 'RELATÓRIO DE ANÁLISE DE SINAL:'";
+            const payload = { contents: [{ parts: [{ text: prompt }, { inlineData: { mimeType: "image/jpeg", data: uploadedImageBase64 } }] }] };
+            try {
+                const response = await fetch(API_URL_GENERATE_TEXT, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const result = await response.json();
+                const report = result.candidates[0].content.parts[0].text;
+                typeWriter(analysisReportDiv, report, 0, () => {
+                    analyzeImageBtn.disabled = false; analyzeImageBtn.innerText = '✨> Analisar Outra Imagem';
+                });
+            } catch (error) {
+                console.error("Image Analysis Error:", error);
+                typeWriter(analysisReportDiv, "ERRO: O sinal está muito corrompido para análise.", 0, () => {
+                    analyzeImageBtn.disabled = false; analyzeImageBtn.innerText = '✨> Tentar Análise Novamente';
+                });
+            }
+        });
+
+        // --- LÓGICA DO DECIFRADOR DE CÓDIGO ---
+        const decodeBtn = document.getElementById('decode-btn');
+        const codeSnippetDiv = document.getElementById('matrix-code-snippet');
+        const decodedMsgContainer = document.getElementById('decoded-message-container');
+        const decodedMsgDiv = document.getElementById('decoded-message');
+        
+        function generateCodeSnippet() {
+            let snippet = '';
+            for (let i = 0; i < 150; i++) { snippet += ALPHABET.charAt(Math.floor(Math.random() * ALPHABET.length)); }
+            codeSnippetDiv.textContent = snippet;
+        }
+
+        decodeBtn.addEventListener('click', async () => {
+            if (!checkApiKey()) return;
+            decodeBtn.disabled = true; decodeBtn.innerText = 'Analisando fluxo...';
+            decodedMsgContainer.classList.remove('hidden');
+            decodedMsgDiv.innerHTML = 'Buscando anomalias...<span class="blinking-cursor">_</span>';
+            const prompt = "Gere uma mensagem curta, filosófica e enigmática no estilo do universo Matrix, como se fosse uma verdade oculta encontrada dentro do código da Matrix. A mensagem deve ter no máximo 2 frases.";
+            try {
+                const response = await fetch(API_URL_GENERATE_TEXT, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }) });
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const result = await response.json();
+                const message = result.candidates[0].content.parts[0].text;
+                typeWriter(decodedMsgDiv, message, 0, () => {
+                    decodeBtn.disabled = false; decodeBtn.innerText = '✨> Decifrar Novo Código';
+                    generateCodeSnippet();
+                });
+            } catch (error) {
+                console.error("Error:", error);
+                typeWriter(decodedMsgDiv, "O fluxo está corrompido.", 0, () => {
+                    decodeBtn.disabled = false; decodeBtn.innerText = '✨> Tentar Novamente';
+                });
+            }
+        });
+
+        // --- LÓGICA DO CRIADOR DE PERSONAGEM ---
+        const createCharBtn = document.getElementById('create-character-btn');
+        const charKeywordsInput = document.getElementById('character-keywords');
+        const charProfileContainer = document.getElementById('character-profile-container');
+        const charProfileDiv = document.getElementById('character-profile');
+
+        createCharBtn.addEventListener('click', async () => {
+            if (!checkApiKey()) return;
+            const keywords = charKeywordsInput.value;
+            if (!keywords.trim()) {
+                charProfileContainer.classList.remove('hidden');
+                typeWriter(charProfileDiv, "Você deve fornecer as sementes para que uma nova consciência possa brotar.");
+                return;
+            }
+            createCharBtn.disabled = true; createCharBtn.innerText = 'Compilando dados...';
+            charProfileContainer.classList.remove('hidden');
+            charProfileDiv.innerHTML = 'Acessando mainframe de Zion...<span class="blinking-cursor">_</span>';
+            const prompt = `Baseado nas seguintes palavras-chave: "${keywords}", crie um perfil de personagem para um combatente da resistência humana de Zion no universo Matrix. Forneça a resposta como um objeto JSON com as chaves: "nome", "codinome", "especialidade", e "historia". A história deve ser curta, com no máximo 3 frases.`;
+            const payload = {
+                contents: [{ parts: [{ text: prompt }] }],
+                generationConfig: {
+                    responseMimeType: "application/json",
+                    responseSchema: { type: "OBJECT", properties: { "nome": { "type": "STRING" }, "codinome": { "type": "STRING" }, "especialidade": { "type": "STRING" }, "historia": { "type": "STRING" } }, required: ["nome", "codinome", "especialidade", "historia"] }
+                }
+            };
+            try {
+                const response = await fetch(API_URL_GENERATE_TEXT, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const result = await response.json();
+                const profileJson = JSON.parse(result.candidates[0].content.parts[0].text);
+                const profileText = `> NOME: ${profileJson.nome}\n> CODINOME: ${profileJson.codinome}\n> ESPECIALIDADE: ${profileJson.especialidade}\n\n> HISTÓRIA: ${profileJson.historia}`;
+                typeWriter(charProfileDiv, profileText, 0, () => {
+                    createCharBtn.disabled = false; createCharBtn.innerText = '✨> Gerar Outro Perfil';
+                });
+            } catch (error) {
+                console.error("Error:", error);
+                typeWriter(charProfileDiv, "Falha na construção do operador. Conexão perdida.", 0, () => {
+                    createCharBtn.disabled = false; createCharBtn.innerText = '✨> Gerar Perfil de Operador';
+                });
+            }
+        });
+
+        // --- LÓGICA DO SIMULADOR DE UPLOAD DE HABILIDADES ---
+        const uploadSkillBtn = document.getElementById('upload-skill-btn');
+        const skillInput = document.getElementById('skill-input');
+        const uploadLogContainer = document.getElementById('upload-log-container');
+        const uploadLogDiv = document.getElementById('upload-log');
+
+        uploadSkillBtn.addEventListener('click', async () => {
+            if (!checkApiKey()) return;
+            const skill = skillInput.value;
+            if (!skill.trim()) {
+                uploadLogContainer.classList.remove('hidden');
+                typeWriter(uploadLogDiv, "Especifique o programa de treinamento.");
+                return;
+            }
+            uploadSkillBtn.disabled = true;
+            uploadSkillBtn.innerText = 'Iniciando conexão neural...';
+            uploadLogContainer.classList.remove('hidden');
+            uploadLogDiv.innerHTML = 'Calibrando interface...<span class="blinking-cursor">_</span>';
+            const prompt = `Aja como o console de um operador de Zion fazendo upload de uma habilidade para o cérebro de alguém. A habilidade é "${skill}". Descreva o processo em uma série de logs de console curtos e técnicos, mostrando o progresso rápido. Termine com "Upload completo." e uma frase de efeito, como "Ele(a) sabe ${skill}."`;
+            try {
+                const response = await fetch(API_URL_GENERATE_TEXT, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }) });
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const result = await response.json();
+                const logText = result.candidates[0].content.parts[0].text;
+                typeWriter(uploadLogDiv, logText, 0, () => {
+                    uploadSkillBtn.disabled = false;
+                    uploadSkillBtn.innerText = '✨> Fazer Upload de Outra Habilidade';
+                });
+            } catch (error) {
+                console.error("Skill Upload Error:", error);
+                typeWriter(uploadLogDiv, "ERRO: Upload falhou. Conexão instável. Esvazie sua mente.", 0, () => {
+                    uploadSkillBtn.disabled = false;
+                    uploadSkillBtn.innerText = '✨> Tentar Novamente';
+                });
+            }
+        });
+
+        // --- LÓGICA DO PLANEJADOR DE MISSÃO ---
+        const planMissionBtn = document.getElementById('plan-mission-btn');
+        const missionObjectiveInput = document.getElementById('mission-objective');
+        const missionPlanContainer = document.getElementById('mission-plan-container');
+        const missionPlanDiv = document.getElementById('mission-plan');
+
+        planMissionBtn.addEventListener('click', async () => {
+            if (!checkApiKey()) return;
+            const objective = missionObjectiveInput.value;
+            if (!objective.trim()) {
+                missionPlanContainer.classList.remove('hidden');
+                typeWriter(missionPlanDiv, "Um objetivo é o primeiro passo para a ação. Defina a missão.");
+                return;
+            }
+            planMissionBtn.disabled = true;
+            planMissionBtn.innerText = 'Calculando probabilidades...';
+            missionPlanContainer.classList.remove('hidden');
+            missionPlanDiv.innerHTML = 'Acessando mainframe tático...<span class="blinking-cursor">_</span>';
+            const prompt = `Aja como um planejador de missão tático de Zion do universo Matrix. Dado o objetivo "${objective}", crie um plano de missão. A resposta deve ser um objeto JSON.`;
+            const payload = {
+                contents: [{ parts: [{ text: prompt }] }],
+                generationConfig: {
+                    responseMimeType: "application/json",
+                    responseSchema: {
+                        type: "OBJECT",
+                        properties: {
+                            mission_name: { type: "STRING", description: "Um codinome legal para a missão." },
+                            steps: {
+                                type: "ARRAY",
+                                items: {
+                                    type: "OBJECT",
+                                    properties: {
+                                        step: { type: "NUMBER" },
+                                        description: { type: "STRING" }
+                                    },
+                                    required: ["step", "description"]
+                                }
+                            },
+                            personnel: { type: "ARRAY", items: { type: "STRING" }, description: "Tipos de operadores necessários (ex: Hacker, Piloto)." },
+                            risks: { type: "ARRAY", items: { type: "STRING" }, description: "Riscos potenciais." }
+                        },
+                        required: ["mission_name", "steps", "personnel", "risks"]
+                    }
+                }
+            };
+            try {
+                const response = await fetch(API_URL_GENERATE_TEXT, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const result = await response.json();
+                const plan = JSON.parse(result.candidates[0].content.parts[0].text);
+                let planText = `> OPERAÇÃO: ${plan.mission_name}\n\n`;
+                planText += ">> FASES DA MISSÃO:\n";
+                plan.steps.forEach(s => {
+                    planText += `   ${s.step}. ${s.description}\n`;
+                });
+                planText += `\n>> EQUIPE RECOMENDADA:\n   - ${plan.personnel.join('\n   - ')}\n`;
+                planText += `\n>> RISCOS POTENCIAIS:\n   - ${plan.risks.join('\n   - ')}`;
+
+                typeWriter(missionPlanDiv, planText, 0, () => {
+                    planMissionBtn.disabled = false;
+                    planMissionBtn.innerText = '✨> Gerar Novo Plano';
+                });
+            } catch (error) {
+                console.error("Mission Plan Error:", error);
+                typeWriter(missionPlanDiv, "Falha no cálculo do plano. Interferência detectada.", 0, () => {
+                    planMissionBtn.disabled = false;
+                    planMissionBtn.innerText = '✨> Tentar Novamente';
+                });
+            }
+        });
+
+        // --- LÓGICA DO ORÁCULO ---
+        const askOracleBtn = document.getElementById('ask-oracle-btn');
+        const userQuestionInput = document.getElementById('user-question');
+        const oracleResponseDiv = document.getElementById('oracle-response');
+        const oracleAudioControls = document.getElementById('oracle-audio-controls');
+
+        askOracleBtn.addEventListener('click', async () => {
+            if (!checkApiKey()) return;
+            const userQuestion = userQuestionInput.value;
+            if (!userQuestion.trim()) {
+                typeWriter(oracleResponseDiv, "Você precisa perguntar para receber.");
+                return;
+            }
+            askOracleBtn.disabled = true; askOracleBtn.innerText = 'Consultando a Fonte...';
+            oracleResponseDiv.innerHTML = 'Analisando os caminhos...<span class="blinking-cursor">_</span>';
+            oracleAudioControls.innerHTML = '';
+            const prompt = `Você é a Oráculo do universo Matrix. Responda à seguinte pergunta com sabedoria, tom enigmático e perspectiva filosófica. Sua resposta deve ser perspicaz e fazer o usuário pensar. Não revele que é um modelo de linguagem. A pergunta é: "${userQuestion}"`;
+            try {
+                const response = await fetch(API_URL_GENERATE_TEXT, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }) });
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const result = await response.json();
+                currentOracleResponse = result.candidates[0].content.parts[0].text;
+                typeWriter(oracleResponseDiv, currentOracleResponse, 0, () => {
+                    askOracleBtn.disabled = false; askOracleBtn.innerText = '✨> Enviar Pergunta';
+                    const listenBtn = document.createElement('button');
+                    listenBtn.id = 'listen-oracle-btn'; listenBtn.innerHTML = '🔊> Ouvir a Resposta';
+                    listenBtn.onclick = playOracleResponse;
+                    oracleAudioControls.appendChild(listenBtn);
+                });
+            } catch (error) {
+                console.error("Error:", error);
+                typeWriter(oracleResponseDiv, "Parece que há uma perturbação na Matrix...", 0, () => {
+                    askOracleBtn.disabled = false; askOracleBtn.innerText = '✨> Enviar Pergunta';
+                });
+            }
+        });
+
+        async function playOracleResponse() {
+            if (!checkApiKey()) return;
+            const listenBtn = document.getElementById('listen-oracle-btn');
+            if (!currentOracleResponse || !listenBtn) return;
+            listenBtn.disabled = true; listenBtn.innerText = 'Carregando áudio...';
+            const payload = {
+                contents: [{ parts: [{ text: `Say in a calm, knowing, and slightly mysterious tone: ${currentOracleResponse}` }] }],
+                generationConfig: { responseModalities: ["AUDIO"], speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: "Kore" } } } },
+                model: "gemini-2.5-flash-preview-tts"
+            };
+            try {
+                const response = await fetch(API_URL_TTS, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                if (!response.ok) throw new Error(`TTS API error! status: ${response.status}`);
+                const result = await response.json();
+                const part = result?.candidates?.[0]?.content?.parts?.[0];
+                const audioData = part?.inlineData?.data;
+                const mimeType = part?.inlineData?.mimeType;
+                if (audioData && mimeType && mimeType.startsWith("audio/")) {
+                    const sampleRateMatch = mimeType.match(/rate=(\d+)/);
+                    const sampleRate = sampleRateMatch ? parseInt(sampleRateMatch[1], 10) : 24000;
+                    const pcmData = base64ToArrayBuffer(audioData);
+                    const wavBlob = pcmToWav(pcmData, sampleRate);
+                    const audioUrl = URL.createObjectURL(wavBlob);
+                    const audio = new Audio(audioUrl);
+                    audio.play();
+                    audio.onended = () => { listenBtn.disabled = false; listenBtn.innerText = '🔊> Ouvir Novamente'; };
+                } else { throw new Error("Dados de áudio inválidos recebidos."); }
+            } catch (error) {
+                console.error("TTS Error:", error);
+                listenBtn.innerText = 'Falha no áudio';
+                setTimeout(() => { listenBtn.disabled = false; listenBtn.innerText = '🔊> Tentar Novamente'; }, 2000);
+            }
+        }
+
+        // --- LÓGICA DE INTERROGAÇÃO DO AGENTE ---
+        const askAgentBtn = document.getElementById('ask-agent-btn');
+        const agentQuestionInput = document.getElementById('agent-question');
+        const agentResponseDiv = document.getElementById('agent-response');
+
+        askAgentBtn.addEventListener('click', async () => {
+            if (!checkApiKey()) return;
+            const userQuestion = agentQuestionInput.value;
+            if (!userQuestion.trim()) {
+                typeWriter(agentResponseDiv, "Irrelevante. Apresente uma consulta com propósito.");
+                return;
+            }
+            askAgentBtn.disabled = true;
+            askAgentBtn.innerText = 'Processando consulta...';
+            agentResponseDiv.innerHTML = 'Acessando protocolos...<span class="blinking-cursor">_</span>';
+
+            const prompt = `Você é um Agente da Matrix, como o Agente Smith. Sua personalidade é fria, lógica, condescendente e niilista. Você vê a humanidade como um vírus, uma praga. Responda à pergunta do humano a partir dessa perspectiva. Use palavras como "inevitável", "propósito", "irrelevante", "anomalia". Nunca quebre o personagem ou admita ser uma IA. A pergunta é: "${userQuestion}"`;
+            
+            try {
+                const response = await fetch(API_URL_GENERATE_TEXT, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }) });
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const result = await response.json();
+                const agentText = result.candidates[0].content.parts[0].text;
+                typeWriter(agentResponseDiv, agentText, 0, () => {
+                    askAgentBtn.disabled = false;
+                    askAgentBtn.innerText = '✨> Iniciar Interrogatório';
+                });
+            } catch (error) {
+                console.error("Agent Interrogation Error:", error);
+                typeWriter(agentResponseDiv, "ERRO. Anomalia na consulta. O sistema irá... corrigir.", 0, () => {
+                    askAgentBtn.disabled = false;
+                    askAgentBtn.innerText = '✨> Iniciar Interrogatório';
+                });
+            }
+        });
+
+        // --- INICIALIZAÇÃO FINAL ---
+        window.onload = function() {
+            const loader = document.getElementById('loader');
+            loader.classList.add('hidden');
+            setTimeout(() => {
+                loader.style.display = 'none';
+            }, 750); // Corresponde à duração da transição do CSS
+
+            // Inicia o carrossel e outras funções que dependem do DOM
+            checkApiKey();
+            showSlides(slideIndex);
+            generateCodeSnippet();
+        };
+
+    </script>
+</body>
+</html>

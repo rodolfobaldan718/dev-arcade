@@ -1,0 +1,1107 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stranger Things | O Mundo Invertido</title>
+    
+    <!-- Importação do framework Tailwind CSS para estilização rápida -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Importação das Fontes do Google -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!-- Fontes usadas: Courier Prime (textos), Creepster (terror), Merriweather (título aproximado) -->
+    <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Creepster&family=Merriweather:wght@900&display=swap" rel="stylesheet">
+
+    <!-- Ícones do FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        /* --- CONFIGURAÇÕES GERAIS E FONTES --- */
+        :root {
+            --st-vermelho: #E71D36;
+            --st-vermelho-escuro: #740001;
+            --st-brilho: #ff4d4d;
+            --bg-preto: #050505;
+        }
+
+        body {
+            background-color: var(--bg-preto);
+            color: #d1d5db;
+            font-family: 'Courier Prime', monospace; /* Fonte estilo máquina de escrever/relatórios */
+            overflow-x: hidden;
+            cursor: crosshair; /* Cursor em formato de mira */
+        }
+
+        /* Classes para aplicar as fontes específicas */
+        .fonte-titulo {
+            font-family: 'Merriweather', serif;
+            font-weight: 900;
+            letter-spacing: -2px;
+        }
+
+        .fonte-terror {
+            font-family: 'Creepster', cursive;
+        }
+
+        /* --- EFEITOS ESPECIAIS E ANIMAÇÕES --- */
+
+        /* 1. Efeito de Granulação (Film Grain) que fica por cima de todo o site */
+        .sobreposicao-ruido {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none; /* Permite clicar através da camada */
+            z-index: 50;
+            opacity: 0.05;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+        }
+
+        /* 2. Partículas flutuantes do Mundo Invertido */
+        .esporo {
+            position: fixed;
+            background: rgba(200, 200, 200, 0.6);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 40;
+            animation: flutuarParaCima linear infinite;
+            filter: blur(1px);
+        }
+
+        /* Animação que faz as partículas subirem a tela */
+        @keyframes flutuarParaCima {
+            0% { transform: translateY(100vh) translateX(0); opacity: 0; }
+            20% { opacity: 0.8; }
+            80% { opacity: 0.4; }
+            100% { transform: translateY(-10vh) translateX(20px); opacity: 0; }
+        }
+
+        /* 3. Título Neon Principal */
+        .titulo-st {
+            color: transparent;
+            -webkit-text-stroke: 2px var(--st-vermelho);
+            text-shadow: 0 0 15px rgba(231, 29, 54, 0.5);
+            position: relative;
+            animation: pulsarBrilho 4s infinite alternate;
+        }
+        
+        .titulo-st span {
+            display: inline-block;
+        }
+
+        /* Animação de entrada do título simulando a abertura da série */
+        .animacao-intro span {
+            opacity: 0;
+            transform: scale(30);
+            animation: aproximar 3s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+        }
+
+        @keyframes aproximar {
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        /* Faz o texto piscar suavemente */
+        @keyframes pulsarBrilho {
+            0% { text-shadow: 0 0 10px var(--st-vermelho-escuro); }
+            100% { text-shadow: 0 0 30px var(--st-vermelho), 0 0 10px var(--st-brilho); }
+        }
+
+        /* 4. Linhas divisórias vermelhas com efeito de luz */
+        .divisor-neon {
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--st-vermelho), transparent);
+            box-shadow: 0 0 10px var(--st-vermelho);
+            margin: 4rem 0;
+        }
+
+        /* 5. Cartões dos Personagens (Efeito de revelar o verso suavemente) */
+        .recipiente-cartao {
+            position: relative;
+        }
+        
+        .interior-cartao {
+            position: relative;
+            width: 100%;
+            height: 400px;
+        }
+
+        /* Formatação base comum para frente e verso do cartão */
+        .frente-cartao, .verso-cartao {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 8px;
+            overflow: hidden;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .frente-cartao {
+            background: #111;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            border: 1px solid #333;
+            z-index: 10; /* Fica por cima inicialmente */
+        }
+
+        .verso-cartao {
+            background: linear-gradient(to bottom, #0f0f2d, #000); 
+            border: 1px solid #4f46e5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            text-align: center;
+            z-index: 20;
+            opacity: 0; /* Invisível por padrão */
+            transform: scale(0.95);
+        }
+
+        /* Comportamento quando o mouse passa por cima (Hover) */
+        .recipiente-cartao:hover .verso-cartao {
+            opacity: 1; /* Mostra o verso */
+            transform: scale(1);
+        }
+        
+        .recipiente-cartao:hover .frente-cartao {
+            opacity: 0.3; /* Escurece a frente */
+        }
+
+        /* 6. Estilo das Telas de Segurança (CCTV) */
+        .tela-cctv {
+            position: relative;
+            overflow: hidden;
+            border: 4px solid #111;
+            box-shadow: 0 0 10px #000;
+        }
+        
+        /* Indicador de "Gravando" (REC) na tela */
+        .tela-cctv::before {
+            content: "REC •";
+            position: absolute;
+            top: 10px;
+            left: 15px;
+            color: #ff0000;
+            font-family: monospace;
+            font-weight: bold;
+            font-size: 14px;
+            z-index: 20;
+            animation: piscar 1s infinite;
+        }
+
+        /* Linhas horizontais simulando interferência de vídeo antigo */
+        .linha-varredura-cctv {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0.2));
+            background-size: 100% 4px;
+            pointer-events: none;
+            z-index: 15;
+            opacity: 0.6;
+        }
+
+        /* Texto de identificação da câmera */
+        .sobreposicao-cctv {
+            position: absolute;
+            bottom: 10px;
+            right: 15px;
+            color: #0f0;
+            font-family: monospace;
+            font-size: 12px;
+            z-index: 20;
+            text-shadow: 0 0 2px #0f0;
+        }
+
+        @keyframes piscar {
+            50% { opacity: 0; }
+        }
+
+        /* --- CLASSES UTILITÁRIAS --- */
+        .texto-neon-vermelho {
+            color: var(--st-vermelho);
+            text-shadow: 0 0 5px var(--st-vermelho);
+        }
+
+        /* Efeito de falha (Glitch) para os links */
+        .efeito-falha:hover {
+            animation: falha 0.3s cubic-bezier(.25, .46, .45, .94) both infinite;
+            color: var(--st-vermelho);
+        }
+
+        @keyframes falha {
+            0% { transform: translate(0) }
+            20% { transform: translate(-2px, 2px) }
+            40% { transform: translate(-2px, -2px) }
+            60% { transform: translate(2px, 2px) }
+            80% { transform: translate(2px, -2px) }
+            100% { transform: translate(0) }
+        }
+
+        /* Barra de rolagem customizada */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #000; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--st-vermelho-escuro); 
+            border-radius: 5px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--st-vermelho); 
+        }
+
+        /* Filtro de imagem vermelho/sépia para dar ar retrô/aterrorizante */
+        .filtro-vermelho {
+            filter: grayscale(100%) contrast(120%) brightness(80%) sepia(100%) hue-rotate(-50deg) saturate(300%);
+            transition: filter 0.5s;
+        }
+        .filtro-vermelho:hover {
+            filter: grayscale(0%);
+        }
+
+    </style>
+</head>
+<!-- A tag body recebe as definições base do Tailwind para seleção de texto (selection) -->
+<body class="antialiased relative selection:bg-red-900 selection:text-white">
+
+    <!-- Efeitos Globais inseridos na raiz do documento -->
+    <div class="sobreposicao-ruido"></div>
+    <div id="recipiente-esporos"></div>
+
+    <!-- Barra de Navegação -->
+    <nav class="fixed w-full z-50 top-0 left-0 bg-black/80 backdrop-blur-md border-b border-red-900/30 transition-all duration-300" id="barra-navegacao">
+        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <!-- Logo/Sigla -->
+            <a href="#" class="text-2xl font-bold tracking-widest text-red-600 fonte-titulo uppercase hover:text-white transition">
+                ST
+            </a>
+            
+            <!-- Menu Desktop -->
+            <div class="hidden md:flex space-x-6 text-sm tracking-widest uppercase">
+                <a href="#inicio" class="hover:text-red-500 transition efeito-falha">Início</a>
+                <a href="#personagens" class="hover:text-red-500 transition efeito-falha">Arquivos</a>
+                <a href="#ameacas" class="hover:text-red-500 transition efeito-falha text-red-700 font-bold">Ameaças</a>
+                <a href="#linha-do-tempo" class="hover:text-red-500 transition efeito-falha">Timeline</a>
+                <a href="#locais" class="hover:text-red-500 transition efeito-falha">Vigilância</a>
+                <a href="#clube-hellfire" class="hover:text-red-500 transition efeito-falha">Hellfire</a>
+            </div>
+
+            <!-- Botão Menu Celular (Hambúrguer) -->
+            <button class="md:hidden text-red-500 focus:outline-none" onclick="alternarMenu()">
+                <i class="fas fa-bars text-2xl"></i>
+            </button>
+        </div>
+        
+        <!-- Dropdown Menu Celular (invisível por padrão) -->
+        <div id="menu-celular" class="hidden bg-black border-b border-red-800 md:hidden p-4 absolute w-full z-50">
+            <a href="#inicio" class="block py-2 hover:text-red-500" onclick="alternarMenu()">Início</a>
+            <a href="#personagens" class="block py-2 hover:text-red-500" onclick="alternarMenu()">Arquivos</a>
+            <a href="#ameacas" class="block py-2 hover:text-red-500 text-red-700" onclick="alternarMenu()">Ameaças</a>
+            <a href="#linha-do-tempo" class="block py-2 hover:text-red-500" onclick="alternarMenu()">Timeline</a>
+            <a href="#locais" class="block py-2 hover:text-red-500" onclick="alternarMenu()">Vigilância</a>
+            <a href="#clube-hellfire" class="block py-2 hover:text-red-500" onclick="alternarMenu()">Hellfire Club</a>
+        </div>
+    </nav>
+
+    <!-- Seção de Abertura (Hero) -->
+    <header id="inicio" class="relative h-screen flex items-center justify-center overflow-hidden">
+        <!-- Fundo simulando imagem de floresta escura -->
+        <div class="absolute inset-0 z-0">
+            <div class="w-full h-full bg-[url('https://images.unsplash.com/photo-1504701954957-2010ec3bcec1?q=80&w=1974&auto=format&fit=crop')] bg-cover bg-center opacity-40 filtro-vermelho"></div>
+            <div class="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent"></div>
+        </div>
+
+        <div class="relative z-10 text-center px-4 mt-16 w-full max-w-5xl">
+            <h2 class="text-sm md:text-xl tracking-[0.5em] uppercase text-gray-400 mb-4 animate-pulse">Bem-vindo a Hawkins, Indiana</h2>
+            
+            <!-- Título Principal com animação simulando intro da série -->
+            <h1 class="titulo-st text-6xl md:text-8xl lg:text-9xl fonte-titulo uppercase leading-tight mb-8 animacao-intro flex flex-col md:block">
+                <span class="block md:inline" style="animation-delay: 0.1s">Stranger</span>
+                <span class="block md:inline mt-2 md:mt-0" style="animation-delay: 0.3s">Things</span>
+            </h1>
+
+            <p class="max-w-2xl mx-auto text-lg text-gray-300 mb-10 leading-relaxed font-light">
+                O mundo está virando de cabeça para baixo. Monstros, governos secretos e um grupo de crianças que não desiste nunca.
+            </p>
+
+            <div class="flex flex-col md:flex-row justify-center gap-6">
+                <!-- Botões de ação principal -->
+                <a href="#personagens" class="group relative px-8 py-3 bg-transparent border border-red-600 text-red-500 uppercase tracking-widest hover:bg-red-600 hover:text-black transition-all duration-300 font-bold overflow-hidden">
+                    <span class="relative z-10">Explorar Arquivos</span>
+                    <div class="absolute inset-0 bg-red-600 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-300 ease-out -z-0"></div>
+                </a>
+                <a href="#clube-hellfire" class="px-8 py-3 bg-gray-900 text-white border border-gray-700 uppercase tracking-widest hover:bg-gray-800 transition-all font-bold">
+                    Junte-se ao Clube
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Seção de Citação Icônica entre conteúdos -->
+    <section class="py-20 bg-black relative">
+        <div class="container mx-auto px-6 text-center">
+            <i class="fas fa-bicycle text-4xl text-gray-600 mb-6"></i>
+            <blockquote class="text-2xl md:text-4xl fonte-titulo text-white leading-relaxed">
+                "Amigos não mentem."
+            </blockquote>
+            <p class="mt-4 text-red-500 uppercase tracking-widest">— Eleven</p>
+        </div>
+    </section>
+
+    <!-- Seção: Personagens (Arquivos Confidenciais) -->
+    <section id="personagens" class="py-24 bg-[#0a0a0a] relative">
+        <div class="container mx-auto px-6">
+            <!-- Título da Seção -->
+            <div class="flex items-center mb-12">
+                <div class="h-1 w-10 bg-red-600 mr-4"></div>
+                <h2 class="text-3xl md:text-4xl fonte-titulo uppercase text-white">Arquivos Confidenciais</h2>
+            </div>
+
+            <!-- Grade (Grid) onde ficam os cartões -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                
+                <!-- Cartão 1: Eleven -->
+                <div class="recipiente-cartao h-[400px]">
+                    <div class="interior-cartao">
+                        <!-- Lado visível da foto -->
+                        <div class="frente-cartao relative group">
+                            <img src="https://upload.wikimedia.org/wikipedia/pt/a/af/Eleven-Stranger-Things-3.png" alt="Eleven" class="absolute inset-0 w-full h-full object-cover filtro-vermelho group-hover:filter-none transition duration-500">
+                            <div class="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent"></div>
+                            <div class="relative p-6 border-t-2 border-red-600">
+                                <h3 class="text-3xl fonte-titulo text-white">011</h3>
+                                <p class="text-sm text-gray-400 font-mono">Telecinética</p>
+                            </div>
+                        </div>
+                        <!-- Lado oculto com informações -->
+                        <div class="verso-cartao">
+                            <div>
+                                <h3 class="text-2xl fonte-titulo text-indigo-400 mb-2">Jane Hopper</h3>
+                                <p class="text-sm text-gray-300 mb-4">SUJEITO DE TESTE DO LABORATÓRIO DE HAWKINS.</p>
+                                <ul class="text-left text-xs space-y-2 text-gray-400 font-mono">
+                                    <li>Status: <span class="text-green-400">Viva</span></li>
+                                    <li>Poderes: Alto Nível</li>
+                                    <li>Afiliação: The Party</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cartão 2: Mike -->
+                <div class="recipiente-cartao h-[400px]">
+                    <div class="interior-cartao">
+                        <div class="frente-cartao relative group">
+                            <img src="https://upload.wikimedia.org/wikipedia/pt/e/e7/Mike-Wheeler-S3.jpg" alt="Mike" class="absolute inset-0 w-full h-full object-cover filtro-vermelho group-hover:filter-none transition duration-500">
+                            <div class="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent"></div>
+                            <div class="relative p-6 border-t-2 border-red-600">
+                                <h3 class="text-3xl fonte-titulo text-white">Mike</h3>
+                                <p class="text-sm text-gray-400 font-mono">O Paladino</p>
+                            </div>
+                        </div>
+                        <div class="verso-cartao">
+                            <div>
+                                <h3 class="text-2xl fonte-titulo text-indigo-400 mb-2">Mike Wheeler</h3>
+                                <p class="text-sm text-gray-300 mb-4">LÍDER DO GRUPO E ESTRATEGISTA.</p>
+                                <ul class="text-left text-xs space-y-2 text-gray-400 font-mono">
+                                    <li>Classe: Paladino</li>
+                                    <li>Arma: Walkie-Talkie</li>
+                                    <li>Status: Comprometido</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cartão 3: Dustin -->
+                <div class="recipiente-cartao h-[400px]">
+                    <div class="interior-cartao">
+                        <div class="frente-cartao relative group">
+                            <img src="https://static.wikia.nocookie.net/strangerthings/images/7/77/Dustin_002.jpg/revision/latest?cb=20210422175957&path-prefix=pt-br" alt="Dustin" class="absolute inset-0 w-full h-full object-cover filtro-vermelho group-hover:filter-none transition duration-500">
+                            <div class="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent"></div>
+                            <div class="relative p-6 border-t-2 border-red-600">
+                                <h3 class="text-3xl fonte-titulo text-white">Dustin</h3>
+                                <p class="text-sm text-gray-400 font-mono">O Bardo</p>
+                            </div>
+                        </div>
+                        <div class="verso-cartao">
+                            <div>
+                                <h3 class="text-2xl fonte-titulo text-indigo-400 mb-2">Dustin Henderson</h3>
+                                <p class="text-sm text-gray-300 mb-4">ESPECIALISTA EM CIÊNCIAS E CRIATURAS.</p>
+                                <ul class="text-left text-xs space-y-2 text-gray-400 font-mono">
+                                    <li>Classe: Bardo</li>
+                                    <li>Habilidade: Rádio Amador</li>
+                                    <li>Pet: Dart (Falecido)</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cartão 4: Hopper -->
+                <div class="recipiente-cartao h-[400px]">
+                    <div class="interior-cartao">
+                        <div class="frente-cartao relative group">
+                            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR0vHRauL7pkdD_V5V35K56lhEqhJEMWSbleL6_Lrqa9X-Z3Dt8WGDV5wIn1nUgigLHnCSVq-Vn2hFJsGGqqAPqIMktVRJBGge1uayMlQ&s=10" alt="Hopper" class="absolute inset-0 w-full h-full object-cover filtro-vermelho group-hover:filter-none transition duration-500">
+                            <div class="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent"></div>
+                            <div class="relative p-6 border-t-2 border-red-600">
+                                <h3 class="text-3xl fonte-titulo text-white">Hopper</h3>
+                                <p class="text-sm text-gray-400 font-mono">Chefe de Polícia</p>
+                            </div>
+                        </div>
+                        <div class="verso-cartao">
+                            <div>
+                                <h3 class="text-2xl fonte-titulo text-indigo-400 mb-2">Jim Hopper</h3>
+                                <p class="text-sm text-gray-300 mb-4">PROTETOR DE HAWKINS E PAI ADOTIVO.</p>
+                                <ul class="text-left text-xs space-y-2 text-gray-400 font-mono">
+                                    <li>Força: Alta</li>
+                                    <li>Local: Kamchatka (Anteriormente)</li>
+                                    <li>Café: Manhãs são para café</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cartão 5: Lucas -->
+                <div class="recipiente-cartao h-[400px]">
+                    <div class="interior-cartao">
+                        <div class="frente-cartao relative group">
+                            <img src="https://i.redd.it/3wfhbq7fjnva1.jpg" alt="Lucas" class="absolute inset-0 w-full h-full object-cover filtro-vermelho group-hover:filter-none transition duration-500">
+                            <div class="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent"></div>
+                            <div class="relative p-6 border-t-2 border-red-600">
+                                <h3 class="text-3xl fonte-titulo text-white">Lucas</h3>
+                                <p class="text-sm text-gray-400 font-mono">O Ranger</p>
+                            </div>
+                        </div>
+                        <div class="verso-cartao">
+                            <div>
+                                <h3 class="text-2xl fonte-titulo text-indigo-400 mb-2">Lucas Sinclair</h3>
+                                <p class="text-sm text-gray-300 mb-4">ESPECIALISTA TÁTICO DO GRUPO.</p>
+                                <ul class="text-left text-xs space-y-2 text-gray-400 font-mono">
+                                    <li>Classe: Ranger</li>
+                                    <li>Arma: Estilingue Mortal</li>
+                                    <li>Status: Focado</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cartão 6: Will -->
+                <div class="recipiente-cartao h-[400px]">
+                    <div class="interior-cartao">
+                        <div class="frente-cartao relative group">
+                            <img src="https://static.wikia.nocookie.net/strangerthings8338/images/4/45/Will_in_California.png/revision/latest?cb=20220626191619" alt="Will" class="absolute inset-0 w-full h-full object-cover filtro-vermelho group-hover:filter-none transition duration-500">
+                            <div class="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent"></div>
+                            <div class="relative p-6 border-t-2 border-red-600">
+                                <h3 class="text-3xl fonte-titulo text-white">Will</h3>
+                                <p class="text-sm text-gray-400 font-mono">O Clérigo</p>
+                            </div>
+                        </div>
+                        <div class="verso-cartao">
+                            <div>
+                                <h3 class="text-2xl fonte-titulo text-indigo-400 mb-2">Will Byers</h3>
+                                <p class="text-sm text-gray-300 mb-4">O GAROTO QUE SOBREVIVEU AO MUNDO INVERTIDO.</p>
+                                <ul class="text-left text-xs space-y-2 text-gray-400 font-mono">
+                                    <li>Classe: Clérigo</li>
+                                    <li>Sentido: Arrepios na nuca</li>
+                                    <li>Status: Conectado</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cartão 7: Max -->
+                <div class="recipiente-cartao h-[400px]">
+                    <div class="interior-cartao">
+                        <div class="frente-cartao relative group">
+                            <img src="https://static.wikia.nocookie.net/strangerthings8338/images/7/73/Max_Mayfield_-_S3.png/revision/latest/scale-to-width/360?cb=20220731231457" alt="Max" class="absolute inset-0 w-full h-full object-cover filtro-vermelho group-hover:filter-none transition duration-500">
+                            <div class="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent"></div>
+                            <div class="relative p-6 border-t-2 border-red-600">
+                                <h3 class="text-3xl fonte-titulo text-white">Max</h3>
+                                <p class="text-sm text-gray-400 font-mono">A Zoomer</p>
+                            </div>
+                        </div>
+                        <div class="verso-cartao">
+                            <div>
+                                <h3 class="text-2xl fonte-titulo text-indigo-400 mb-2">Max Mayfield</h3>
+                                <p class="text-sm text-gray-300 mb-4">SKATISTA E MESTRE DE JOGOS.</p>
+                                <ul class="text-left text-xs space-y-2 text-gray-400 font-mono">
+                                    <li>Classe: Ladina</li>
+                                    <li>Música: Kate Bush</li>
+                                    <li>Status: Lutando</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cartão 8: Steve -->
+                <div class="recipiente-cartao h-[400px]">
+                    <div class="interior-cartao">
+                        <div class="frente-cartao relative group">
+                            <img src="https://static.wikia.nocookie.net/strangerthings/images/c/c9/Steve_st3.png/revision/latest?cb=20220820192307&path-prefix=pt-br" alt="Steve" class="absolute inset-0 w-full h-full object-cover filtro-vermelho group-hover:filter-none transition duration-500">
+                            <div class="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent"></div>
+                            <div class="relative p-6 border-t-2 border-red-600">
+                                <h3 class="text-3xl fonte-titulo text-white">Steve</h3>
+                                <p class="text-sm text-gray-400 font-mono">A Babá</p>
+                            </div>
+                        </div>
+                        <div class="verso-cartao">
+                            <div>
+                                <h3 class="text-2xl fonte-titulo text-indigo-400 mb-2">Steve Harrington</h3>
+                                <p class="text-sm text-gray-300 mb-4">REI DA ESCOLA QUE VIROU HERÓI.</p>
+                                <ul class="text-left text-xs space-y-2 text-gray-400 font-mono">
+                                    <li>Arma: Taco com Pregos</li>
+                                    <li>Habilidade: Proteção</li>
+                                    <li>Cabelo: Perfeito</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Seção: Ameaças / Bestiário -->
+    <section id="ameacas" class="py-24 bg-black border-t border-b border-red-900/30 relative overflow-hidden">
+        <!-- Luz vermelha decorativa desfocada no fundo -->
+        <div class="absolute top-0 right-0 w-64 h-64 bg-red-900/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
+        
+        <div class="container mx-auto px-6 relative">
+            <div class="flex flex-col items-center mb-16 text-center">
+                <span class="text-red-600 font-mono text-xs tracking-[0.5em] mb-2 uppercase">Acesso Restrito - Nível 5</span>
+                <h2 class="text-3xl md:text-5xl fonte-titulo uppercase text-white mb-6">Nível de Ameaça</h2>
+                <p class="max-w-xl text-gray-400 font-light">
+                    Entidades biológicas classificadas originárias da dimensão alternativa conhecida como Mundo Invertido.
+                </p>
+            </div>
+
+            <!-- Grade das criaturas -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                
+                <!-- Criatura 1: Demogorgon -->
+                <div class="bg-gray-900/50 border border-red-900/40 p-6 rounded-lg flex flex-col md:flex-row gap-6 hover:bg-red-900/10 transition group">
+                    <div class="w-full md:w-1/3 h-48 bg-black overflow-hidden relative border border-gray-800 rounded">
+                        <img src="https://conteudo.imguol.com.br/c/entretenimento/bc/2025/11/21/demogorgon-stranger-things-1763762005167_v2_3x4.jpg" class="w-full h-full object-cover opacity-80 group-hover:scale-110 transition duration-500" alt="Demogorgon">
+                        <div class="absolute bottom-0 w-full bg-red-900/80 text-white text-[10px] p-1 font-mono text-center">FIG. 001</div>
+                    </div>
+                    <div class="w-full md:w-2/3">
+                        <h3 class="text-2xl fonte-terror text-white mb-1">O Demogorgon</h3>
+                        <p class="text-red-500 font-mono text-xs mb-4">CLASSIFICAÇÃO: PREDADOR APEX</p>
+                        <p class="text-gray-400 text-sm mb-4 leading-relaxed">
+                            Uma criatura humanoide predatória. Possui força sobre-humana, durabilidade e a capacidade de viajar interdimensionalmente. Atrai-se por sangue.
+                        </p>
+                        <!-- Barras de Status (Estilo Jogo/Ficha) -->
+                        <div class="space-y-2 font-mono text-[10px] text-gray-500">
+                            <div class="flex items-center">
+                                <span class="w-20">FORÇA</span>
+                                <div class="flex-1 h-1 bg-gray-800 rounded-full overflow-hidden">
+                                    <div class="h-full bg-red-600 w-[90%]"></div>
+                                </div>
+                            </div>
+                            <div class="flex items-center">
+                                <span class="w-20">INTELIGÊNCIA</span>
+                                <div class="flex-1 h-1 bg-gray-800 rounded-full overflow-hidden">
+                                    <div class="h-full bg-red-600 w-[40%]"></div>
+                                </div>
+                            </div>
+                            <div class="flex items-center">
+                                <span class="w-20">PERIGO</span>
+                                <div class="flex-1 h-1 bg-gray-800 rounded-full overflow-hidden">
+                                    <div class="h-full bg-red-600 w-[85%]"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Criatura 2: Devorador de Mentes -->
+                <div class="bg-gray-900/50 border border-red-900/40 p-6 rounded-lg flex flex-col md:flex-row gap-6 hover:bg-red-900/10 transition group">
+                    <div class="w-full md:w-1/3 h-48 bg-black overflow-hidden relative border border-gray-800 rounded">
+                        <img src="https://preview.redd.it/what-is-everyones-theory-on-the-mind-flayer-v0-l93r7z1a7yg91.jpg?width=640&crop=smart&auto=webp&s=51bff8d09cb1cd164d6d14cff7fafc6aa5873ca2" class="w-full h-full object-cover opacity-80 group-hover:scale-110 transition duration-500" alt="Mind Flayer">
+                        <div class="absolute bottom-0 w-full bg-red-900/80 text-white text-[10px] p-1 font-mono text-center">FIG. 002</div>
+                    </div>
+                    <div class="w-full md:w-2/3">
+                        <h3 class="text-2xl fonte-terror text-white mb-1">Devorador de Mentes</h3>
+                        <p class="text-red-500 font-mono text-xs mb-4">CLASSIFICAÇÃO: MENTE COLMEIA</p>
+                        <p class="text-gray-400 text-sm mb-4 leading-relaxed">
+                            Uma entidade colossal composta de partículas e sombras. Controla todas as outras criaturas do Mundo Invertido através de uma mente colmeia psíquica.
+                        </p>
+                        <div class="space-y-2 font-mono text-[10px] text-gray-500">
+                            <div class="flex items-center">
+                                <span class="w-20">FORÇA</span>
+                                <div class="flex-1 h-1 bg-gray-800 rounded-full overflow-hidden">
+                                    <div class="h-full bg-red-600 w-[100%]"></div>
+                                </div>
+                            </div>
+                            <div class="flex items-center">
+                                <span class="w-20">INTELIGÊNCIA</span>
+                                <div class="flex-1 h-1 bg-gray-800 rounded-full overflow-hidden">
+                                    <div class="h-full bg-red-600 w-[95%]"></div>
+                                </div>
+                            </div>
+                            <div class="flex items-center">
+                                <span class="w-20">PERIGO</span>
+                                <div class="flex-1 h-1 bg-gray-800 rounded-full overflow-hidden">
+                                    <div class="h-full bg-red-600 w-[100%] animate-pulse"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Criatura 3: Vecna -->
+                <div class="bg-gray-900/50 border border-red-900/40 p-6 rounded-lg flex flex-col md:flex-row gap-6 hover:bg-red-900/10 transition group">
+                    <div class="w-full md:w-1/3 h-48 bg-black overflow-hidden relative border border-gray-800 rounded">
+                        <img src="https://darksidetoy.com/images/virtuemart/product/resized/x_is88723_a%20(2)_500x500.jpg" class="w-full h-full object-cover opacity-80 group-hover:scale-110 transition duration-500" alt="Vecna">
+                        <div class="absolute bottom-0 w-full bg-red-900/80 text-white text-[10px] p-1 font-mono text-center">FIG. 003</div>
+                    </div>
+                    <div class="w-full md:w-2/3">
+                        <h3 class="text-2xl fonte-terror text-white mb-1">Vecna</h3>
+                        <p class="text-red-500 font-mono text-xs mb-4">CLASSIFICAÇÃO: FEITICEIRO NEGRO</p>
+                        <p class="text-gray-400 text-sm mb-4 leading-relaxed">
+                            Anteriormente Henry Creel (001). Usa traumas psicológicos para amaldiçoar e matar suas vítimas à distância, abrindo novos portais a cada morte.
+                        </p>
+                        <div class="space-y-2 font-mono text-[10px] text-gray-500">
+                            <div class="flex items-center">
+                                <span class="w-20">FORÇA</span>
+                                <div class="flex-1 h-1 bg-gray-800 rounded-full overflow-hidden">
+                                    <div class="h-full bg-red-600 w-[80%]"></div>
+                                </div>
+                            </div>
+                            <div class="flex items-center">
+                                <span class="w-20">INTELIGÊNCIA</span>
+                                <div class="flex-1 h-1 bg-gray-800 rounded-full overflow-hidden">
+                                    <div class="h-full bg-red-600 w-[100%]"></div>
+                                </div>
+                            </div>
+                            <div class="flex items-center">
+                                <span class="w-20">PERIGO</span>
+                                <div class="flex-1 h-1 bg-gray-800 rounded-full overflow-hidden">
+                                    <div class="h-full bg-red-600 w-[98%]"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Criatura 4: Demodog -->
+                <div class="bg-gray-900/50 border border-red-900/40 p-6 rounded-lg flex flex-col md:flex-row gap-6 hover:bg-red-900/10 transition group">
+                    <div class="w-full md:w-1/3 h-48 bg-black overflow-hidden relative border border-gray-800 rounded">
+                        <img src="https://fbi.cults3d.com/uploaders/22680130/illustration-file/5cbc6ebd-b65d-48b4-9c37-c0cbe9d466cf/demodos2_006.png" class="w-full h-full object-cover opacity-80 group-hover:scale-110 transition duration-500" alt="Demodog">
+                        <div class="absolute bottom-0 w-full bg-red-900/80 text-white text-[10px] p-1 font-mono text-center">FIG. 004</div>
+                    </div>
+                    <div class="w-full md:w-2/3">
+                        <h3 class="text-2xl fonte-terror text-white mb-1">Democães</h3>
+                        <p class="text-red-500 font-mono text-xs mb-4">CLASSIFICAÇÃO: INFANTARIA</p>
+                        <p class="text-gray-400 text-sm mb-4 leading-relaxed">
+                            O estágio sub-adulto do Demogorgon. Caçam em matilhas e obedecem diretamente ao Devorador de Mentes. Rápidos e letais.
+                        </p>
+                        <div class="space-y-2 font-mono text-[10px] text-gray-500">
+                            <div class="flex items-center">
+                                <span class="w-20">FORÇA</span>
+                                <div class="flex-1 h-1 bg-gray-800 rounded-full overflow-hidden">
+                                    <div class="h-full bg-red-600 w-[60%]"></div>
+                                </div>
+                            </div>
+                            <div class="flex items-center">
+                                <span class="w-20">INTELIGÊNCIA</span>
+                                <div class="flex-1 h-1 bg-gray-800 rounded-full overflow-hidden">
+                                    <div class="h-full bg-red-600 w-[30%]"></div>
+                                </div>
+                            </div>
+                            <div class="flex items-center">
+                                <span class="w-20">PERIGO</span>
+                                <div class="flex-1 h-1 bg-gray-800 rounded-full overflow-hidden">
+                                    <div class="h-full bg-red-600 w-[70%]"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Seção: Timeline (Cronologia da série) -->
+    <section id="linha-do-tempo" class="py-16 bg-black">
+        <div class="container mx-auto px-6">
+            <h2 class="text-3xl md:text-4xl fonte-titulo text-center text-white mb-16 uppercase">A Cronologia do Mal</h2>
+            
+            <!-- Linha vertical central na tela -->
+            <div class="relative border-l-2 border-red-900 ml-4 md:ml-1/2 space-y-12">
+                
+                <!-- Evento: 1983 -->
+                <div class="relative pl-8 md:pl-0">
+                    <div class="absolute -left-[9px] top-0 w-4 h-4 bg-red-600 rounded-full shadow-[0_0_10px_#ff0000]"></div>
+                    <div class="md:flex items-center justify-between group">
+                        <div class="md:w-5/12 text-left md:text-right md:pr-8 mb-2 md:mb-0">
+                            <span class="text-4xl fonte-terror text-gray-500 group-hover:text-red-500 transition">1983</span>
+                        </div>
+                        <div class="md:w-5/12 md:pl-8">
+                            <h3 class="text-xl font-bold text-white mb-2">O Desaparecimento de Will Byers</h3>
+                            <p class="text-sm text-gray-400">O portal é aberto no Laboratório de Hawkins. O Demogorgon entra em nossa realidade.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Evento: 1984 -->
+                <div class="relative pl-8 md:pl-0">
+                    <div class="absolute -left-[9px] top-0 w-4 h-4 bg-red-600 rounded-full shadow-[0_0_10px_#ff0000]"></div>
+                    <div class="md:flex items-center justify-between group">
+                        <!-- Ajuste para layout mobile vs desktop -->
+                        <div class="md:w-5/12 text-left md:text-right md:pr-8 mb-2 md:mb-0 order-1">
+                             <h3 class="text-xl font-bold text-white mb-2 md:hidden">1984</h3>
+                             <p class="text-sm text-gray-400 md:hidden">O Devorador de Mentes possui Will. Bob Newby, super-herói.</p>
+                        </div>
+                        <div class="md:w-5/12 md:pl-8 order-2 hidden md:block">
+                            <h3 class="text-xl font-bold text-white mb-2">A Possessão</h3>
+                            <p class="text-sm text-gray-400">O Devorador de Mentes tenta invadir Hawkins através de Will Byers. Bob Newby se sacrifica.</p>
+                        </div>
+                        <div class="hidden md:block absolute left-0 right-0 text-center w-full top-0 -mt-2">
+                             <span class="text-4xl fonte-terror text-gray-500 group-hover:text-red-500 transition bg-black px-2">1984</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Evento: 1985 -->
+                <div class="relative pl-8 md:pl-0">
+                    <div class="absolute -left-[9px] top-0 w-4 h-4 bg-red-600 rounded-full shadow-[0_0_10px_#ff0000]"></div>
+                    <div class="md:flex items-center justify-between group">
+                        <div class="md:w-5/12 text-left md:text-right md:pr-8 mb-2 md:mb-0">
+                            <span class="text-4xl fonte-terror text-gray-500 group-hover:text-red-500 transition">1985</span>
+                        </div>
+                        <div class="md:w-5/12 md:pl-8">
+                            <h3 class="text-xl font-bold text-white mb-2">A Batalha de Starcourt</h3>
+                            <p class="text-sm text-gray-400">Russos em Hawkins. O shopping Starcourt se torna o centro de uma batalha sangrenta.</p>
+                        </div>
+                    </div>
+                </div>
+
+                 <!-- Evento: 1986 -->
+                 <div class="relative pl-8 md:pl-0">
+                    <div class="absolute -left-[9px] top-0 w-4 h-4 bg-red-600 rounded-full shadow-[0_0_10px_#ff0000]"></div>
+                    <div class="md:flex items-center justify-between group">
+                        <div class="md:w-5/12 text-left md:text-right md:pr-8 mb-2 md:mb-0 order-1 md:hidden">
+                            <span class="text-4xl fonte-terror text-red-600">1986</span>
+                        </div>
+                        <div class="md:w-5/12 md:pl-8 order-2 hidden md:block">
+                            <h3 class="text-xl font-bold text-white mb-2">A Maldição de Vecna</h3>
+                            <p class="text-sm text-gray-400">Um novo horror surge da Casa Creel. O relógio toca quatro vezes.</p>
+                        </div>
+                        <div class="hidden md:block absolute left-0 right-0 text-center w-full top-0 -mt-2">
+                             <span class="text-4xl fonte-terror text-red-600 bg-black px-2 animate-pulse">1986</span>
+                        </div>
+                         <div class="md:w-5/12 md:pl-8 order-2 md:hidden">
+                            <h3 class="text-xl font-bold text-white mb-2">A Maldição de Vecna</h3>
+                            <p class="text-sm text-gray-400">Um novo horror surge da Casa Creel. O relógio toca quatro vezes.</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Seção: Locais (Vigilância CCTV) -->
+    <section id="locais" class="py-24 bg-[#050505] relative">
+        <div class="container mx-auto px-6">
+            <div class="flex flex-col md:flex-row justify-between items-end mb-12">
+                <div>
+                    <h2 class="text-3xl md:text-4xl fonte-titulo uppercase text-white mb-2">Vigilância de Hawkins</h2>
+                    <p class="text-gray-500 font-mono text-sm">TRANSMISSÃO AO VIVO DE SEGURANÇA</p>
+                </div>
+                <!-- Status de Gravação -->
+                <div class="mt-4 md:mt-0">
+                    <span class="inline-block w-3 h-3 bg-red-600 rounded-full animate-pulse mr-2"></span>
+                    <span class="text-red-600 font-mono text-xs uppercase tracking-widest">Gravando</span>
+                </div>
+            </div>
+
+            <!-- Monitores de Vigilância -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                
+                <!-- Câmera 1: Laboratório -->
+                <div class="tela-cctv h-64 bg-gray-900 rounded group cursor-pointer relative">
+                    <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSPUfymQX8PH-lFL7_Gu4llV4YXFwyXKwFKBQ&s" class="w-full h-full object-cover filter grayscale contrast-125 brightness-75 group-hover:brightness-100 transition duration-300" alt="Hawkins Lab">
+                    <div class="linha-varredura-cctv"></div>
+                    <div class="sobreposicao-cctv">CAM-01: HAWKINS LAB</div>
+                </div>
+
+                <!-- Câmera 2: Shopping -->
+                <div class="tela-cctv h-64 bg-gray-900 rounded group cursor-pointer relative">
+                    <img src="https://storage.googleapis.com/moviemaps/img/1hq2.b6onyl.940.jpg" class="w-full h-full object-cover filter grayscale contrast-125 brightness-75 group-hover:brightness-100 transition duration-300" alt="Starcourt Mall">
+                    <div class="linha-varredura-cctv"></div>
+                    <div class="sobreposicao-cctv">CAM-02: STARCOURT MALL</div>
+                </div>
+
+                <!-- Câmera 3: Casa Creel -->
+                <div class="tela-cctv h-64 bg-gray-900 rounded group cursor-pointer relative">
+                    <img src="https://assets-prd.ignimgs.com/2021/09/25/screenshot-42-1632586527320.png" class="w-full h-full object-cover filter grayscale contrast-125 brightness-75 group-hover:brightness-100 transition duration-300" alt="Creel House">
+                    <div class="linha-varredura-cctv"></div>
+                    <div class="sobreposicao-cctv">CAM-03: CASA CREEL</div>
+                </div>
+
+                <!-- Câmera 4: Benny's Burgers -->
+                <div class="tela-cctv h-64 bg-gray-900 rounded group cursor-pointer relative hidden lg:block">
+                    <img src="https://static.wikia.nocookie.net/strangerthings8338/images/8/8f/BennysBurgers1986.png/revision/latest?cb=20221007162518" class="w-full h-full object-cover filter grayscale contrast-125 brightness-75 group-hover:brightness-100 transition duration-300" alt="Benny's Burgers">
+                    <div class="linha-varredura-cctv"></div>
+                    <div class="sobreposicao-cctv">CAM-04: BENNY'S BURGERS</div>
+                </div>
+
+                <!-- Câmera 5: O Vazio (Erro de Sinal) -->
+                <div class="tela-cctv h-64 bg-gray-900 rounded group cursor-pointer relative md:col-span-2 lg:col-span-2">
+                    <div class="w-full h-full bg-[url('https://media.giphy.com/media/l0HlJDaeqNUDhhaMg/giphy.gif')] bg-cover opacity-50"></div>
+                    <div class="absolute inset-0 flex items-center justify-center">
+                        <span class="text-red-600 font-mono font-bold bg-black px-4 py-2 border border-red-600">SINAL PERDIDO - MUNDO INVERTIDO DETECTADO</span>
+                    </div>
+                    <div class="linha-varredura-cctv"></div>
+                    <div class="sobreposicao-cctv text-red-500 animate-pulse">CAM-666: ERROR</div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Seção: Formulário de Inscrição (Clube Hellfire) -->
+    <section id="clube-hellfire" class="py-24 relative overflow-hidden">
+        <!-- Textura de fundo simulando grade negra -->
+        <div class="absolute inset-0 bg-[linear-gradient(rgba(20,20,20,0.9),rgba(20,20,20,0.9)),url('https://www.transparenttextures.com/patterns/black-scales.png')]"></div>
+        
+        <div class="container mx-auto px-6 relative z-10">
+            <!-- Caixa central do formulário com rotação leve -->
+            <div class="bg-gray-900/80 border border-gray-700 p-8 md:p-12 max-w-3xl mx-auto rounded-lg shadow-2xl backdrop-blur-sm transform rotate-1 hover:rotate-0 transition duration-500">
+                
+                <div class="text-center mb-10">
+                    <div class="inline-block border-4 border-white p-4 mb-4">
+                        <i class="fas fa-dice-d20 text-6xl text-white"></i>
+                    </div>
+                    <!-- text-shadow-red não é nativo, mas usamos a fonte personalizada -->
+                    <h2 class="text-4xl md:text-5xl fonte-terror text-white uppercase tracking-widest">Hellfire Club</h2>
+                    <p class="text-red-500 font-bold mt-2">PROCURA-SE NOVOS MEMBROS</p>
+                </div>
+
+                <!-- Formulário: ao ser enviado dispara a função enviarFormulario() no JS -->
+                <form id="formulario-inscricao" class="space-y-6 font-mono" onsubmit="enviarFormulario(event)">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-gray-400 text-sm mb-2 uppercase">Nome do Jogador</label>
+                            <input type="text" required class="w-full bg-black border border-gray-600 text-white p-3 focus:outline-none focus:border-red-500 transition" placeholder="Mike Wheeler">
+                        </div>
+                        <div>
+                            <label class="block text-gray-400 text-sm mb-2 uppercase">Classe D&D Favorita</label>
+                            <select class="w-full bg-black border border-gray-600 text-white p-3 focus:outline-none focus:border-red-500 transition">
+                                <option>Mago</option>
+                                <option>Paladino</option>
+                                <option>Bardo</option>
+                                <option>Ladino</option>
+                                <option>Clérigo</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-gray-400 text-sm mb-2 uppercase">Por que você?</label>
+                        <textarea rows="3" class="w-full bg-black border border-gray-600 text-white p-3 focus:outline-none focus:border-red-500 transition" placeholder="Eu nunca tiro 1 no dado..."></textarea>
+                    </div>
+
+                    <div class="flex items-center">
+                        <input type="checkbox" id="termos" required class="mr-2 accent-red-600">
+                        <label for="termos" class="text-xs text-gray-500 uppercase">Eu aceito que Eddie Munson é inocente.</label>
+                    </div>
+
+                    <button type="submit" class="w-full bg-red-700 hover:bg-red-600 text-white font-bold py-4 px-8 uppercase tracking-widest transition duration-300 transform hover:scale-[1.02] shadow-[0_0_20px_rgba(220,38,38,0.5)]">
+                        Rolar Iniciativa
+                    </button>
+                </form>
+
+                <!-- Mensagem de Sucesso (Oculta por padrão, ativada via JS) -->
+                <div id="mensagem-sucesso" class="hidden text-center py-10">
+                    <h3 class="text-2xl text-green-500 font-bold uppercase mb-2">Bem-vindo à Campanha!</h3>
+                    <p class="text-gray-300 mb-8">A reunião é às sextas-feiras. Não esqueça os salgadinhos.</p>
+                    
+                    <!-- Botão Especial: Inverter Site. 
+                         Aparece SOMENTE em celular (md:hidden esconde nas telas médias/grandes) -->
+                    <button onclick="alternarMundoInvertido()" class="md:hidden inline-flex items-center px-6 py-3 border border-red-600 text-red-500 hover:bg-red-900/30 font-mono text-xs tracking-widest uppercase transition animate-pulse bg-black/50 backdrop-blur-sm rounded">
+                        <i class="fas fa-retweet mr-2"></i> Entrar no Mundo Invertido
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Rodapé -->
+    <footer class="bg-black text-gray-600 border-t border-gray-900 pt-16 pb-8">
+        <div class="container mx-auto px-6">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
+                <div>
+                    <h4 class="text-white fonte-titulo text-xl mb-4">Stranger Things</h4>
+                    <p class="text-xs leading-loose">
+                        Uma carta de amor aos clássicos sobrenaturais dos anos 80 que cativaram uma geração.
+                    </p>
+                </div>
+                <div>
+                    <h4 class="text-white font-bold text-sm uppercase mb-4 tracking-widest">Links Rápidos</h4>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="#" class="hover:text-red-500 transition">Home</a></li>
+                        <li><a href="#" class="hover:text-red-500 transition">Episódios</a></li>
+                        <li><a href="#" class="hover:text-red-500 transition">Elenco</a></li>
+                        <li><a href="#" class="hover:text-red-500 transition">Notícias</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-white font-bold text-sm uppercase mb-4 tracking-widest">Siga-nos</h4>
+                    <div class="flex space-x-4">
+                        <a href="#" class="text-2xl hover:text-red-500 transition"><i class="fab fa-instagram"></i></a>
+                        <a href="#" class="text-2xl hover:text-red-500 transition"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="text-2xl hover:text-red-500 transition"><i class="fab fa-facebook"></i></a>
+                    </div>
+                </div>
+                <div>
+                    <h4 class="text-white font-bold text-sm uppercase mb-4 tracking-widest">Boletim Informativo</h4>
+                    <div class="flex">
+                        <input type="email" placeholder="Email" class="bg-gray-900 text-white px-4 py-2 w-full text-xs focus:outline-none border border-gray-800 focus:border-red-900">
+                        <button class="bg-red-800 text-white px-4 py-2 text-xs hover:bg-red-700 transition">OK</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-900 pt-8 flex flex-col md:flex-row justify-between items-center text-xs">
+                <p>&copy; 2024 Netflix, Inc. Conceito de Site de Fãs.</p>
+                <div class="mt-4 md:mt-0 flex space-x-4">
+                    <a href="#" class="hover:text-white">Privacidade</a>
+                    <a href="#" class="hover:text-white">Termos</a>
+                </div>
+            </div>
+            <!-- Assinatura escondida estilo easter-egg -->
+            <div class="text-center mt-8 opacity-30 hover:opacity-100 transition duration-500">
+                <p class="text-[10px] font-mono tracking-[0.5em] text-red-900 uppercase">Hawkins Power and Light</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts Funcionais da Página -->
+    <script>
+        // 1. GERADOR DE PARTÍCULAS (ESPOROS DO MUNDO INVERTIDO)
+        const recipienteEsporos = document.getElementById('recipiente-esporos');
+        
+        // Função responsável por criar uma bolinha (esporo) na tela
+        function criarEsporo() {
+            const esporo = document.createElement('div');
+            esporo.classList.add('esporo'); // Aplica o estilo CSS configurado
+            
+            // Sorteia um tamanho aleatório entre 1 e 5 pixels
+            const tamanho = Math.random() * 4 + 1;
+            esporo.style.width = `${tamanho}px`;
+            esporo.style.height = `${tamanho}px`;
+            
+            // Posiciona a bolinha em algum lugar aleatório na largura da tela (0 a 100vw)
+            esporo.style.left = `${Math.random() * 100}vw`;
+            
+            // Define quanto tempo a bolinha leva para subir (entre 5 e 15 segundos)
+            esporo.style.animationDuration = `${Math.random() * 10 + 5}s`;
+            
+            // Adiciona a partícula dentro da div principal no HTML
+            recipienteEsporos.appendChild(esporo);
+
+            // Remove a partícula do código depois de 15 segundos para não pesar o navegador
+            setTimeout(() => {
+                esporo.remove();
+            }, 15000);
+        }
+
+        // Executa a função criarEsporo repetidamente a cada 300 milissegundos
+        setInterval(criarEsporo, 300);
+
+
+        // 2. CONTROLE DO MENU PARA CELULARES
+        function alternarMenu() {
+            const menu = document.getElementById('menu-celular');
+            // Adiciona ou remove a classe "hidden" (escondido) do Tailwind CSS
+            menu.classList.toggle('hidden');
+        }
+
+
+        // 3. EFEITO DE COR NA BARRA DE NAVEGAÇÃO AO ROLAR A TELA
+        window.addEventListener('scroll', () => {
+            const barraNavegacao = document.getElementById('barra-navegacao');
+            
+            // Se rolar mais de 50 pixels para baixo, o fundo fica totalmente preto com uma sombra vermelha
+            if (window.scrollY > 50) {
+                barraNavegacao.classList.add('bg-black', 'shadow-lg', 'shadow-red-900/20');
+                barraNavegacao.classList.remove('bg-black/80');
+            } else {
+                // Se voltar ao topo, a barra volta a ficar levemente transparente
+                barraNavegacao.classList.remove('bg-black', 'shadow-lg', 'shadow-red-900/20');
+                barraNavegacao.classList.add('bg-black/80');
+            }
+        });
+
+
+        // 4. SIMULAÇÃO DO ENVIO DE FORMULÁRIO (HELLFIRE CLUB)
+        function enviarFormulario(e) {
+            e.preventDefault(); // Impede que a página recarregue ao clicar em enviar
+            
+            const formulario = document.getElementById('formulario-inscricao');
+            const mensagemSucesso = document.getElementById('mensagem-sucesso');
+            const botao = formulario.querySelector('button');
+            
+            // Muda o texto do botão para dar ideia de carregamento
+            const textoOriginal = botao.innerText;
+            botao.innerText = "ROLANDO DADO D20...";
+            botao.classList.add('opacity-50', 'cursor-not-allowed'); // Deixa o botão apagado
+            
+            // Aguarda 1.5 segundos (simulando comunicação com servidor)
+            setTimeout(() => {
+                // Esconde o formulário
+                formulario.style.display = 'none';
+                // Mostra a mensagem de boas-vindas e (no celular) o botão do Mundo Invertido
+                mensagemSucesso.classList.remove('hidden');
+            }, 1500);
+        }
+
+        // 5. EASTER EGG: FUNÇÃO PARA INVERTER TODO O SITE
+        function alternarMundoInvertido() {
+            // Verifica no CSS se a tag body está com rotação de 180 graus aplicada
+            const estaInvertido = document.body.style.transform === 'rotate(180deg)';
+            
+            if (estaInvertido) {
+                // Se já estiver de cabeça para baixo, volta ao normal (Tira os filtros)
+                document.body.style.filter = 'none';
+                document.body.style.transform = 'none';
+            } else {
+                // Se estiver normal, inverte as cores, muda o tom e gira de cabeça para baixo
+                document.body.style.filter = 'invert(1) hue-rotate(180deg)';
+                document.body.style.transform = 'rotate(180deg)';
+            }
+            
+            // Faz a transição durar 2 segundos para não ser agressiva
+            document.body.style.transition = "all 2s ease";
+        }
+
+        // 6. ATIVAR MUNDO INVERTIDO PELO TECLADO (Para Desktop)
+        // Ocultamos o botão no desktop, mas permitimos acionar o segredo teclando 'U'
+        document.addEventListener('keydown', (e) => {
+            if(e.key.toLowerCase() === 'u') {
+                alternarMundoInvertido();
+            }
+        });
+
+    </script>
+</body>
+</html>

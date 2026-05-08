@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="pt-br" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Meta tags para SEO básico e exibição correta em dispositivos móveis -->
+    <title>DevPortfolio // Repositório de Projetos</title>
+    
+    <!-- Importação do Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Importação de ícones (FontAwesome) e fontes (Google Fonts) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;700&family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    
+    <style>
+        /* ==========================================================================
+           1. VARIÁVEIS GLOBAIS (DESIGN TOKENS)
+           ========================================================================== 
+           Armazena as cores principais do tema para garantir consistência visual 
+           e facilitar a manutenção futura do CSS.
+        */
+        :root {
+            --fundo-escuro: #0a0b10;
+            --cor-destaque: #6366f1; /* Cor primária (Indigo-500) */
+            --codigo-verde: #10b981; /* Cor de sucesso (Terminal) */
+            --codigo-roxo: #a855f7;  /* Cor secundária para gradientes */
+        }
+
+        /* ==========================================================================
+           2. ESTILOS BASE
+           ========================================================================== */
+        body {
+            background-color: var(--fundo-escuro);
+            color: #e2e8f0;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden; /* Evita quebras de layout horizontal no telemóvel */
+        }
+
+        /* Classe para tipografia monoespaçada (estilo código de programação) */
+        .fonte-mono { font-family: 'JetBrains Mono', monospace; }
+
+        /* ==========================================================================
+           3. ESTILOS DA BARRA DE ROLAGEM (SCROLLBAR)
+           ========================================================================== */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--cor-destaque); }
+
+        /* ==========================================================================
+           4. ANIMAÇÕES DE ENTRADA (SCROLL REVEAL)
+           ========================================================================== */
+        /* Estado inicial do elemento (escondido e levemente deslocado para baixo) */
+        .revelar {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            pointer-events: none; /* Desativa cliques enquanto o elemento está invisível */
+        }
+
+        /* Estado final aplicado via JavaScript quando o elemento entra na viewport */
+        .revelar.ativo {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto; /* Restaura a interatividade */
+        }
+
+        /* ==========================================================================
+           5. UTILITÁRIOS VISUAIS ESPECÍFICOS (UI PATTERNS)
+           ========================================================================== */
+        /* Aplica desfoque de fundo simulando vidro (Glassmorphism) */
+        .efeito-vidro {
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Overlay principal de carregamento da aplicação */
+        #carregador {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            background: #000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.5s ease, visibility 0.5s;
+        }
+
+        /* Animação para simular o cursor de um terminal a piscar */
+        .cursor-digitacao::after {
+            content: "|";
+            animation: piscar 1s infinite;
+        }
+
+        @keyframes piscar {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        /* Criação de um padrão geométrico de grade no fundo do site */
+        .fundo-grelha {
+            background-image: linear-gradient(to right, rgba(255,255,255,0.03) 1px, transparent 1px),
+                              linear-gradient(to bottom, rgba(255,255,255,0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+
+        /* Modificador de estado para exibir o menu mobile */
+        #menu-mobile.aberto {
+            transform: translateX(0);
+        }
+    </style>
+</head>
+<body class="fundo-grelha">
+
+    <!-- ============================================================================
+         TELA DE CARREGAMENTO (BOOT SEQUENCE - Específico para Projetos)
+         ============================================================================ -->
+    <div id="carregador">
+        <div class="fonte-mono text-emerald-500 w-full max-w-lg p-6">
+            <div id="texto-carregamento" class="text-sm md:text-base leading-relaxed"></div>
+        </div>
+    </div>
+
+    <!-- ============================================================================
+         NAVBAR PRINCIPAL
+         ============================================================================ -->
+    <nav class="fixed top-0 w-full z-50 efeito-vidro border-b border-white/5">
+        <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+            <a href="index.html" class="fonte-mono font-bold text-xl tracking-tighter flex items-center gap-2">
+                <span class="text-indigo-500">&lt;</span>
+                <span>Dev.FullStack</span>
+                <span class="text-indigo-500">/&gt;</span>
+            </a>
+            
+            <!-- Links apontam de volta para index.html, exceto Projetos -->
+            <div class="hidden md:flex items-center gap-8 fonte-mono text-xs font-semibold">
+                <a href="index.html#inicio" class="hover:text-indigo-400 transition-colors uppercase tracking-widest">01. Início</a>
+                <a href="index.html#sobre" class="hover:text-indigo-400 transition-colors uppercase tracking-widest">02. Sobre</a>
+                <a href="#" class="text-indigo-400 border-b border-indigo-400 pb-1 uppercase tracking-widest">03. Projetos</a>
+                <a href="index.html#experiencia" class="hover:text-indigo-400 transition-colors uppercase tracking-widest">04. Experiência</a>
+                <a href="index.html#contacto" class="px-4 py-2 border border-indigo-500/50 rounded hover:bg-indigo-500/10 transition-all text-indigo-400">CONTACTAR</a>
+            </div>
+            
+            <button class="md:hidden text-2xl text-indigo-500" onclick="alternarMenuMobile()" aria-label="Abrir menu">
+                <i class="fas fa-terminal"></i>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Menu Mobile -->
+    <div id="menu-mobile" class="fixed inset-0 z-40 bg-slate-950 translate-x-full transition-transform duration-300 md:hidden flex flex-col items-center justify-center gap-8 fonte-mono">
+        <a href="index.html#inicio" onclick="alternarMenuMobile()" class="text-2xl hover:text-indigo-400">Início</a>
+        <a href="index.html#sobre" onclick="alternarMenuMobile()" class="text-2xl hover:text-indigo-400">Sobre</a>
+        <a href="#" class="text-2xl text-indigo-400">Projetos</a>
+        <a href="index.html#experiencia" onclick="alternarMenuMobile()" class="text-2xl hover:text-indigo-400">Experiência</a>
+        <a href="index.html#contacto" onclick="alternarMenuMobile()" class="text-2xl text-indigo-400 border border-indigo-500/50 px-6 py-2 rounded">Contactar</a>
+    </div>
+
+    <!-- ============================================================================
+         CABEÇALHO DA PÁGINA DE PROJETOS
+         ============================================================================ -->
+    <header class="pt-40 pb-20 px-6 border-b border-white/5">
+        <div class="max-w-6xl mx-auto revelar">
+            <p class="fonte-mono text-indigo-400 mb-4">System.query("SELECT * FROM portfolio.projects");</p>
+            <h1 class="text-5xl md:text-7xl font-extrabold tracking-tight mb-6">
+                Arquivo de <span class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 to-purple-500">Projetos</span>
+            </h1>
+            <p class="text-xl text-slate-400 max-w-2xl leading-relaxed">
+                Uma coleção abrangente das minhas soluções digitais, arquiteturas escaláveis e produtos focados no utilizador.
+            </p>
+        </div>
+    </header>
+
+    <!-- ============================================================================
+         LISTAGEM DE PROJETOS (GRID COMPLETO)
+         ============================================================================ -->
+    <section class="py-24 px-6">
+        <div class="max-w-6xl mx-auto">
+            <div class="grid gap-32">
+                
+                <!-- PROJETO 1 -->
+                <article class="relative grid md:grid-cols-12 items-center revelar">
+                    <div class="md:col-span-7 relative group cursor-pointer overflow-hidden rounded-lg shadow-xl">
+                        <div class="absolute inset-0 bg-indigo-600/10 group-hover:bg-transparent transition-all z-10"></div>
+                        <img src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1200&auto=format&fit=crop&q=60" alt="Dashboard Nexus" class="w-full grayscale hover:grayscale-0 transition-all duration-700 min-h-[300px] object-cover">
+                    </div>
+                    <div class="md:col-span-6 md:absolute md:right-0 z-20 mt-6 md:mt-0 text-right md:w-1/2">
+                        <p class="fonte-mono text-indigo-400 text-xs mb-2">Destaque // Cloud Plataform</p>
+                        <h3 class="text-3xl font-bold mb-4 hover:text-indigo-400 transition-colors">Nexus Cloud</h3>
+                        <div class="efeito-vidro p-8 rounded-lg text-slate-300 shadow-2xl mb-4 text-sm md:text-base border border-white/10">
+                            Uma plataforma de monitorização de microsserviços em tempo real. Implementa WebSockets para dashboards dinâmicos e integração nativa com infraestrutura Kubernetes.
+                        </div>
+                        <div class="flex flex-wrap justify-end gap-3 fonte-mono text-[10px] text-slate-400 mb-6 uppercase tracking-widest">
+                            <span class="bg-slate-800 px-2 py-1 rounded">React</span> 
+                            <span class="bg-slate-800 px-2 py-1 rounded">Node.js</span> 
+                            <span class="bg-slate-800 px-2 py-1 rounded">Socket.io</span> 
+                            <span class="bg-slate-800 px-2 py-1 rounded">Docker</span> 
+                        </div>
+                        <div class="flex justify-end gap-5 text-xl text-slate-300">
+                            <a href="#" class="hover:text-indigo-400" aria-label="Código Fonte"><i class="fab fa-github"></i></a>
+                            <a href="#" class="hover:text-indigo-400" aria-label="Acesso à Aplicação"><i class="fas fa-external-link-alt"></i></a>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- PROJETO 2 (Invertido) -->
+                <article class="relative grid md:grid-cols-12 items-center revelar">
+                    <!-- Imagem forçada para o lado direito usando col-start-6 -->
+                    <div class="md:col-span-7 md:col-start-6 relative group cursor-pointer overflow-hidden rounded-lg shadow-xl">
+                        <div class="absolute inset-0 bg-indigo-600/10 group-hover:bg-transparent transition-all z-10"></div>
+                        <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=1200&auto=format&fit=crop&q=60" alt="Interface Mobile Zenith" class="w-full grayscale hover:grayscale-0 transition-all duration-700 min-h-[300px] object-cover">
+                    </div>
+                    <!-- Texto forçado para o lado esquerdo usando left-0 e mantendo sobreposição -->
+                    <div class="md:col-span-6 md:absolute md:left-0 z-20 mt-6 md:mt-0 text-left md:w-1/2">
+                        <p class="fonte-mono text-indigo-400 text-xs mb-2">Fintech // Mobile App</p>
+                        <h3 class="text-3xl font-bold mb-4 hover:text-indigo-400 transition-colors">Zenith Finanças</h3>
+                        <div class="efeito-vidro p-8 rounded-lg text-slate-300 shadow-2xl mb-4 text-sm md:text-base border border-white/10">
+                            Aplicação de gestão financeira pessoal com análise preditiva de gastos via IA. Integra autenticação biométrica avançada e relatórios interativos gerados localmente.
+                        </div>
+                        <div class="flex flex-wrap justify-start gap-3 fonte-mono text-[10px] text-slate-400 mb-6 uppercase tracking-widest">
+                            <span class="bg-slate-800 px-2 py-1 rounded">React Native</span> 
+                            <span class="bg-slate-800 px-2 py-1 rounded">FastAPI</span> 
+                            <span class="bg-slate-800 px-2 py-1 rounded">TensorFlow</span>
+                        </div>
+                        <div class="flex justify-start gap-5 text-xl text-slate-300">
+                            <a href="#" class="hover:text-indigo-400"><i class="fab fa-github"></i></a>
+                            <a href="#" class="hover:text-indigo-400"><i class="fas fa-external-link-alt"></i></a>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- PROJETO 3 (Extra Exclusivo para esta página) -->
+                <article class="relative grid md:grid-cols-12 items-center revelar">
+                    <div class="md:col-span-7 relative group cursor-pointer overflow-hidden rounded-lg shadow-xl">
+                        <div class="absolute inset-0 bg-indigo-600/10 group-hover:bg-transparent transition-all z-10"></div>
+                        <img src="https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=1200&auto=format&fit=crop&q=60" alt="Terminal DevFlow" class="w-full grayscale hover:grayscale-0 transition-all duration-700 min-h-[300px] object-cover">
+                    </div>
+                    <div class="md:col-span-6 md:absolute md:right-0 z-20 mt-6 md:mt-0 text-right md:w-1/2">
+                        <p class="fonte-mono text-indigo-400 text-xs mb-2">Ferramenta // Open Source</p>
+                        <h3 class="text-3xl font-bold mb-4 hover:text-indigo-400 transition-colors">DevFlow CLI</h3>
+                        <div class="efeito-vidro p-8 rounded-lg text-slate-300 shadow-2xl mb-4 text-sm md:text-base border border-white/10">
+                            Interface de linha de comandos desenvolvida em Go para automatizar o ambiente de desenvolvimento local e orquestração de containers em arquiteturas complexas.
+                        </div>
+                        <div class="flex flex-wrap justify-end gap-3 fonte-mono text-[10px] text-slate-400 mb-6 uppercase tracking-widest">
+                            <span class="bg-slate-800 px-2 py-1 rounded">Go</span> 
+                            <span class="bg-slate-800 px-2 py-1 rounded">Cobra CLI</span> 
+                            <span class="bg-slate-800 px-2 py-1 rounded">Bash</span> 
+                        </div>
+                        <div class="flex justify-end gap-5 text-xl text-slate-300">
+                            <a href="#" class="hover:text-indigo-400" aria-label="Repositório GitHub"><i class="fab fa-github"></i></a>
+                            <a href="#" class="hover:text-indigo-400" aria-label="Documentação"><i class="fas fa-book"></i></a>
+                        </div>
+                    </div>
+                </article>
+
+            </div>
+            
+            <!-- Botão de Chamada para Ação no Fim da Página -->
+            <div class="mt-32 text-center revelar">
+                <p class="text-slate-400 mb-6">Procura ver mais código em estado bruto?</p>
+                <a href="https://github.com/seu-usuario" target="_blank" class="px-8 py-4 border border-indigo-500/50 hover:bg-indigo-600/10 rounded-lg font-bold transition-all fonte-mono inline-flex items-center gap-3">
+                    <i class="fab fa-github text-xl"></i> Acessar Repositório GitHub
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================================
+         RODAPÉ (FOOTER)
+         ============================================================================ -->
+    <footer class="py-12 text-center border-t border-white/5">
+        <p class="fonte-mono text-[10px] text-slate-600 uppercase tracking-widest">
+            Projetado & Desenvolvido por Rodolfo Soares Baldan &copy; 2026
+        </p>
+        <p class="mt-2 text-[10px] text-slate-700">Arquitetura v2.5.0-stable</p>
+    </footer>
+
+    <!-- ============================================================================
+         LÓGICA DE COMPORTAMENTO (JAVASCRIPT)
+         ============================================================================ -->
+    <script>
+        /**
+         * @function iniciarLogsDeBoot
+         * @description Controla a animação inicial simulando o "boot" de um sistema.
+         * Renderiza as mensagens de log sequencialmente criando nós de parágrafo (<p>) no DOM.
+         */
+        const elementoTextoCarregamento = document.getElementById('texto-carregamento');
+        
+        // Array de strings contendo a rotina de inicialização a ser impressa no console
+        const registrosLogs = [
+            "> Inicializando rotinas de base de dados...",
+            "> Compilando listagem de repositórios...",
+            "> Otimizando assets e imagens locais...",
+            "> A carregar interface de galeria...",
+            "> Módulos de projeto prontos."
+        ];
+
+        let indiceAtualLog = 0; // Ponteiro para rastrear a posição atual da iteração
+        
+        function iniciarLogsDeBoot() {
+            // Verifica se a execução ainda não atingiu o final do array
+            if (indiceAtualLog < registrosLogs.length) {
+                // Criação da linha (DOM Node)
+                const linhaDeComando = document.createElement('p');
+                linhaDeComando.className = "mb-1";
+                linhaDeComando.textContent = registrosLogs[indiceAtualLog];
+                
+                // Anexa ao container visual
+                elementoTextoCarregamento.appendChild(linhaDeComando);
+                
+                indiceAtualLog++;
+                
+                // Chamada recursiva assíncrona com intervalo de 200ms
+                setTimeout(iniciarLogsDeBoot, 200);
+            } else {
+                // Lógica de finalização: Quando todos os logs forem impressos
+                setTimeout(() => {
+                    const painelCarregador = document.getElementById('carregador');
+                    
+                    // Inicia fade out via CSS Transition
+                    painelCarregador.style.opacity = '0';
+                    
+                    // Aguarda a transição CSS finalizar para esconder o elemento do fluxo de renderização
+                    setTimeout(() => {
+                        painelCarregador.style.visibility = 'hidden';
+                        
+                        // Sistema carregado com sucesso: Invoca os eventos de scroll da página
+                        iniciarAnimacoesDeRolagem();
+                    }, 500);
+                }, 800); // Pausa dramática no final antes de esconder a tela
+            }
+        }
+
+        /**
+         * @function iniciarAnimacoesDeRolagem
+         * @description Configura a API Intersection Observer para adicionar classes de CSS dinâmicas 
+         * apenas aos elementos que entrarem na 'viewport', garantindo alta performance de renderização.
+         */
+        function iniciarAnimacoesDeRolagem() {
+            // Parâmetros de observação
+            const configuracoesObservador = {
+                threshold: 0.1,  // Elemento é acionado quando está 10% visível na tela
+                rootMargin: '0px' // Margem de antecipação desativada (0px)
+            };
+
+            // Instancia o observador e define o seu callback de intercepção
+            const observadorDeElementos = new IntersectionObserver((entradasInterceptadas) => {
+                entradasInterceptadas.forEach(entradaIndividual => {
+                    // Se o elemento interceptou a tela do utilizador
+                    if (entradaIndividual.isIntersecting) {
+                        // Atribui a classe 'ativo' responsável por disparar a animação no CSS
+                        entradaIndividual.target.classList.add('ativo');
+                    }
+                });
+            }, configuracoesObservador);
+
+            // Coleta a NodeList de elementos que possuem a tag '.revelar' e regista no observador
+            const elementosParaAnimar = document.querySelectorAll('.revelar');
+            elementosParaAnimar.forEach(elementoAlvo => {
+                observadorDeElementos.observe(elementoAlvo);
+            });
+        }
+
+        /**
+         * @function alternarMenuMobile
+         * @description Interage com o DOM para mostrar ou esconder a navegação 'off-canvas' em ecrãs curtos.
+         * Faz uso do 'classList.toggle' injetando classes de utilidade do Tailwind.
+         */
+        function alternarMenuMobile() {
+            const painelMenuMobile = document.getElementById('menu-mobile');
+            
+            // Troca os modificadores de estado e visibilidade lateral
+            painelMenuMobile.classList.toggle('aberto');
+            painelMenuMobile.classList.toggle('translate-x-full');
+        }
+
+        // ======================================================================
+        // REGISTO DE EVENTOS (EVENT LISTENERS)
+        // ======================================================================
+        
+        // Assegura que todo o script apenas corre após a leitura total do Document Object Model
+        window.addEventListener('DOMContentLoaded', () => {
+            iniciarLogsDeBoot(); // Dispara a sequência do terminal
+        });
+    </script>
+</body>
+</html>

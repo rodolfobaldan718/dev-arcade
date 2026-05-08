@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>APEX GYM — Finalizar Assinatura</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@300;400;500;600;700&family=Barlow:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    /* ─────────────────────────────────────────
+       VARIÁVEIS GLOBAIS E ESTILOS BASE (MESMO DA HOME)
+    ───────────────────────────────────────── */
+    :root {
+      --vermelho: #FF1E2D;
+      --vermelho-escuro: #CC0011;
+      --dourado: #F0B429;
+      --preto: #070709;
+      --escuro: #0E0E12;
+      --escuro2: #161620;
+      --cinza: #8A8A9A;
+      --claro: #E8E8F0;
+      --branco: #FAFAFA;
+    }
+
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; font-size: 16px; }
+    body {
+      background: var(--preto); color: var(--claro);
+      font-family: 'Barlow', sans-serif; overflow-x: hidden; cursor: none;
+    }
+
+    /* Ponteiro */
+    .ponteiro { width: 12px; height: 12px; background: var(--vermelho); border-radius: 50%; position: fixed; top: 0; left: 0; pointer-events: none; z-index: 9999; mix-blend-mode: difference; }
+    .ponteiro-anel { width: 40px; height: 40px; border: 1.5px solid rgba(255, 30, 45, 0.5); border-radius: 50%; position: fixed; top: 0; left: 0; pointer-events: none; z-index: 9998; transition: transform 0.18s ease, width 0.3s, height 0.3s, border-color 0.3s; }
+    body:hover .ponteiro-anel.expandido { width: 60px; height: 60px; border-color: var(--vermelho); }
+
+    /* Ruído */
+    body::before {
+      content: ''; position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none; z-index: 1000; opacity: 0.35;
+    }
+
+    /* Navegação simplificada para página interna */
+    nav { position: fixed; top: 0; left: 0; right: 0; z-index: 500; padding: 1.5rem 4rem; display: flex; align-items: center; justify-content: space-between; background: rgba(7, 7, 9, 0.92); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255, 30, 45, 0.15); }
+    .logomarca { font-family: 'Bebas Neue', sans-serif; font-size: 2rem; letter-spacing: 0.08em; color: var(--branco); text-decoration: none; }
+    .logomarca span { color: var(--vermelho); }
+    
+    .nav-voltar {
+      font-family: 'Barlow Condensed', sans-serif; font-size: 0.85rem; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--cinza); text-decoration: none; display: flex; align-items: center; gap: 0.6rem; transition: color 0.3s;
+    }
+    .nav-voltar:hover { color: var(--branco); }
+
+    /* ─────────────────────────────────────────
+       LAYOUT ESPECÍFICO DO CHECKOUT
+    ───────────────────────────────────────── */
+    #checkout-section { padding: 10rem 4rem 6rem; min-height: 100vh; position: relative; }
+    
+    .checkout-header { text-align: center; margin-bottom: 4rem; opacity: 0; transform: translateY(20px); animation: subirAparecer 0.8s 0.2s forwards; }
+    .checkout-rotulo { font-family: 'Barlow Condensed', sans-serif; font-size: 0.8rem; font-weight: 600; letter-spacing: 0.3em; text-transform: uppercase; color: var(--vermelho); margin-bottom: 1rem; }
+    .checkout-titulo { font-family: 'Bebas Neue', sans-serif; font-size: clamp(3rem, 5vw, 5rem); line-height: 1; color: var(--branco); }
+    .checkout-titulo span { color: var(--vermelho); }
+
+    .checkout-grid { display: grid; grid-template-columns: 1fr 1.2fr; gap: 4rem; max-width: 1150px; margin: 0 auto; }
+
+    /* Lado Esquerdo: Detalhes do Plano */
+    .plano-detalhes { background: var(--escuro); padding: 3rem; border-top: 3px solid var(--vermelho); position: relative; opacity: 0; transform: translateX(-30px); animation: subirAparecer 0.8s 0.4s forwards; align-self: start; }
+    .plano-detalhes.destaque-pro { border-top-color: var(--dourado); background: var(--escuro2); }
+    
+    .nome-plano { font-family: 'Barlow Condensed', sans-serif; font-size: 1.5rem; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: var(--branco); margin-bottom: 1rem; }
+    .preco-plano { font-family: 'Bebas Neue', sans-serif; font-size: 4.5rem; line-height: 1; color: var(--branco); margin-bottom: 0.5rem; }
+    .preco-plano sup { font-family: 'Barlow Condensed', sans-serif; font-size: 1.5rem; font-weight: 600; vertical-align: super; color: var(--vermelho); }
+    .periodo-plano { font-size: 0.9rem; color: var(--cinza); padding-bottom: 2rem; border-bottom: 1px solid rgba(255, 255, 255, 0.06); margin-bottom: 2rem; }
+
+    .lista-beneficios { list-style: none; display: flex; flex-direction: column; gap: 1rem; }
+    .lista-beneficios li { display: flex; align-items: center; gap: 1rem; font-size: 0.95rem; color: var(--claro); }
+    .lista-beneficios li::before {
+      content: ''; width: 20px; height: 20px; background: rgba(255, 30, 45, 0.15); border: 1px solid rgba(255, 30, 45, 0.4); border-radius: 50%; flex-shrink: 0;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 8 8'%3E%3Cpath d='M1.5 4L3.5 6L6.5 2' stroke='%23FF1E2D' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: center;
+    }
+    .lista-beneficios li.inativo { color: var(--cinza); opacity: 0.5; }
+    .lista-beneficios li.inativo::before { background: rgba(255, 255, 255, 0.04); border-color: rgba(255, 255, 255, 0.1); background-image: none; }
+
+    /* Lado Direito: Formulário */
+    .formulario-inscricao { background: var(--preto); padding: 3rem; border: 1px solid rgba(255, 255, 255, 0.05); opacity: 0; transform: translateX(30px); animation: subirAparecer 0.8s 0.6s forwards; }
+    .form-titulo { font-family: 'Barlow Condensed', sans-serif; font-size: 1.2rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--branco); margin-bottom: 2rem; }
+    
+    .form-grupo { margin-bottom: 1.5rem; }
+    .form-label { display: block; font-size: 0.8rem; color: var(--cinza); margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.1em; font-family: 'Barlow Condensed', sans-serif; }
+    .form-input { width: 100%; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1); padding: 1rem 1.2rem; color: var(--branco); font-family: 'Barlow', sans-serif; font-size: 1rem; outline: none; transition: border-color 0.3s, background 0.3s; }
+    .form-input:focus { border-color: var(--vermelho); background: rgba(255, 30, 45, 0.05); }
+    
+    .grid-2-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+
+    .divisor-form { border: 0; height: 1px; background: rgba(255,255,255,0.06); margin: 2.5rem 0; }
+
+    /* ─────────────────────────────────────────
+       SISTEMA DE PAGAMENTO E CARTÃO ANIMADO
+    ───────────────────────────────────────── */
+    .pagamento-tabs { display: flex; gap: 0.5rem; margin-bottom: 2rem; background: rgba(255,255,255,0.03); padding: 0.4rem; border-radius: 4px; }
+    .tab-btn { flex: 1; padding: 0.8rem; background: transparent; border: none; color: var(--cinza); font-family: 'Barlow Condensed', sans-serif; text-transform: uppercase; font-weight: 600; letter-spacing: 0.1em; cursor: none; transition: all 0.3s; border-radius: 2px; }
+    .tab-btn:hover { color: var(--branco); }
+    .tab-btn.ativo { background: var(--vermelho); color: var(--branco); }
+    
+    .tab-content { display: none; }
+    .tab-content.ativo { display: block; animation: aparecer 0.4s ease forwards; }
+
+    /* Cartão 3D */
+    .cartao-container { perspective: 1000px; width: 100%; max-width: 360px; margin: 0 auto 2.5rem; }
+    .cartao-flipper { position: relative; width: 100%; height: 210px; transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275); transform-style: preserve-3d; }
+    .cartao-flipper.virado { transform: rotateY(180deg); }
+    
+    .cartao-frente, .cartao-verso { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 12px; background: linear-gradient(135deg, #1A1A24 0%, #0A0A0F 100%); border: 1px solid rgba(255, 30, 45, 0.2); box-shadow: 0 15px 35px rgba(0,0,0,0.5); display: flex; flex-direction: column; overflow: hidden; }
+    .cartao-frente { padding: 1.5rem; justify-content: space-between; }
+    .cartao-frente::before { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle at center, rgba(255,30,45,0.1) 0%, transparent 60%); pointer-events: none; }
+    
+    .cartao-verso { transform: rotateY(180deg); padding: 0; }
+    
+    .cartao-topo { display: flex; justify-content: space-between; align-items: flex-start; z-index: 1; }
+    .cartao-chip { width: 45px; height: 35px; background: linear-gradient(135deg, #e5b05c 0%, #9e7b23 100%); border-radius: 5px; position: relative; overflow: hidden; }
+    .cartao-chip::after { content: ''; position: absolute; inset: 0; background-image: linear-gradient(transparent 40%, rgba(0,0,0,0.2) 40%, rgba(0,0,0,0.2) 60%, transparent 60%), linear-gradient(90deg, transparent 40%, rgba(0,0,0,0.2) 40%, rgba(0,0,0,0.2) 60%, transparent 60%); }
+    .cartao-bandeira { font-family: 'Barlow', sans-serif; font-style: italic; font-weight: 700; font-size: 1.5rem; color: #fff; text-align: right; }
+    
+    .cartao-numero-visual { font-family: 'Bebas Neue', sans-serif; font-size: 2.2rem; letter-spacing: 0.15em; color: var(--branco); z-index: 1; text-shadow: 0 2px 4px rgba(0,0,0,0.5); margin-top: auto; margin-bottom: 0.5rem; }
+    
+    .cartao-rodape { display: flex; justify-content: space-between; align-items: flex-end; z-index: 1; }
+    .cartao-info-box { display: flex; flex-direction: column; }
+    .cartao-info-label { font-family: 'Barlow Condensed', sans-serif; font-size: 0.65rem; color: var(--cinza); letter-spacing: 0.1em; text-transform: uppercase; }
+    .cartao-info-valor { font-family: 'Barlow', sans-serif; font-size: 0.95rem; font-weight: 500; color: var(--claro); text-transform: uppercase; letter-spacing: 0.1em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px; }
+    
+    /* Verso do cartão */
+    .cartao-tarja { width: 100%; height: 45px; background: #000; margin-top: 25px; }
+    .cartao-cvv-area { margin: 20px; text-align: right; }
+    .cartao-cvv-faixa { background: #fff; color: #000; padding: 8px 15px; font-family: 'Barlow', sans-serif; font-weight: 700; font-size: 1.1rem; border-radius: 4px; display: inline-block; width: 100%; text-align: right; font-style: italic; }
+
+    /* Estilos PIX e Boleto - Simulação Visual */
+    .pagamento-simulado { display: flex; flex-direction: column; align-items: center; padding: 2.5rem 1.5rem; background: rgba(255,255,255,0.02); border: 1px dashed rgba(255,255,255,0.1); border-radius: 8px; text-align: center; }
+    .qr-code-box { background: #fff; padding: 12px; border-radius: 8px; margin-bottom: 1.5rem; display: inline-block; }
+    .copia-cola-box { display: flex; flex-wrap: wrap; width: 100%; gap: 0.5rem; margin-top: 1rem; align-items: center; justify-content: center; }
+    .btn-copiar { background: rgba(255,30,45,0.1); color: var(--vermelho); border: 1px solid rgba(255,30,45,0.4); padding: 0.8rem 1.5rem; font-family: 'Barlow Condensed', sans-serif; font-size: 0.9rem; text-transform: uppercase; font-weight: 700; cursor: none; transition: all 0.3s; border-radius: 4px; }
+    .btn-copiar:hover { background: var(--vermelho); color: var(--branco); border-color: var(--vermelho); }
+    .pagamento-texto { font-size: 0.9rem; color: var(--cinza); line-height: 1.6; }
+    
+    .barcode-visual { height: 70px; width: 100%; max-width: 320px; margin: 0 auto; background: repeating-linear-gradient(to right, #000, #000 3px, #fff 3px, #fff 5px, #000 5px, #000 6px, #fff 6px, #fff 9px, #000 9px, #000 13px, #fff 13px, #fff 15px, #000 15px, #000 16px, #fff 16px, #fff 20px); border: 8px solid #fff; border-radius: 4px; }
+    .linha-digitavel { font-family: monospace; font-size: clamp(0.85rem, 2vw, 1.1rem); text-align: center; margin: 1.5rem 0; color: var(--branco); letter-spacing: 1px; }
+
+    .botao-finalizar {
+      width: 100%; font-family: 'Barlow Condensed', sans-serif; font-size: 1rem; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase;
+      color: var(--branco); background: var(--vermelho); border: none; padding: 1.2rem; margin-top: 1rem; cursor: none; position: relative; overflow: hidden;
+      clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 14px 100%, 0 calc(100% - 14px));
+    }
+    .botao-finalizar::before { content: ''; position: absolute; inset: 0; background: var(--vermelho-escuro); transform: scaleX(0); transform-origin: left; transition: transform 0.3s ease; z-index: 0; }
+    .botao-finalizar span { position: relative; z-index: 1; }
+    .botao-finalizar:hover::before { transform: scaleX(1); }
+
+    /* ─────────────────────────────────────────
+       TELA DE CARREGAMENTO INICIAL (ORIGINAL)
+    ───────────────────────────────────────── */
+    #tela-carregando {
+      position: fixed; inset: 0; z-index: 9995; background: var(--preto); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2.5rem; transition: none; pointer-events: all;
+    }
+    #tela-carregando.esconder { animation: carregadorSair 0.9s cubic-bezier(0.77, 0, 0.175, 1) forwards; }
+    @keyframes carregadorSair { 0% { clip-path: inset(0 0 0 0); } 100% { clip-path: inset(0 0 100% 0); } }
+    .carregador-logomarca { font-family: 'Bebas Neue', sans-serif; font-size: 4rem; letter-spacing: 0.12em; color: var(--branco); opacity: 0; animation: carregadorLogoEntrar 0.7s 0.1s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+    .carregador-logomarca span { color: var(--vermelho); }
+    @keyframes carregadorLogoEntrar { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+    .carregador-slogan { font-family: 'Barlow Condensed', sans-serif; font-size: 0.72rem; font-weight: 600; letter-spacing: 0.35em; text-transform: uppercase; color: var(--cinza); margin-top: -2rem; opacity: 0; animation: carregadorLogoEntrar 0.6s 0.3s forwards; }
+    .carregador-barra-caixa { width: min(320px, 70vw); height: 2px; background: rgba(255, 255, 255, 0.06); position: relative; overflow: hidden; }
+    .carregador-barra { height: 100%; width: 0%; background: var(--vermelho); transition: width 0.25s ease; position: relative; }
+    .carregador-barra::after { content: ''; position: absolute; right: 0; top: -2px; width: 6px; height: 6px; border-radius: 50%; background: var(--vermelho); box-shadow: 0 0 8px var(--vermelho); }
+    .carregador-porcentagem { font-family: 'Bebas Neue', sans-serif; font-size: 1rem; letter-spacing: 0.2em; color: var(--cinza); min-width: 48px; text-align: center; }
+    .carregador-base { display: flex; align-items: center; gap: 1.2rem; margin-top: -1rem; }
+    .carregador-pontos { display: flex; gap: 5px; }
+    .carregador-pontos span { width: 4px; height: 4px; border-radius: 50%; background: var(--vermelho); animation: pontoPulsar 1.2s infinite ease-in-out; }
+    .carregador-pontos span:nth-child(2) { animation-delay: 0.2s; }
+    .carregador-pontos span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes pontoPulsar { 0%, 80%, 100% { transform: scale(0.6); opacity: 0.3; } 40% { transform: scale(1); opacity: 1; } }
+    .carregador-status { font-family: 'Barlow Condensed', sans-serif; font-size: 0.72rem; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; color: var(--cinza); min-width: 130px; }
+    body.carregando { overflow: hidden; }
+
+    @keyframes subirAparecer { to { opacity: 1; transform: translateY(0) translateX(0); } }
+    @keyframes aparecer { to { opacity: 1; } }
+
+    /* Footer minimalista */
+    footer { border-top: 1px solid rgba(255, 30, 45, 0.1); padding: 2rem 4rem; text-align: center; }
+    .rodape-direitos { font-size: 0.78rem; color: var(--cinza); }
+
+    @media (max-width: 900px) {
+      nav { padding: 1.2rem 1.5rem; }
+      #checkout-section { padding: 8rem 1.5rem 4rem; }
+      .checkout-grid { grid-template-columns: 1fr; gap: 2rem; }
+      .grid-2-col { grid-template-columns: 1fr; }
+      .plano-detalhes, .formulario-inscricao { padding: 2rem; }
+      .copia-cola-box { flex-direction: column; }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Tela de Carregamento -->
+  <div id="tela-carregando">
+    <div class="carregador-logomarca">APEX<span>.</span></div>
+    <div class="carregador-slogan">Eleve seus limites</div>
+    <div class="carregador-barra-caixa">
+      <div class="carregador-barra" id="barraPorcentagem"></div>
+    </div>
+    <div class="carregador-base">
+      <div class="carregador-pontos">
+        <span></span><span></span><span></span>
+      </div>
+      <div class="carregador-status" id="textoStatus">Carregando...</div>
+      <div class="carregador-porcentagem" id="numeroPorcentagem">0%</div>
+    </div>
+  </div>
+
+  <!-- Ponteiros -->
+  <div class="ponteiro" id="ponteiro"></div>
+  <div class="ponteiro-anel" id="ponteiroAnel"></div>
+
+  <!-- Navegação -->
+  <nav>
+    <a href="academia_apex.html" class="logomarca">APEX<span>.</span></a>
+    <a href="academia_apex.html" class="nav-voltar">
+      <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+      </svg>
+      Voltar para Home
+    </a>
+  </nav>
+
+  <!-- Seção Principal Dinâmica -->
+  <section id="checkout-section">
+    <div class="checkout-header">
+      <p class="checkout-rotulo">Finalizar Inscrição</p>
+      <h1 class="checkout-titulo">Assinatura <span id="tituloPlano">...</span></h1>
+    </div>
+
+    <div class="checkout-grid">
+      <!-- Coluna da Esquerda: Resumo do Plano -->
+      <div class="plano-detalhes" id="caixaPlano">
+        <div class="nome-plano">Plano <span id="nomePlanoTexto">...</span></div>
+        <div class="preco-plano"><sup>R$</sup><span id="precoPlanoValor">00</span></div>
+        <div class="periodo-plano" id="periodoPlanoTexto">...</div>
+        
+        <ul class="lista-beneficios" id="listaBeneficios">
+          <!-- Preenchido pelo JS -->
+        </ul>
+      </div>
+
+      <!-- Coluna da Direita: Formulário de Cadastro e Pagamento -->
+      <div class="formulario-inscricao">
+        
+        <form id="formCheckout">
+          <!-- DADOS PESSOAIS -->
+          <h2 class="form-titulo">1. Seus Dados</h2>
+          
+          <div class="form-grupo">
+            <label class="form-label">Nome Completo</label>
+            <input type="text" class="form-input" id="nomeInput" placeholder="João da Silva" required>
+          </div>
+          
+          <div class="grid-2-col">
+            <div class="form-grupo">
+              <label class="form-label">E-mail</label>
+              <input type="email" class="form-input" placeholder="joao@email.com" required>
+            </div>
+            <div class="form-grupo">
+              <label class="form-label">Telefone / WhatsApp</label>
+              <input type="tel" id="telefoneInput" class="form-input" placeholder="(11) 90000-0000" maxlength="15" required>
+            </div>
+          </div>
+          
+          <div class="grid-2-col">
+            <div class="form-grupo">
+              <label class="form-label">CPF</label>
+              <input type="text" id="cpfInput" class="form-input" placeholder="000.000.000-00" maxlength="14" required>
+              <span id="cpfErro" style="color: var(--vermelho); font-size: 0.8rem; display: none; margin-top: 6px; font-family: 'Barlow Condensed', sans-serif; letter-spacing: 0.05em; text-transform: uppercase;">CPF Inválido</span>
+            </div>
+            <div class="form-grupo">
+              <label class="form-label">Data de Nascimento</label>
+              <input type="date" class="form-input" required>
+            </div>
+          </div>
+
+          <hr class="divisor-form">
+
+          <!-- PAGAMENTO -->
+          <h2 class="form-titulo">2. Pagamento</h2>
+          
+          <!-- Abas de Pagamento -->
+          <div class="pagamento-tabs">
+            <button type="button" class="tab-btn ativo" data-alvo="tab-cartao">Cartão</button>
+            <button type="button" class="tab-btn" data-alvo="tab-pix">Pix</button>
+            <button type="button" class="tab-btn" data-alvo="tab-boleto">Boleto</button>
+          </div>
+
+          <!-- ABA: Cartão de Crédito/Débito -->
+          <div id="tab-cartao" class="tab-content ativo">
+            
+            <!-- Cartão Animado -->
+            <div class="cartao-container">
+              <div class="cartao-flipper" id="cartaoFlipper">
+                
+                <!-- Frente do Cartão -->
+                <div class="cartao-frente">
+                  <div class="cartao-topo">
+                    <div class="cartao-chip"></div>
+                    <div class="cartao-bandeira" id="cartaoBandeira"></div>
+                  </div>
+                  <div class="cartao-numero-visual" id="cartaoNumeroVisual">**** **** **** ****</div>
+                  <div class="cartao-rodape">
+                    <div class="cartao-info-box" style="flex: 1; margin-right: 1rem;">
+                      <span class="cartao-info-label">Nome do Titular</span>
+                      <span class="cartao-info-valor" id="cartaoNomeVisual">SEU NOME AQUI</span>
+                    </div>
+                    <div class="cartao-info-box">
+                      <span class="cartao-info-label">Validade</span>
+                      <span class="cartao-info-valor" id="cartaoValidadeVisual">MM/AA</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Verso do Cartão -->
+                <div class="cartao-verso">
+                  <div class="cartao-tarja"></div>
+                  <div class="cartao-cvv-area">
+                    <span class="cartao-info-label" style="display: block; margin-bottom: 5px;">CVV</span>
+                    <div class="cartao-cvv-faixa" id="cartaoCvvVisual">***</div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+            <!-- Inputs do Cartão -->
+            <div class="form-grupo">
+              <label class="form-label">Número do Cartão</label>
+              <input type="text" id="ccNumero" class="form-input" placeholder="0000 0000 0000 0000" maxlength="19">
+              <span id="ccErro" style="color: var(--vermelho); font-size: 0.8rem; display: none; margin-top: 6px; font-family: 'Barlow Condensed', sans-serif; letter-spacing: 0.05em; text-transform: uppercase;">Cartão Inválido</span>
+            </div>
+            
+            <div class="form-grupo">
+              <label class="form-label">Nome Impresso no Cartão</label>
+              <input type="text" id="ccNome" class="form-input" placeholder="Como está no cartão">
+            </div>
+            
+            <div class="grid-2-col">
+              <div class="form-grupo">
+                <label class="form-label">Validade (MM/AA)</label>
+                <input type="text" id="ccValidade" class="form-input" placeholder="MM/AA" maxlength="5">
+              </div>
+              <div class="form-grupo">
+                <label class="form-label">CVV</label>
+                <input type="text" id="ccCvv" class="form-input" placeholder="123" maxlength="4">
+              </div>
+            </div>
+          </div>
+
+          <!-- ABA: PIX -->
+          <div id="tab-pix" class="tab-content">
+            <div class="pagamento-simulado">
+              <p class="form-titulo" style="color: var(--vermelho); margin-bottom: 1rem;">Pagamento via Pix</p>
+              
+              <!-- QR Code Simulado (SVG) -->
+              <div class="qr-code-box">
+                <svg width="150" height="150" viewBox="0 0 100 100" fill="#000">
+                  <path d="M0,0 h30 v30 h-30 z M5,5 h20 v20 h-20 z M10,10 h10 v10 h-10 z" />
+                  <path d="M70,0 h30 v30 h-30 z M75,5 h20 v20 h-20 z M80,10 h10 v10 h-10 z" />
+                  <path d="M0,70 h30 v30 h-30 z M5,75 h20 v20 h-20 z M10,80 h10 v10 h-10 z" />
+                  <path d="M40,0 h20 v10 h-20 z M35,15 h15 v10 h-15 z M55,20 h10 v15 h-10 z M40,35 h35 v10 h-35 z" />
+                  <path d="M10,40 h20 v15 h-20 z M0,55 h15 v10 h-15 z M20,60 h15 v10 h-15 z" />
+                  <path d="M80,40 h20 v10 h-20 z M75,55 h10 v15 h-10 z M90,60 h10 v20 h-10 z M60,75 h20 v10 h-20 z" />
+                  <path d="M40,50 h20 v20 h-20 z M45,55 h10 v10 h-10 z M35,80 h15 v20 h-15 z M55,90 h10 v10 h-10 z M70,90 h30 v10 h-30 z" />
+                </svg>
+              </div>
+
+              <p class="pagamento-texto">Escaneie o QR Code com o app do seu banco ou copie o código abaixo. O acesso é liberado instantaneamente.</p>
+              
+              <div class="copia-cola-box">
+                <input type="text" readonly id="pixCopiaCola" class="form-input" style="font-family: monospace; font-size: 0.8rem; text-align: center;" value="00020126580014br.gov.bcb.pix0136123e4567-e12b-12d1-a456-4266554400005204000053039865802BR5913Apex Gym6009Sao Paulo62070503***6304A1B2">
+                <button type="button" class="btn-copiar" onclick="copiarTexto('pixCopiaCola')">Copiar</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- ABA: BOLETO -->
+          <div id="tab-boleto" class="tab-content">
+            <div class="pagamento-simulado">
+              <p class="form-titulo" style="color: var(--vermelho); margin-bottom: 1.5rem;">Boleto Bancário</p>
+              
+              <!-- Simulação Visual do Código de Barras -->
+              <div class="barcode-visual"></div>
+              
+              <!-- Linha Digitável -->
+              <p class="linha-digitavel" id="boletoCodigo">
+                34191.09008 63390.620004 01018.300001 6 86320000018900
+              </p>
+
+              <div class="copia-cola-box">
+                <button type="button" class="btn-copiar" onclick="copiarTexto('boletoCodigo')">Copiar Código de Barras</button>
+              </div>
+
+              <p class="pagamento-texto" style="margin-top: 1.5rem; font-size: 0.8rem;">
+                *O pagamento via boleto pode levar até <strong>2 dias úteis</strong> para ser compensado. Sua assinatura será ativada após a confirmação.
+              </p>
+            </div>
+          </div>
+
+          <button type="submit" class="botao-finalizar"><span>Confirmar Assinatura</span></button>
+        </form>
+
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <p class="rodape-direitos">© 2025 APEX GYM. Ambiente de Pagamento Seguro.</p>
+  </footer>
+
+  <script>
+    /* ─────────────────────────────────────────
+       BANCO DE DADOS DOS PLANOS E RENDERIZAÇÃO
+    ───────────────────────────────────────── */
+    const dadosPlanos = {
+      'basico': { nome: 'Básico', preco: '99', periodo: '/mês — sem fidelidade', destaque: false, beneficios: [{ texto: 'Acesso à musculação', ativo: true }, { texto: 'Cardio zone ilimitado', ativo: true }, { texto: 'Vestiários premium', ativo: true }, { texto: 'App APEX', ativo: true }, { texto: 'Personal trainer', ativo: false }, { texto: 'Aulas coletivas', ativo: false }, { texto: 'Avaliação física', ativo: false }] },
+      'pro': { nome: 'Pro', preco: '189', periodo: '/mês — contrato anual', destaque: true, beneficios: [{ texto: 'Acesso completo 24h', ativo: true }, { texto: 'Cardio zone ilimitado', ativo: true }, { texto: 'Vestiários premium', ativo: true }, { texto: 'App APEX + métricas', ativo: true }, { texto: '2 aulas coletivas/semana', ativo: true }, { texto: 'Avaliação física mensal', ativo: true }, { texto: 'Personal exclusivo', ativo: false }] },
+      'elite': { nome: 'Elite', preco: '349', periodo: '/mês — contrato anual', destaque: false, beneficios: [{ texto: 'Acesso VIP 24h', ativo: true }, { texto: 'Todas as modalidades', ativo: true }, { texto: 'Vestiários + spa', ativo: true }, { texto: 'App APEX completo', ativo: true }, { texto: 'Aulas coletivas ilimitadas', ativo: true }, { texto: 'Avaliação física quinzenal', ativo: true }, { texto: '4 sessões personal/mês', ativo: true }] }
+    };
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      let planoEscolhido = urlParams.get('plano') || 'pro';
+      if (!dadosPlanos[planoEscolhido]) { planoEscolhido = 'pro'; }
+      
+      const dados = dadosPlanos[planoEscolhido];
+      document.getElementById('tituloPlano').textContent = dados.nome;
+      document.getElementById('nomePlanoTexto').textContent = dados.nome;
+      document.getElementById('precoPlanoValor').textContent = dados.preco;
+      document.getElementById('periodoPlanoTexto').textContent = dados.periodo;
+
+      if (dados.destaque) document.getElementById('caixaPlano').classList.add('destaque-pro');
+
+      const listaHTML = document.getElementById('listaBeneficios');
+      dados.beneficios.forEach(ben => {
+        const li = document.createElement('li');
+        li.textContent = ben.texto;
+        if (!ben.ativo) li.classList.add('inativo');
+        listaHTML.appendChild(li);
+      });
+    });
+
+    /* ─────────────────────────────────────────
+       PONTEIROS E LOADING
+    ───────────────────────────────────────── */
+    const ponteiro = document.getElementById('ponteiro');
+    const anel = document.getElementById('ponteiroAnel');
+    let mx = 0, my = 0, rx = 0, ry = 0;
+    document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+    function animarPonteiro() {
+      ponteiro.style.transform = `translate(${mx - 6}px, ${my - 6}px)`;
+      rx += (mx - rx - 20) * 0.12; ry += (my - ry - 20) * 0.12;
+      anel.style.transform = `translate(${rx}px, ${ry}px)`;
+      requestAnimationFrame(animarPonteiro);
+    }
+    animarPonteiro();
+    document.querySelectorAll('a, button, input, .tab-btn').forEach(el => {
+      el.addEventListener('mouseenter', () => anel.classList.add('expandido'));
+      el.addEventListener('mouseleave', () => anel.classList.remove('expandido'));
+    });
+
+    (function () {
+      const tela = document.getElementById('tela-carregando'), barra = document.getElementById('barraPorcentagem'), num = document.getElementById('numeroPorcentagem'), txt = document.getElementById('textoStatus');
+      const etapas = [{ em: 15, m: 'Carregando recursos...' }, { em: 40, m: 'Preparando estilos...' }, { em: 70, m: 'Iniciando módulo de pagamento...' }, { em: 90, m: 'Quase pronto...' }];
+      document.body.classList.add('carregando');
+      let sim = 0;
+      const intId = setInterval(() => {
+        sim = Math.min(sim + (sim<40?1.8:sim<70?0.9:0.3), 85);
+        if(barra) barra.style.width = sim + '%';
+        if(num) num.textContent = Math.floor(sim) + '%';
+        let etp = etapas.find(e => sim <= e.em);
+        if(txt && etp) txt.textContent = etp.m;
+      }, 60);
+
+      function fim() {
+        clearInterval(intId);
+        if(barra) barra.style.width = '100%';
+        if(num) num.textContent = '100%';
+        if(txt) txt.textContent = 'Seguro!';
+        setTimeout(() => {
+          if(tela) tela.classList.add('esconder');
+          document.body.classList.remove('carregando');
+          setTimeout(() => { if(tela) tela.remove() }, 950);
+        }, 380);
+      }
+      if (document.readyState === 'complete') setTimeout(fim, 300);
+      else { window.addEventListener('load', () => setTimeout(fim, 300)); setTimeout(fim, 6000); }
+    })();
+
+    /* ─────────────────────────────────────────
+       MÁSCARAS BÁSICAS E FUNÇÃO COPIAR
+    ───────────────────────────────────────── */
+    const telefoneInput = document.getElementById('telefoneInput');
+    const cpfInput = document.getElementById('cpfInput');
+    const cpfErro = document.getElementById('cpfErro');
+
+    telefoneInput.addEventListener('input', e => {
+      let x = e.target.value.replace(/\D/g, '').match(/(\d{0,2})(\d{0,5})(\d{0,4})/);
+      e.target.value = !x[2] ? x[1] : '(' + x[1] + ') ' + x[2] + (x[3] ? '-' + x[3] : '');
+    });
+
+    cpfInput.addEventListener('input', e => {
+      let x = e.target.value.replace(/\D/g, '').match(/(\d{0,3})(\d{0,3})(\d{0,3})(\d{0,2})/);
+      e.target.value = !x[2] ? x[1] : x[1] + '.' + x[2] + (x[3] ? '.' + x[3] : '') + (x[4] ? '-' + x[4] : '');
+      cpfErro.style.display = 'none'; cpfInput.style.borderColor = '';
+    });
+
+    function validarCPF(cpf) {
+      cpf = cpf.replace(/[^\d]+/g, '');
+      if (cpf.length !== 11 || /^(\d)\1{10}$/.test(cpf)) return false;
+      let soma = 0, resto;
+      for (let i = 1; i <= 9; i++) soma += parseInt(cpf.substring(i - 1, i)) * (11 - i);
+      resto = (soma * 10) % 11; if (resto === 10 || resto === 11) resto = 0;
+      if (resto !== parseInt(cpf.substring(9, 10))) return false;
+      soma = 0;
+      for (let i = 1; i <= 10; i++) soma += parseInt(cpf.substring(i - 1, i)) * (12 - i);
+      resto = (soma * 10) % 11; if (resto === 10 || resto === 11) resto = 0;
+      return resto === parseInt(cpf.substring(10, 11));
+    }
+
+    // Função universal para Copiar (Pix e Boleto) com fallback
+    function copiarTexto(idElemento) {
+      const elemento = document.getElementById(idElemento);
+      let textoParaCopiar = elemento.tagName === 'INPUT' ? elemento.value : elemento.innerText;
+      textoParaCopiar = textoParaCopiar.replace(/\s+/g, ''); // Limpa espaços para copiar o código puro
+      
+      const tempInput = document.createElement('input');
+      tempInput.value = textoParaCopiar;
+      document.body.appendChild(tempInput);
+      tempInput.select();
+      
+      try {
+        document.execCommand('copy');
+        alert('Código copiado com sucesso!');
+      } catch (err) {
+        alert('Não foi possível copiar o código. Tente selecionar e copiar manualmente.');
+      }
+      
+      document.body.removeChild(tempInput);
+    }
+
+    /* ─────────────────────────────────────────
+       SISTEMA DE ABAS (PAGAMENTO)
+    ───────────────────────────────────────── */
+    const abas = document.querySelectorAll('.tab-btn');
+    const conteudos = document.querySelectorAll('.tab-content');
+    let metodoSelecionado = 'tab-cartao';
+
+    abas.forEach(aba => {
+      aba.addEventListener('click', () => {
+        abas.forEach(b => b.classList.remove('ativo'));
+        conteudos.forEach(c => c.classList.remove('ativo'));
+        
+        aba.classList.add('ativo');
+        metodoSelecionado = aba.dataset.alvo;
+        document.getElementById(metodoSelecionado).classList.add('ativo');
+      });
+    });
+
+    /* ─────────────────────────────────────────
+       ANIMAÇÃO E LÓGICA DO CARTÃO DE CRÉDITO
+    ───────────────────────────────────────── */
+    const ccNumero = document.getElementById('ccNumero');
+    const ccNome = document.getElementById('ccNome');
+    const ccValidade = document.getElementById('ccValidade');
+    const ccCvv = document.getElementById('ccCvv');
+    const ccErro = document.getElementById('ccErro');
+
+    const cartaoFlipper = document.getElementById('cartaoFlipper');
+    const visNumero = document.getElementById('cartaoNumeroVisual');
+    const visNome = document.getElementById('cartaoNomeVisual');
+    const visValidade = document.getElementById('cartaoValidadeVisual');
+    const visCvv = document.getElementById('cartaoCvvVisual');
+    const visBandeira = document.getElementById('cartaoBandeira');
+
+    // Máscara e espelhamento: Número do Cartão
+    ccNumero.addEventListener('input', e => {
+      let val = e.target.value.replace(/\D/g, '');
+      let formato = val.match(/.{1,4}/g); // Agrupa a cada 4 dígitos
+      e.target.value = formato ? formato.join(' ') : '';
+      
+      visNumero.textContent = e.target.value || '**** **** **** ****';
+      ccErro.style.display = 'none'; ccNumero.style.borderColor = '';
+
+      // Identificar Bandeira Simples (Visa começa c/ 4, Master c/ 5)
+      if(val.startsWith('4')) { visBandeira.textContent = 'VISA'; visBandeira.style.color = '#fff'; }
+      else if(val.startsWith('5')) { visBandeira.textContent = 'MASTER'; visBandeira.style.color = '#ff9f00'; }
+      else if(val.startsWith('3')) { visBandeira.textContent = 'AMEX'; visBandeira.style.color = '#0070ba'; }
+      else { visBandeira.textContent = ''; }
+    });
+
+    // Espelhamento: Nome
+    ccNome.addEventListener('input', e => {
+      e.target.value = e.target.value.toUpperCase();
+      visNome.textContent = e.target.value || 'SEU NOME AQUI';
+    });
+
+    // Máscara e espelhamento: Validade
+    ccValidade.addEventListener('input', e => {
+      let val = e.target.value.replace(/\D/g, '');
+      if (val.length > 2) val = val.substring(0, 2) + '/' + val.substring(2, 4);
+      e.target.value = val;
+      visValidade.textContent = val || 'MM/AA';
+    });
+
+    // Animação de Virar o Cartão (Foco no CVV)
+    ccCvv.addEventListener('focus', () => cartaoFlipper.classList.add('virado'));
+    ccCvv.addEventListener('blur', () => cartaoFlipper.classList.remove('virado'));
+    
+    ccCvv.addEventListener('input', e => {
+      let val = e.target.value.replace(/\D/g, '');
+      e.target.value = val;
+      visCvv.textContent = val || '***';
+    });
+
+    // Validação Luhn (Matemática real de cartões)
+    function validarCartaoLuhn(numero) {
+      let arr = numero.replace(/\D/g, '').split('').reverse().map(x => parseInt(x));
+      let soma = arr.reduce((acc, val, i) => {
+        if (i % 2 !== 0) {
+          let multi = val * 2;
+          return acc + (multi > 9 ? multi - 9 : multi);
+        }
+        return acc + val;
+      }, 0);
+      return soma % 10 === 0 && arr.length > 12;
+    }
+
+    /* ─────────────────────────────────────────
+       ENVIO FINAL DO FORMULÁRIO
+    ───────────────────────────────────────── */
+    document.getElementById('formCheckout').addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      // Valida CPF (independente do método)
+      if (!validarCPF(cpfInput.value)) {
+        cpfErro.style.display = 'block';
+        cpfInput.style.borderColor = 'var(--vermelho)';
+        cpfInput.focus();
+        return;
+      }
+
+      // Se a aba selecionada for Cartão, valida os dados do cartão
+      if (metodoSelecionado === 'tab-cartao') {
+        // Valida campos vazios do cartão
+        if(!ccNumero.value || !ccNome.value || !ccValidade.value || !ccCvv.value) {
+          alert('Por favor, preencha todos os dados do cartão.');
+          return;
+        }
+
+        // Validação Matemática do Cartão
+        if (!validarCartaoLuhn(ccNumero.value)) {
+          ccErro.style.display = 'block';
+          ccNumero.style.borderColor = 'var(--vermelho)';
+          ccNumero.focus();
+          return;
+        }
+        
+        // Validação básica de Data (MM/AA)
+        let partes = ccValidade.value.split('/');
+        if(partes.length !== 2 || parseInt(partes[0]) > 12 || parseInt(partes[0]) === 0) {
+          alert('Data de validade inválida. Use MM/AA.');
+          ccValidade.focus();
+          return;
+        }
+      }
+
+      // Tudo certo!
+      let planoNome = document.getElementById('tituloPlano').textContent;
+      alert(`Parabéns!\nSua assinatura do plano ${planoNome} foi processada com sucesso via ${metodoSelecionado.replace('tab-','')}.`);
+    });
+
+  </script>
+</body>
+</html>

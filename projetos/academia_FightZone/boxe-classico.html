@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FightZone | Boxe Clássico</title>
+    
+    <!-- Fontes do Google para Tipografia Agressiva e Moderna -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Oswald:wght@500;700&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome para Ícones -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        marca: {
+                            vermelho: '#FF003C',
+                            vermelhoHover: '#CC0030',
+                            escuro: '#050505',
+                            cartao: '#121212',
+                            borda: '#2A2A2A',
+                            texto: '#E5E5E5',
+                            suave: '#888888'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Oswald', 'sans-serif']
+                    },
+                    backgroundImage: {
+                        'padrao-hero-boxe': "linear-gradient(to right, rgba(5, 5, 5, 0.95), rgba(5, 5, 5, 0.5)), url('https://images.unsplash.com/photo-1549719386-74dfcbf7dbed?auto=format&fit=crop&w=1920&q=80')"
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #050505;
+            color: #E5E5E5;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .botao-brilho {
+            box-shadow: 0 0 15px rgba(255, 0, 60, 0.3);
+            transition: all 0.3s ease;
+        }
+        .botao-brilho:hover {
+            box-shadow: 0 0 25px rgba(255, 0, 60, 0.6);
+            transform: translateY(-2px);
+        }
+
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #050505; }
+        ::-webkit-scrollbar-thumb { background: #2A2A2A; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #FF003C; }
+    </style>
+</head>
+<body class="font-sans antialiased overflow-x-hidden selection:bg-marca-vermelho selection:text-white">
+
+    <!-- Tela de Carregamento -->
+    <div id="tela-carregamento" class="fixed inset-0 z-[9999] bg-marca-escuro flex flex-col items-center justify-center transition-opacity duration-700 ease-in-out">
+        <div class="relative flex items-center justify-center w-32 h-32">
+            <div class="absolute inset-0 border-4 border-marca-vermelho rounded-full opacity-20 animate-ping"></div>
+            <div class="absolute inset-2 border-4 border-marca-vermelho rounded-full border-t-transparent animate-spin"></div>
+            <div class="absolute inset-4 bg-marca-cartao rounded-full flex items-center justify-center z-10 border border-marca-borda shadow-[0_0_30px_rgba(255,0,60,0.6)]">
+                <i class="fa-solid fa-hand-back-fist text-marca-vermelho text-4xl animate-pulse"></i>
+            </div>
+        </div>
+        <div class="mt-8 font-display font-bold text-3xl tracking-[0.2em] text-white">
+            BOXE <span class="text-marca-vermelho">CLÁSSICO</span>
+        </div>
+    </div>
+
+    <!-- Navegação (Header) Interna -->
+    <header class="fixed w-full top-0 z-50 bg-marca-escuro/90 backdrop-blur-md border-b border-marca-borda transition-all duration-300" id="barra-navegacao">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <!-- Botão Voltar e Logo -->
+                <div class="flex items-center space-x-6">
+                    <a href="index.html#modalidades" class="text-marca-suave hover:text-marca-vermelho transition-colors group flex items-center text-sm uppercase tracking-widest font-bold">
+                        <i class="fa-solid fa-arrow-left mr-2 transform group-hover:-translate-x-1 transition-transform"></i> Voltar
+                    </a>
+                    <div class="hidden sm:block h-6 w-px bg-marca-borda"></div>
+                    <div class="flex items-center">
+                        <i class="fa-solid fa-fire-flame-curved text-marca-vermelho text-xl mr-2"></i>
+                        <span class="font-display font-bold text-lg tracking-wider text-white">FIGHT<span class="text-marca-vermelho">ZONE</span></span>
+                    </div>
+                </div>
+
+                <!-- CTA Header -->
+                <div>
+                    <a href="index.html#planos" class="bg-marca-vermelho hover:bg-marca-vermelhoHover text-white px-5 py-2 rounded font-display tracking-widest uppercase text-sm botao-brilho">
+                        Assinar Agora
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section Modalidade -->
+    <section class="relative pt-32 pb-20 md:pt-48 md:pb-32 flex items-center bg-padrao-hero-boxe bg-cover bg-center bg-no-repeat border-b border-marca-borda">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full">
+            <div class="max-w-3xl">
+                <span class="bg-marca-vermelho text-white text-xs font-bold uppercase tracking-widest px-3 py-1 rounded inline-block mb-4">A Nobre Arte</span>
+                <h1 class="font-display font-bold text-5xl md:text-7xl text-white uppercase leading-tight mb-6 tracking-tight">
+                    Domine o <span class="text-marca-vermelho">Boxe Clássico</span>
+                </h1>
+                <p class="text-marca-suave text-lg md:text-xl mb-10 font-light leading-relaxed">
+                    Mais do que dar socos, o boxe é um jogo de xadrez em alta velocidade. Construa reflexos felinos, poder de nocaute e uma defesa impenetrável através do nosso currículo focado em fundamentos reais de ringue.
+                </p>
+                <div class="flex flex-col sm:flex-row gap-4">
+                    <a href="index.html#planos" class="bg-marca-vermelho text-white font-display uppercase tracking-widest px-8 py-4 rounded font-bold text-lg text-center hover:bg-marca-vermelhoHover transition-all botao-brilho">
+                        Começar Nível 1
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Seção de Fundamentos (Grid Texto + Imagem) -->
+    <section class="py-24 bg-marca-escuro">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+                <!-- Imagem -->
+                <div class="relative group">
+                    <div class="absolute inset-0 bg-marca-vermelho rounded-2xl transform translate-x-4 translate-y-4 opacity-20 group-hover:translate-x-2 group-hover:translate-y-2 transition-transform duration-500"></div>
+                    <img src="https://images.unsplash.com/photo-1622599511051-16f55a1234d0?auto=format&fit=crop&w=800&q=80" alt="" class="relative z-10 rounded-2xl object-cover w-full h-[500px] border border-marca-borda grayscale hover:grayscale-0 transition-all duration-700">
+                </div>
+                
+                <!-- Texto -->
+                <div>
+                    <h2 class="font-display font-bold text-3xl md:text-4xl text-white uppercase tracking-wider mb-6">A Ciência <span class="text-marca-vermelho">Doce</span></h2>
+                    <p class="text-marca-suave mb-6 leading-relaxed">
+                        Nossas aulas de Boxe Clássico são estruturadas para transformar iniciantes absolutos em strikers técnicos, e lapidar os detalhes de atletas já experientes. Não acreditamos em bater no saco sem propósito.
+                    </p>
+                    <p class="text-marca-suave mb-8 leading-relaxed">
+                        Aqui, você aprenderá a biomecânica exata de cada golpe: o estalo rápido do Jab, a força brutal do Direto, o torque perfeito do Cruzado e a explosão do Uppercut. Tudo isso fundado na movimentação correta dos pés.
+                    </p>
+
+                    <!-- Lista de Foco -->
+                    <ul class="space-y-4">
+                        <li class="flex items-start">
+                            <div class="w-8 h-8 rounded bg-marca-cartao border border-marca-borda flex items-center justify-center text-marca-vermelho mr-4 shrink-0">
+                                <i class="fa-solid fa-shoe-prints text-sm"></i>
+                            </div>
+                            <div>
+                                <h4 class="text-white font-bold uppercase tracking-wider text-sm mb-1">Footwork (Movimentação)</h4>
+                                <p class="text-marca-suave text-sm">Controle de distância, pivôs, avanços e recuos estratégicos. As pernas são a base de um soco forte.</p>
+                            </div>
+                        </li>
+                        <li class="flex items-start">
+                            <div class="w-8 h-8 rounded bg-marca-cartao border border-marca-borda flex items-center justify-center text-marca-vermelho mr-4 shrink-0">
+                                <i class="fa-solid fa-shield-halved text-sm"></i>
+                            </div>
+                            <div>
+                                <h4 class="text-white font-bold uppercase tracking-wider text-sm mb-1">Defesa Ativa</h4>
+                                <p class="text-marca-suave text-sm">Pêndulos, esquivas, bloqueios e slips. Aprenda a bater sem ser atingido.</p>
+                            </div>
+                        </li>
+                        <li class="flex items-start">
+                            <div class="w-8 h-8 rounded bg-marca-cartao border border-marca-borda flex items-center justify-center text-marca-vermelho mr-4 shrink-0">
+                                <i class="fa-solid fa-bolt text-sm"></i>
+                            </div>
+                            <div>
+                                <h4 class="text-white font-bold uppercase tracking-wider text-sm mb-1">Combinações Explosivas</h4>
+                                <p class="text-marca-suave text-sm">Encadeamento de socos em alta velocidade para romper defesas adversárias.</p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Benefícios e Equipamentos -->
+    <section class="py-24 bg-marca-cartao border-y border-marca-borda">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-16">
+                
+                <!-- Benefícios -->
+                <div>
+                    <h3 class="font-display font-bold text-2xl text-white uppercase tracking-wider mb-8 border-b border-marca-borda pb-4">O que você <span class="text-marca-vermelho">ganha</span></h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        <div class="bg-marca-escuro p-6 rounded-xl border border-marca-borda">
+                            <i class="fa-solid fa-fire text-marca-vermelho text-2xl mb-3"></i>
+                            <h4 class="text-white font-bold uppercase text-sm mb-2">Queima Extrema</h4>
+                            <p class="text-marca-suave text-xs">Um treino intenso de 60 minutos pode queimar de 600 a 800 calorias.</p>
+                        </div>
+                        <div class="bg-marca-escuro p-6 rounded-xl border border-marca-borda">
+                            <i class="fa-solid fa-brain text-marca-vermelho text-2xl mb-3"></i>
+                            <h4 class="text-white font-bold uppercase text-sm mb-2">Foco Mental</h4>
+                            <p class="text-marca-suave text-xs">A concentração exigida cria um estado de "mindfulness" agressivo, aliviando o estresse.</p>
+                        </div>
+                        <div class="bg-marca-escuro p-6 rounded-xl border border-marca-borda">
+                            <i class="fa-solid fa-stopwatch text-marca-vermelho text-2xl mb-3"></i>
+                            <h4 class="text-white font-bold uppercase text-sm mb-2">Cardio de Ferro</h4>
+                            <p class="text-marca-suave text-xs">Aumenta drasticamente o V02 máximo e a resistência pulmonar.</p>
+                        </div>
+                        <div class="bg-marca-escuro p-6 rounded-xl border border-marca-borda">
+                            <i class="fa-solid fa-dumbbell text-marca-vermelho text-2xl mb-3"></i>
+                            <h4 class="text-white font-bold uppercase text-sm mb-2">Força Core</h4>
+                            <p class="text-marca-suave text-xs">Todo soco real nasce no abdômen. Seu core ficará duro como pedra.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Equipamento -->
+                <div>
+                    <h3 class="font-display font-bold text-2xl text-white uppercase tracking-wider mb-8 border-b border-marca-borda pb-4">Seu <span class="text-marca-vermelho">Arsenal</span></h3>
+                    <p class="text-marca-suave mb-6 text-sm">Para começar as aulas gravadas em casa, você não precisa de muito. Construa seu equipamento conforme evolui.</p>
+                    
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between bg-marca-escuro p-4 rounded border border-marca-borda">
+                            <div class="flex items-center">
+                                <i class="fa-solid fa-mitten text-marca-vermelho text-xl w-8"></i>
+                                <div>
+                                    <span class="text-white font-bold text-sm uppercase">Luvas de Boxe</span>
+                                    <span class="block text-marca-suave text-xs">Recomendado: 14oz a 16oz para treinos.</span>
+                                </div>
+                            </div>
+                            <span class="text-marca-suave text-xs border border-marca-borda px-2 py-1 rounded">Essencial</span>
+                        </div>
+                        
+                        <div class="flex items-center justify-between bg-marca-escuro p-4 rounded border border-marca-borda">
+                            <div class="flex items-center">
+                                <i class="fa-solid fa-bandage text-marca-vermelho text-xl w-8"></i>
+                                <div>
+                                    <span class="text-white font-bold text-sm uppercase">Bandagens (Wraps)</span>
+                                    <span class="block text-marca-suave text-xs">Proteção vital para os pulsos e ossos das mãos.</span>
+                                </div>
+                            </div>
+                            <span class="text-marca-suave text-xs border border-marca-borda px-2 py-1 rounded">Essencial</span>
+                        </div>
+
+                        <div class="flex items-center justify-between bg-marca-escuro p-4 rounded border border-marca-borda opacity-70">
+                            <div class="flex items-center">
+                                <i class="fa-solid fa-sack-xmark text-marca-suave text-xl w-8"></i>
+                                <div>
+                                    <span class="text-white font-bold text-sm uppercase">Saco de Pancadas</span>
+                                    <span class="block text-marca-suave text-xs">Para treino de potência (Shadowboxing é a alternativa).</span>
+                                </div>
+                            </div>
+                            <span class="text-marca-suave text-xs border border-marca-borda px-2 py-1 rounded">Opcional Inicialmente</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Final -->
+    <section class="py-24 bg-marca-escuro text-center relative overflow-hidden">
+        <!-- Detalhe Fundo -->
+        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-[20vw] md:text-[150px] lg:text-[250px] text-marca-cartao font-display font-bold pointer-events-none whitespace-nowrap z-0">PRONTO?</div>
+        
+        <div class="max-w-3xl mx-auto px-4 relative z-10">
+            <i class="fa-solid fa-bell text-marca-vermelho text-4xl mb-6 animate-bounce"></i>
+            <h2 class="font-display font-bold text-4xl md:text-5xl text-white uppercase tracking-wider mb-6">O Guizo <span class="text-marca-vermelho">Tocou</span></h2>
+            <p class="text-marca-suave text-lg mb-10">Não espere a segunda-feira. Comece hoje mesmo as aulas de fundamentos de Boxe na FightZone e mude seu físico.</p>
+            <a href="index.html#planos" class="inline-block bg-marca-vermelho text-white font-display uppercase tracking-widest px-12 py-5 rounded font-bold text-xl hover:bg-marca-vermelhoHover transition-all botao-brilho">
+                Desbloquear Aulas de Boxe
+            </a>
+        </div>
+    </section>
+
+    <!-- Footer Simples -->
+    <footer class="bg-marca-cartao border-t border-marca-borda py-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center">
+            <div class="flex items-center mb-4 md:mb-0">
+                <i class="fa-solid fa-fire-flame-curved text-marca-vermelho text-xl mr-2"></i>
+                <span class="font-display font-bold text-xl tracking-wider text-white">FIGHT<span class="text-marca-vermelho">ZONE</span></span>
+            </div>
+            <p class="text-marca-suave text-sm">&copy; 2026 FightZone. Todos os direitos reservados.</p>
+        </div>
+    </footer>
+
+    <!-- Script Preloader -->
+    <script>
+        window.addEventListener('load', () => {
+            const telaCarregamento = document.getElementById('tela-carregamento');
+            setTimeout(() => {
+                telaCarregamento.style.opacity = '0';
+                telaCarregamento.style.pointerEvents = 'none';
+                setTimeout(() => {
+                    telaCarregamento.style.display = 'none';
+                }, 700);
+            }, 600); 
+        });
+
+        // Efeito de sombra na Barra de Navegação Interna
+        const barraNavegacao = document.getElementById('barra-navegacao');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 20) {
+                barraNavegacao.classList.add('shadow-lg', 'shadow-marca-vermelho/5', 'bg-marca-escuro', 'border-b');
+                barraNavegacao.classList.remove('bg-transparent', 'border-transparent');
+            } else {
+                barraNavegacao.classList.remove('shadow-lg', 'shadow-marca-vermelho/5', 'bg-marca-escuro', 'border-b');
+                barraNavegacao.classList.add('bg-transparent', 'border-transparent');
+            }
+        });
+    </script>
+</body>
+</html>

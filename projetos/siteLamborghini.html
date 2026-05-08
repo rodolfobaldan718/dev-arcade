@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lamborghini Experience</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700;900&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: black;
+            color: white;
+        }
+
+        /* Custom Clip Paths */
+        .clip-hexagon {
+            clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+        }
+        .clip-btn {
+            clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+        }
+        .clip-card {
+             clip-path: polygon(0 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%);
+        }
+        
+        /* CORREÇÃO DEFINITIVA DO TEXT STROKE */
+        .text-stroke {
+            color: black;
+            -webkit-text-fill-color: black;
+            -webkit-text-stroke: 2px white;
+            paint-order: stroke fill;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes slideInRight {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+        .animate-slide-right {
+            animation: slideInRight 0.5s ease-out forwards;
+        }
+    </style>
+</head>
+<body class="selection:bg-yellow-500 selection:text-black overflow-x-hidden">
+
+    <!-- Navbar -->
+    <nav id="navbar" class="fixed w-full z-50 transition-all duration-500 bg-transparent py-4 lg:py-6">
+        <div class="container mx-auto px-6 flex justify-between items-center relative">
+            
+            <!-- Logo Group (Esquerda) -->
+            <div class="flex items-center gap-3 cursor-pointer group z-20">
+                <div class="w-10 h-10 bg-gradient-to-br from-yellow-400 to-yellow-600 clip-hexagon flex items-center justify-center">
+                    <i data-lucide="shield" class="w-6 h-6 text-black fill-current"></i>
+                </div>
+                <span class="text-xl lg:text-2xl font-bold tracking-tighter italic uppercase group-hover:text-yellow-400 transition-colors">Lamborghini</span>
+            </div>
+
+            <!-- Desktop Menu (Alinhado à direita - Visível apenas em LG+) -->
+            <div class="hidden lg:flex items-center gap-8 text-xs xl:text-sm font-bold tracking-widest uppercase z-20">
+                <a href="#" class="hover:text-yellow-400 transition-colors py-2 whitespace-nowrap">Modelos</a>
+                <a href="#" class="hover:text-yellow-400 transition-colors py-2 whitespace-nowrap">Personalização</a>
+                <a href="#" class="hover:text-yellow-400 transition-colors py-2 whitespace-nowrap">Motorsport</a>
+                <a href="#" class="hover:text-yellow-400 transition-colors py-2 whitespace-nowrap">Proprietários</a>
+            </div>
+
+            <!-- Mobile Toggle (Visível apenas em Mobile/Tablet - LG Hidden) -->
+            <div class="lg:hidden z-50">
+                <button id="mobile-menu-btn" class="p-2 text-white hover:text-yellow-400 transition-colors">
+                    <i data-lucide="menu" class="w-8 h-8"></i>
+                </button>
+            </div>
+
+        </div>
+    </nav>
+
+    <!-- Mobile Menu Overlay -->
+    <div id="mobile-menu" class="fixed inset-0 bg-black z-[60] flex flex-col items-center justify-center gap-8 text-2xl font-bold uppercase tracking-widest hidden opacity-0 transition-opacity duration-300">
+        <a href="#" class="hover:text-yellow-400 transform hover:scale-110 transition-all">Modelos</a>
+        <a href="#" class="hover:text-yellow-400 transform hover:scale-110 transition-all">Personalização</a>
+        <a href="#" class="hover:text-yellow-400 transform hover:scale-110 transition-all">Motorsport</a>
+        <a href="#" class="hover:text-yellow-400 transform hover:scale-110 transition-all">Proprietários</a>
+        <button id="close-mobile-menu" class="absolute top-6 right-6 p-4">
+            <i data-lucide="x" class="w-8 h-8 text-white hover:text-yellow-400"></i>
+        </button>
+    </div>
+
+    <!-- Hero Section -->
+    <section class="relative h-screen flex items-center overflow-hidden">
+        <div class="absolute inset-0 z-0">
+            <img 
+                src="https://images.unsplash.com/photo-1519245659620-e859806a8d3b?q=80&w=2070&auto=format&fit=crop" 
+                alt="Lamborghini Hero" 
+                class="w-full h-full object-cover opacity-60"
+            />
+            <div class="absolute inset-0 bg-gradient-to-r from-black via-black/60 to-transparent"></div>
+            <div class="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent"></div>
+        </div>
+
+        <div class="container mx-auto px-6 relative z-10 pt-20">
+            <div class="max-w-3xl animate-slide-right">
+                <h2 class="text-yellow-400 font-bold tracking-widest uppercase mb-4 text-xs md:text-sm flex items-center gap-2">
+                    <span class="w-8 h-0.5 bg-yellow-400"></span>
+                    Lançamento Oficial
+                </h2>
+                <h1 class="text-5xl md:text-8xl font-black italic tracking-tighter uppercase leading-none mb-6">
+                    Direção <br/> <span class="text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-500">Instintiva</span>
+                </h1>
+                <p class="text-gray-300 text-base md:text-xl max-w-xl mb-8 font-light border-l-2 border-yellow-500 pl-4">
+                    Sinta o motor V12 naturalmente aspirado combinado com a tecnologia híbrida de ponta. O futuro não é silencioso.
+                </p>
+                <div class="flex flex-col sm:flex-row gap-4">
+                    <button class="bg-yellow-500 text-black px-8 py-4 font-bold uppercase tracking-widest hover:bg-white transition-colors clip-btn flex items-center justify-center gap-2 group">
+                        Configurar Agora
+                        <i data-lucide="chevron-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
+                    </button>
+                    <button class="border border-white/30 px-8 py-4 font-bold uppercase tracking-widest hover:bg-white hover:text-black transition-colors clip-btn flex items-center justify-center gap-2">
+                        <i data-lucide="play" class="w-4 h-4 fill-current"></i>
+                        Assistir Estreia
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="absolute top-0 right-0 w-1/3 h-full opacity-10 pointer-events-none hidden md:block" 
+             style="background-image: radial-gradient(circle, transparent 20%, #000 20%, #000 80%, transparent 80%, transparent); background-size: 50px 50px; background-position: 0 0;">
+        </div>
+    </section>
+
+    <!-- Model Showcase Slider -->
+    <section class="py-16 md:py-24 bg-zinc-900 relative overflow-hidden">
+        <div class="absolute top-0 left-0 w-full h-full bg-black -skew-y-2 origin-top-left scale-110 z-0"></div>
+
+        <div class="container mx-auto px-6 relative z-10">
+            <div class="flex justify-between items-end mb-12">
+                <div>
+                    <h3 class="text-2xl md:text-3xl font-bold uppercase italic tracking-tighter">Nossos Modelos</h3>
+                    <p class="text-gray-400 text-xs md:text-sm tracking-widest uppercase mt-2">Obras-primas da Engenharia Italiana</p>
+                </div>
+                <div class="flex gap-2">
+                    <button id="prev-model" class="w-10 h-10 md:w-12 md:h-12 border border-white/20 flex items-center justify-center hover:bg-yellow-500 hover:text-black hover:border-yellow-500 transition-all">
+                        <i data-lucide="chevron-right" class="w-5 h-5 md:w-6 md:h-6 rotate-180"></i>
+                    </button>
+                    <button id="next-model" class="w-10 h-10 md:w-12 md:h-12 border border-white/20 flex items-center justify-center hover:bg-yellow-500 hover:text-black hover:border-yellow-500 transition-all">
+                        <i data-lucide="chevron-right" class="w-5 h-5 md:w-6 md:h-6"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-8 md:gap-12 items-center">
+                <div class="relative group cursor-pointer overflow-hidden aspect-video shadow-2xl shadow-yellow-900/10">
+                    <div class="absolute inset-0 bg-yellow-500/0 group-hover:bg-yellow-500/10 transition-colors z-20"></div>
+                    <img id="model-img" src="" alt="" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 animate-fade-in">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-80"></div>
+                    <div class="absolute bottom-6 left-6 z-30">
+                        <span id="model-accent-badge" class="text-xs font-bold uppercase tracking-[0.2em] px-2 py-1 bg-black/50 backdrop-blur border border-white/10 mb-2 inline-block">
+                            Destaque
+                        </span>
+                    </div>
+                </div>
+
+                <div id="model-content" class="animate-slide-right">
+                    <h4 id="model-tagline" class="text-xs md:text-sm font-bold tracking-[0.3em] uppercase mb-2"></h4>
+                    <h2 id="model-name" class="text-4xl md:text-7xl font-black italic uppercase tracking-tighter leading-none mb-6"></h2>
+                    <p id="model-desc" class="text-gray-400 text-base md:text-lg mb-8 max-w-md"></p>
+
+                    <div class="grid grid-cols-3 gap-2 md:gap-4 mb-8 border-t border-white/10 pt-8">
+                        <div>
+                            <div id="spec-hp" class="text-xl md:text-2xl font-bold italic"></div>
+                            <div class="text-[10px] md:text-xs text-gray-500 uppercase tracking-wider">Potência</div>
+                        </div>
+                        <div>
+                            <div id="spec-acc" class="text-xl md:text-2xl font-bold italic"></div>
+                            <div class="text-[10px] md:text-xs text-gray-500 uppercase tracking-wider">0-100 km/h</div>
+                        </div>
+                        <div>
+                            <div id="spec-speed" class="text-xl md:text-2xl font-bold italic"></div>
+                            <div class="text-[10px] md:text-xs text-gray-500 uppercase tracking-wider">Vel. Máxima</div>
+                        </div>
+                    </div>
+
+                    <button class="text-white border-b-2 border-yellow-500 pb-1 font-bold uppercase tracking-widest hover:text-yellow-500 transition-colors flex items-center gap-2 text-sm md:text-base">
+                        Explorar Modelo <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- DNA Section -->
+    <section class="py-24 bg-black relative border-b border-zinc-900">
+        <div class="container mx-auto px-6">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl md:text-6xl font-black italic uppercase tracking-tighter mb-4">
+                    DNA <span class="text-yellow-500">Lamborghini</span>
+                </h2>
+                <p class="text-gray-400 max-w-2xl mx-auto">
+                    Não se trata apenas de construir carros. Trata-se de criar emoções que transcendem o tempo e o espaço.
+                </p>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="bg-zinc-900/50 p-8 border border-white/5 hover:border-yellow-500/50 transition-colors group">
+                    <div class="bg-black w-16 h-16 flex items-center justify-center mb-6 group-hover:text-yellow-500 transition-colors">
+                        <i data-lucide="wind" class="w-8 h-8"></i>
+                    </div>
+                    <h3 class="text-xl font-bold uppercase italic mb-3">Aerodinâmica Ativa</h3>
+                    <p class="text-gray-400 text-sm leading-relaxed">Sistemas ALA (Aerodinamica Lamborghini Attiva) que se adaptam em milissegundos.</p>
+                </div>
+                <div class="bg-zinc-900/50 p-8 border border-white/5 hover:border-yellow-500/50 transition-colors group">
+                    <div class="bg-black w-16 h-16 flex items-center justify-center mb-6 group-hover:text-yellow-500 transition-colors">
+                        <i data-lucide="zap" class="w-8 h-8"></i>
+                    </div>
+                    <h3 class="text-xl font-bold uppercase italic mb-3">Hibridização</h3>
+                    <p class="text-gray-400 text-sm leading-relaxed">A ponte perfeita entre a combustão V12 pura e a eficiência elétrica instantânea.</p>
+                </div>
+                <div class="bg-zinc-900/50 p-8 border border-white/5 hover:border-yellow-500/50 transition-colors group">
+                    <div class="bg-black w-16 h-16 flex items-center justify-center mb-6 group-hover:text-yellow-500 transition-colors">
+                        <i data-lucide="shield" class="w-8 h-8"></i>
+                    </div>
+                    <h3 class="text-xl font-bold uppercase italic mb-3">Monocoque Carbono</h3>
+                    <p class="text-gray-400 text-sm leading-relaxed">Rigidez estrutural inspirada na aeronáutica para proteção e leveza extremas.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- NEW CONTENT: Squadra Corse Section -->
+    <section class="relative py-32 bg-zinc-900 overflow-hidden">
+        <div class="absolute inset-0">
+            <img 
+                src="https://cdn.buttercms.com/tGb9AV5fTwytJjGlOjYA"
+                alt="Squadra Corse" 
+                class="w-full h-full object-cover opacity-40 grayscale"
+            />
+            <div class="absolute inset-0 bg-gradient-to-r from-black via-black/80 to-transparent"></div>
+        </div>
+
+        <div class="container mx-auto px-6 relative z-10 flex items-center">
+            <div class="max-w-2xl">
+                <div class="flex items-center gap-3 mb-4">
+                     <div class="w-12 h-1 bg-green-600 skew-x-12"></div>
+                     <div class="w-12 h-1 bg-white skew-x-12"></div>
+                     <div class="w-12 h-1 bg-red-600 skew-x-12"></div>
+                </div>
+                <h4 class="text-green-500 font-bold tracking-[0.3em] uppercase mb-2">Squadra Corse</h4>
+                <h2 class="text-5xl md:text-7xl font-black italic uppercase tracking-tighter mb-6 leading-none">
+                    Nascido na <br/> <span class="text-white">Pista</span>
+                </h2>
+                <p class="text-gray-300 text-lg mb-8 max-w-lg">
+                    Do Super Trofeo às 24h de Le Mans. A tecnologia desenvolvida para vencer campeonatos é a mesma que corre nas veias do seu Lamborghini de estrada.
+                </p>
+                <div class="flex gap-4">
+                    <button class="bg-transparent border border-white text-white px-8 py-4 font-bold uppercase tracking-widest hover:bg-green-600 hover:border-green-600 hover:text-white transition-colors clip-btn">
+                        Discover Motorsport
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- NEW CONTENT: Magazine / News Section -->
+    <section class="py-24 bg-black">
+        <div class="container mx-auto px-6">
+            <div class="flex justify-between items-end mb-12">
+                <div>
+                    <h3 class="text-3xl font-bold uppercase italic tracking-tighter">Mundo Lamborghini</h3>
+                    <p class="text-gray-400 text-sm tracking-widest uppercase mt-2">Notícias e Lifestyle</p>
+                </div>
+                <a href="#" class="hidden md:flex items-center gap-2 text-yellow-500 text-xs font-bold uppercase tracking-widest hover:text-white transition-colors">
+                    Ver todas as notícias <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                </a>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-8">
+                <!-- News Card 1 -->
+                <article class="group cursor-pointer">
+                    <div class="relative aspect-[4/3] overflow-hidden clip-card mb-4">
+                        <img src="https://www.hdcarwallpapers.com/walls/ferrari_roma_30th_anniversary_2023_5k_interior-HD.jpg" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" alt="News 1">
+                        <div class="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors"></div>
+                        <div class="absolute top-4 left-4 bg-yellow-500 text-black text-[10px] font-bold uppercase px-3 py-1 tracking-widest">
+                            Lançamento
+                        </div>
+                    </div>
+                    <span class="text-gray-500 text-xs uppercase tracking-widest block mb-2">24 Nov 2024</span>
+                    <h4 class="text-xl font-bold italic uppercase leading-tight group-hover:text-yellow-500 transition-colors">
+                        O novo Lanzador Concept: O futuro Ultra GT
+                    </h4>
+                </article>
+
+                <!-- News Card 2 -->
+                <article class="group cursor-pointer">
+                    <div class="relative aspect-[4/3] overflow-hidden clip-card mb-4">
+                        <img src="https://images.pexels.com/photos/2834653/pexels-photo-2834653.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" alt="News 2">
+                        <div class="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors"></div>
+                        <div class="absolute top-4 left-4 bg-white text-black text-[10px] font-bold uppercase px-3 py-1 tracking-widest">
+                            Fábrica
+                        </div>
+                    </div>
+                    <span class="text-gray-500 text-xs uppercase tracking-widest block mb-2">18 Nov 2024</span>
+                    <h4 class="text-xl font-bold italic uppercase leading-tight group-hover:text-yellow-500 transition-colors">
+                        Sustentabilidade em Sant'Agata: Rumo ao carbono zero
+                    </h4>
+                </article>
+
+                <!-- News Card 3 -->
+                <article class="group cursor-pointer">
+                    <div class="relative aspect-[4/3] overflow-hidden clip-card mb-4">
+                        <img src="https://images.pexels.com/photos/14231696/pexels-photo-14231696.jpeg?auto=compress&cs=tinysrgb&h=627&fit=crop&w=1200" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" alt="News 3">
+                        <div class="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors"></div>
+                        <div class="absolute top-4 left-4 bg-zinc-700 text-white text-[10px] font-bold uppercase px-3 py-1 tracking-widest">
+                            Lifestyle
+                        </div>
+                    </div>
+                    <span class="text-gray-500 text-xs uppercase tracking-widest block mb-2">10 Nov 2024</span>
+                    <h4 class="text-xl font-bold italic uppercase leading-tight group-hover:text-yellow-500 transition-colors">
+                        Lamborghini Lounge: Experiências exclusivas em Porto Cervo
+                    </h4>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    <!-- Configurator Section -->
+    <section class="h-[600px] relative flex items-center bg-zinc-900 overflow-hidden">
+        <img 
+           src="https://cdn.buttercms.com/9KQ8FBpQHWdxV02pelhY" 
+           class="absolute right-0 top-0 w-full md:w-2/3 h-full object-cover object-center opacity-70"
+           alt="Interior"
+        />
+        <div class="absolute inset-0 bg-gradient-to-r from-black via-black/80 to-transparent"></div>
+        
+        <div class="container mx-auto px-6 relative z-10">
+          <div class="max-w-lg">
+            <h2 class="text-4xl md:text-5xl font-black italic uppercase tracking-tighter mb-6">
+              Crie a sua <br/> <span class="text-stroke">Obra de Arte</span>
+            </h2>
+            <p class="text-gray-300 mb-8 text-lg">
+              O programa Ad Personam permite que você personalize cada detalhe do seu Lamborghini. Cores, costuras, materiais e acabamentos.
+            </p>
+            <button class="bg-white text-black px-8 py-4 font-bold uppercase tracking-widest hover:bg-yellow-500 transition-colors clip-btn w-full md:w-auto">
+              Iniciar Configurador
+            </button>
+          </div>
+        </div>
+     </section>
+
+    <!-- Footer -->
+    <footer class="bg-black border-t border-zinc-900 pt-16 pb-8 text-xs text-gray-500">
+        <div class="container mx-auto px-6">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12 mb-16">
+                <div>
+                    <h4 class="text-white font-bold uppercase tracking-widest mb-6">Empresa</h4>
+                    <ul class="space-y-4">
+                        <li><a href="#" class="hover:text-yellow-500 transition-colors">História</a></li>
+                        <li><a href="#" class="hover:text-yellow-500 transition-colors">Sustentabilidade</a></li>
+                        <li><a href="#" class="hover:text-yellow-500 transition-colors">Carreiras</a></li>
+                        <li><a href="#" class="hover:text-yellow-500 transition-colors">Museu</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-white font-bold uppercase tracking-widest mb-6">Mundo</h4>
+                    <ul class="space-y-4">
+                        <li><a href="#" class="hover:text-yellow-500 transition-colors">Notícias</a></li>
+                        <li><a href="#" class="hover:text-yellow-500 transition-colors">Eventos</a></li>
+                        <li><a href="#" class="hover:text-yellow-500 transition-colors">Esports</a></li>
+                        <li><a href="#" class="hover:text-yellow-500 transition-colors">Polo Storico</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-white font-bold uppercase tracking-widest mb-6">Serviços</h4>
+                    <ul class="space-y-4">
+                        <li><a href="#" class="hover:text-yellow-500 transition-colors">Localizador</a></li>
+                        <li><a href="#" class="hover:text-yellow-500 transition-colors">Acessórios</a></li>
+                        <li><a href="#" class="hover:text-yellow-500 transition-colors">Financial Services</a></li>
+                        <li><a href="#" class="hover:text-yellow-500 transition-colors">Recall</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-white font-bold uppercase tracking-widest mb-6">Siga-nos</h4>
+                    <div class="flex gap-4 mb-6">
+                        <i data-lucide="instagram" class="w-5 h-5 hover:text-white transition-colors cursor-pointer"></i>
+                        <i data-lucide="twitter" class="w-5 h-5 hover:text-white transition-colors cursor-pointer"></i>
+                        <i data-lucide="youtube" class="w-5 h-5 hover:text-white transition-colors cursor-pointer"></i>
+                    </div>
+                    <p>Automobili Lamborghini S.p.A.</p>
+                    <p>Sant'Agata Bolognese, Itália</p>
+                </div>
+            </div>
+
+            <div class="border-t border-zinc-900 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-center md:text-left">
+                <p>&copy; 2024 Automobili Lamborghini S.p.A. Uma empresa do Grupo Audi.</p>
+                <div class="flex gap-6 justify-center">
+                    <a href="#" class="hover:text-white">Privacidade</a>
+                    <a href="#" class="hover:text-white">Legal</a>
+                    <a href="#" class="hover:text-white">Cookie Settings</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // Ensure DOM is fully loaded before running script to prevent null reference errors
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initialize Icons
+            lucide.createIcons();
+
+            // Data for Models
+            const models = [
+                {
+                    name: "REVUELTO",
+                    tagline: "FROM NOW ON",
+                    desc: "O primeiro V12 Híbrido Plug-in de Alta Performance (HPEV). Nascido para quebrar regras.",
+                    image: "https://images.unsplash.com/photo-1621135802920-133df287f89c?q=80&w=2070&auto=format&fit=crop",
+                    specs: { hp: "1015 CV", acc: "2.5 s", speed: ">350 km/h" },
+                    accent: "text-orange-500"
+                },
+                {
+                    name: "HURACÁN STERRATO",
+                    tagline: "BEYOND THE CONCRETE",
+                    desc: "O primeiro superesportivo projetado para o máximo prazer de dirigir, mesmo fora do asfalto.",
+                    image: "https://images.unsplash.com/photo-1544636331-e26879cd4d9b?q=80&w=1974&auto=format&fit=crop",
+                    specs: { hp: "610 CV", acc: "3.4 s", speed: "260 km/h" },
+                    accent: "text-yellow-400"
+                },
+                {
+                    name: "URUS PERFORMANTE",
+                    tagline: "FOR BAR RAISERS ONLY",
+                    desc: "O Super SUV que elevou o nível de performance e diversão ao dirigir.",
+                    image: "https://images7.alphacoders.com/126/thumb-1920-1265299.jpg",
+                    specs: { hp: "666 CV", acc: "3.3 s", speed: "306 km/h" },
+                    accent: "text-green-500"
+                }
+            ];
+
+            let activeIndex = 0;
+
+            // DOM Elements
+            const navbar = document.getElementById('navbar');
+            const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+            const closeMenuBtn = document.getElementById('close-mobile-menu');
+            const mobileMenu = document.getElementById('mobile-menu');
+
+            const prevBtn = document.getElementById('prev-model');
+            const nextBtn = document.getElementById('next-model');
+            
+            const modelImg = document.getElementById('model-img');
+            const modelTagline = document.getElementById('model-tagline');
+            const modelName = document.getElementById('model-name');
+            const modelDesc = document.getElementById('model-desc');
+            const modelAccentBadge = document.getElementById('model-accent-badge');
+            const modelContent = document.getElementById('model-content');
+            
+            const specHp = document.getElementById('spec-hp');
+            const specAcc = document.getElementById('spec-acc');
+            const specSpeed = document.getElementById('spec-speed');
+
+            // Scroll Logic
+            window.addEventListener('scroll', () => {
+                if (window.scrollY > 50) {
+                    navbar.classList.add('bg-black/90', 'backdrop-blur-md', 'border-b', 'border-white/10');
+                    navbar.classList.remove('bg-transparent');
+                } else {
+                    navbar.classList.remove('bg-black/90', 'backdrop-blur-md', 'border-b', 'border-white/10');
+                    navbar.classList.add('bg-transparent');
+                }
+            });
+
+            // Mobile Menu Logic
+            function toggleMenu() {
+                if (!mobileMenu) return;
+                const isHidden = mobileMenu.classList.contains('hidden');
+                if (isHidden) {
+                    mobileMenu.classList.remove('hidden');
+                    setTimeout(() => mobileMenu.classList.remove('opacity-0'), 10);
+                } else {
+                    mobileMenu.classList.add('opacity-0');
+                    setTimeout(() => mobileMenu.classList.add('hidden'), 300);
+                }
+            }
+            
+            // Add event listeners with safety checks
+            if (mobileMenuBtn) mobileMenuBtn.addEventListener('click', toggleMenu);
+            if (closeMenuBtn) closeMenuBtn.addEventListener('click', toggleMenu);
+
+            // Slider Logic
+            function updateModel() {
+                if (!models[activeIndex]) return;
+                const model = models[activeIndex];
+                
+                // Safety check for critical elements
+                if (!modelImg || !modelContent) return;
+
+                // Trigger Animation reset
+                modelImg.classList.remove('animate-fade-in');
+                modelContent.classList.remove('animate-slide-right');
+                void modelImg.offsetWidth; // Trigger reflow
+                
+                // Update Data
+                modelImg.src = model.image;
+                if(modelTagline) modelTagline.innerText = model.tagline;
+                if(modelName) modelName.innerText = model.name;
+                if(modelDesc) modelDesc.innerText = model.desc;
+                
+                // Update Specs
+                if(specHp) specHp.innerText = model.specs.hp;
+                if(specAcc) specAcc.innerText = model.specs.acc;
+                if(specSpeed) specSpeed.innerText = model.specs.speed;
+
+                // Update Colors
+                // Reset colors
+                if(modelTagline) modelTagline.className = `text-xs md:text-sm font-bold tracking-[0.3em] uppercase mb-2 ${model.accent}`;
+                if(modelAccentBadge) modelAccentBadge.className = `text-xs font-bold uppercase tracking-[0.2em] px-2 py-1 bg-black/50 backdrop-blur border border-white/10 mb-2 inline-block ${model.accent}`;
+
+                // Re-add animations
+                modelImg.classList.add('animate-fade-in');
+                modelContent.classList.add('animate-slide-right');
+            }
+
+            if (prevBtn) {
+                prevBtn.addEventListener('click', () => {
+                    activeIndex = (activeIndex - 1 + models.length) % models.length;
+                    updateModel();
+                });
+            }
+
+            if (nextBtn) {
+                nextBtn.addEventListener('click', () => {
+                    activeIndex = (activeIndex + 1) % models.length;
+                    updateModel();
+                });
+            }
+
+            // Initialize First Model
+            updateModel();
+        });
+    </script>
+</body>
+</html>

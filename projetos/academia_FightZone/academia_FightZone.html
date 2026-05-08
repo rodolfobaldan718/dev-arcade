@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FightZone | Treinos de Luta e Alta Performance</title>
+    
+    <!-- Fontes do Google para Tipografia Agressiva e Moderna -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Oswald:wght@500;700&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome para Ícones -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Tailwind CSS (via CDN para manter tudo em um arquivo, configurado com cores personalizadas) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        marca: {
+                            vermelho: '#FF003C',     // Vermelho agressivo para CTAs
+                            vermelhoHover: '#CC0030', // Vermelho escuro para hover
+                            escuro: '#050505',    // Fundo principal
+                            cartao: '#121212',    // Fundo de elementos em destaque
+                            borda: '#2A2A2A',  // Bordas sutis
+                            texto: '#E5E5E5',    // Texto principal
+                            suave: '#888888'    // Texto secundário
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'], // Leitura
+                        display: ['Oswald', 'sans-serif'] // Títulos agressivos
+                    },
+                    backgroundImage: {
+                        'padrao-hero': "linear-gradient(to right, rgba(5, 5, 5, 0.9), rgba(5, 5, 5, 0.4)), url('https://images.unsplash.com/photo-1549719386-74dfcbf7dbed?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80')"
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* CSS Personalizado para detalhes finos e animações que o Tailwind não cobre nativamente */
+        body {
+            background-color: #050505;
+            color: #E5E5E5;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Efeito de Glow Neon no botão principal */
+        .botao-brilho {
+            box-shadow: 0 0 15px rgba(255, 0, 60, 0.3);
+            transition: all 0.3s ease;
+        }
+        .botao-brilho:hover {
+            box-shadow: 0 0 25px rgba(255, 0, 60, 0.6);
+            transform: translateY(-2px);
+        }
+
+        /* Scrollbar customizada para visual Dark */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #050505;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #2A2A2A;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #FF003C;
+        }
+
+        /* Fonte digital para o Timer */
+        @font-face {
+            font-family: 'Digital';
+            src: url('https://fonts.cdnfonts.com/s/17381/DS-DIGI.woff') format('woff');
+        }
+        .visor-cronometro-fonte {
+            font-family: 'Digital', 'Oswald', sans-serif;
+            letter-spacing: 2px;
+        }
+    </style>
+</head>
+<body class="font-sans antialiased overflow-x-hidden selection:bg-marca-vermelho selection:text-white">
+
+    <!-- Tela de Carregamento (Preloader) -->
+    <div id="tela-carregamento" class="fixed inset-0 z-[9999] bg-marca-escuro flex flex-col items-center justify-center transition-opacity duration-700 ease-in-out">
+        <div class="relative flex items-center justify-center w-32 h-32">
+            <!-- Anéis de energia agressivos -->
+            <div class="absolute inset-0 border-4 border-marca-vermelho rounded-full opacity-20 animate-ping"></div>
+            <div class="absolute inset-2 border-4 border-marca-vermelho rounded-full border-t-transparent animate-spin"></div>
+            <!-- Ícone central pulsante -->
+            <div class="absolute inset-4 bg-marca-cartao rounded-full flex items-center justify-center z-10 border border-marca-borda shadow-[0_0_30px_rgba(255,0,60,0.6)]">
+                <i class="fa-solid fa-fire-flame-curved text-marca-vermelho text-4xl animate-pulse"></i>
+            </div>
+        </div>
+        <div class="mt-8 font-display font-bold text-3xl tracking-[0.2em] text-white">
+            FIGHT<span class="text-marca-vermelho">ZONE</span>
+        </div>
+        <div class="mt-3 text-marca-suave text-xs uppercase tracking-widest font-sans animate-pulse">
+            Preparando a Arena...
+        </div>
+    </div>
+
+    <!-- Navegação (Header) -->
+    <header class="fixed w-full top-0 z-50 bg-marca-escuro/90 backdrop-blur-md border-b border-marca-borda transition-all duration-300" id="barra-navegacao">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                
+                <!-- Logo -->
+                <div class="flex-shrink-0 flex items-center cursor-pointer">
+                    <i class="fa-solid fa-fire-flame-curved text-marca-vermelho text-3xl mr-2"></i>
+                    <span class="font-display font-bold text-2xl tracking-wider text-white">FIGHT<span class="text-marca-vermelho">ZONE</span></span>
+                </div>
+
+                <!-- Menu Desktop -->
+                <nav class="hidden md:flex space-x-8 items-center">
+                    <a href="#inicio" class="text-marca-texto hover:text-marca-vermelho transition-colors duration-300 font-semibold uppercase text-sm tracking-widest">Início</a>
+                    <a href="#modalidades" class="text-marca-texto hover:text-marca-vermelho transition-colors duration-300 font-semibold uppercase text-sm tracking-widest">Modalidades</a>
+                    <a href="#treinadores" class="text-marca-texto hover:text-marca-vermelho transition-colors duration-300 font-semibold uppercase text-sm tracking-widest">Equipa</a>
+                    <a href="#ferramentas" class="text-marca-texto hover:text-marca-vermelho transition-colors duration-300 font-semibold uppercase text-sm tracking-widest">Timer</a>
+                    <a href="#planos" class="text-marca-texto hover:text-marca-vermelho transition-colors duration-300 font-semibold uppercase text-sm tracking-widest">Planos</a>
+                    <a href="#planos" class="bg-marca-vermelho hover:bg-marca-vermelhoHover text-white px-6 py-2 rounded font-display tracking-widest uppercase botao-brilho">
+                        Começar Treino
+                    </a>
+                </nav>
+
+                <!-- Botão Mobile -->
+                <div class="md:hidden flex items-center">
+                    <button id="btn-menu-mobile" class="text-marca-texto hover:text-marca-vermelho focus:outline-none">
+                        <i class="fa-solid fa-bars text-2xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Menu Mobile (Dropdown) -->
+        <div id="menu-mobile" class="hidden md:hidden bg-marca-cartao border-b border-marca-borda absolute w-full">
+            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                <a href="#inicio" class="block px-3 py-2 text-base font-medium text-marca-texto hover:text-marca-vermelho hover:bg-marca-borda rounded-md">Início</a>
+                <a href="#modalidades" class="block px-3 py-2 text-base font-medium text-marca-texto hover:text-marca-vermelho hover:bg-marca-borda rounded-md">Modalidades</a>
+                <a href="#treinadores" class="block px-3 py-2 text-base font-medium text-marca-texto hover:text-marca-vermelho hover:bg-marca-borda rounded-md">Equipa de Elite</a>
+                <a href="#ferramentas" class="block px-3 py-2 text-base font-medium text-marca-texto hover:text-marca-vermelho hover:bg-marca-borda rounded-md">Timer Profissional</a>
+                <a href="#planos" class="block px-3 py-2 text-base font-medium text-marca-texto hover:text-marca-vermelho hover:bg-marca-borda rounded-md">Planos</a>
+                <a href="#planos" class="block px-3 py-2 mt-4 text-center text-base font-bold text-white bg-marca-vermelho rounded-md">COMEÇAR TREINO</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section id="inicio" class="relative h-screen flex items-center justify-center bg-padrao-hero bg-cover bg-center bg-no-repeat mt-10 md:mt-0">
+        <div class="absolute inset-0 bg-gradient-to-t from-marca-escuro via-transparent to-marca-escuro/50"></div>
+        
+        <div class="relative z-10 text-center px-4 max-w-5xl mx-auto">
+            <h2 class="text-marca-vermelho font-semibold tracking-[0.3em] uppercase text-sm md:text-base mb-4 animate-fade-in-up">Sem desculpas. Apenas resultados.</h2>
+            <h1 class="font-display font-bold text-5xl md:text-7xl lg:text-8xl text-white uppercase leading-tight mb-6 tracking-tight">
+                Forje seu corpo <br> <span class="text-transparent bg-clip-text bg-gradient-to-r from-marca-vermelho to-orange-600">para o combate</span>
+            </h1>
+            <p class="text-marca-suave text-lg md:text-xl max-w-2xl mx-auto mb-10 font-light">
+                Acesse centenas de treinos guiados de Boxe, Muay Thai e Condicionamento. Treine onde e quando quiser com a intensidade de um campeão.
+            </p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <a href="#modalidades" class="bg-marca-vermelho text-white font-display uppercase tracking-widest px-8 py-4 rounded font-bold text-lg hover:bg-marca-vermelhoHover transition-all botao-brilho">
+                    Ver Modalidades
+                </a>
+                <a href="#ferramentas" class="bg-transparent border border-marca-texto text-marca-texto hover:bg-white hover:text-marca-escuro font-display uppercase tracking-widest px-8 py-4 rounded font-bold text-lg transition-all duration-300">
+                    Testar Timer <i class="fa-solid fa-stopwatch ml-2"></i>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Seção de Modalidades (Cards Atualizados) -->
+    <section id="modalidades" class="py-24 bg-marca-escuro">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="font-display font-bold text-4xl md:text-5xl text-white uppercase tracking-wider mb-4">Escolha sua <span class="text-marca-vermelho">Arma</span></h2>
+                <div class="h-1 w-24 bg-marca-vermelho mx-auto rounded"></div>
+                <p class="mt-4 text-marca-suave max-w-2xl mx-auto">Treinos estruturados por atletas profissionais para todos os níveis. Do iniciante ao avançado.</p>
+            </div>
+
+            <!-- Grid de Cards com Imagem e Botão -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                
+                <!-- Card 1: Boxe -->
+                <div class="group flex flex-col bg-marca-cartao border border-marca-borda rounded-xl overflow-hidden hover:border-marca-vermelho transition-all duration-300 hover:shadow-[0_0_25px_rgba(255,0,60,0.15)] relative">
+                    <!-- Imagem -->
+                    <div class="h-56 overflow-hidden relative">
+                        <div class="absolute inset-0 bg-gradient-to-t from-marca-cartao via-transparent to-transparent z-10"></div>
+                        <img src="https://images.unsplash.com/photo-1549719386-74dfcbf7dbed?auto=format&fit=crop&w=600&q=80" alt="" class="w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-110">
+                        <!-- Icone Badge -->
+                        <div class="absolute top-4 right-4 z-20 w-10 h-10 bg-marca-escuro/80 backdrop-blur-sm rounded-full flex items-center justify-center border border-marca-borda text-marca-vermelho shadow-lg">
+                            <i class="fa-solid fa-hand-back-fist"></i>
+                        </div>
+                    </div>
+                    <!-- Conteúdo -->
+                    <div class="p-6 flex-1 flex flex-col relative z-20 bg-marca-cartao -mt-4">
+                        <h3 class="font-display font-bold text-2xl text-white uppercase tracking-wide mb-2 group-hover:text-marca-vermelho transition-colors">Boxe Clássico</h3>
+                        <p class="text-marca-suave text-sm mb-6 flex-1">Domine a nobre arte. Aprimore sua guarda, movimentação (footwork), esquivas e construa combinações de socos com velocidade e potência explosiva.</p>
+                        <a href="boxe-classico.html" class="w-full block text-center border border-marca-vermelho text-marca-vermelho hover:bg-marca-vermelho hover:text-white py-3 rounded font-display uppercase tracking-widest transition-colors font-bold">
+                            Saiba Mais
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Card 2: Muay Thai -->
+                <div class="group flex flex-col bg-marca-cartao border border-marca-borda rounded-xl overflow-hidden hover:border-marca-vermelho transition-all duration-300 hover:shadow-[0_0_25px_rgba(255,0,60,0.15)] relative">
+                    <!-- Imagem -->
+                    <div class="h-56 overflow-hidden relative">
+                        <div class="absolute inset-0 bg-gradient-to-t from-marca-cartao via-transparent to-transparent z-10"></div>
+                        <img src="https://images.unsplash.com/photo-1555597673-b21d5c935865?auto=format&fit=crop&w=600&q=80" alt="" class="w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-110">
+                        <!-- Icone Badge -->
+                        <div class="absolute top-4 right-4 z-20 w-10 h-10 bg-marca-escuro/80 backdrop-blur-sm rounded-full flex items-center justify-center border border-marca-borda text-marca-vermelho shadow-lg">
+                            <i class="fa-solid fa-bolt"></i>
+                        </div>
+                    </div>
+                    <!-- Conteúdo -->
+                    <div class="p-6 flex-1 flex flex-col relative z-20 bg-marca-cartao -mt-4">
+                        <h3 class="font-display font-bold text-2xl text-white uppercase tracking-wide mb-2 group-hover:text-marca-vermelho transition-colors">Muay Thai</h3>
+                        <p class="text-marca-suave text-sm mb-6 flex-1">A arte das oito armas. Treinos intensos focados na força destrutiva das cotoveladas, joelhadas, chutes pesados e domínio total no clinch.</p>
+                        <a href="muay_Thai.html" class="w-full block text-center border border-marca-vermelho text-marca-vermelho hover:bg-marca-vermelho hover:text-white py-3 rounded font-display uppercase tracking-widest transition-colors font-bold">
+                            Saiba Mais
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Card 3: MMA & Grappling -->
+                <div class="group flex flex-col bg-marca-cartao border border-marca-borda rounded-xl overflow-hidden hover:border-marca-vermelho transition-all duration-300 hover:shadow-[0_0_25px_rgba(255,0,60,0.15)] relative">
+                    <!-- Imagem -->
+                    <div class="h-56 overflow-hidden relative">
+                        <div class="absolute inset-0 bg-gradient-to-t from-marca-cartao via-transparent to-transparent z-10"></div>
+                        <img src="https://cdn.evolve-mma.com/wp-content/uploads/2018/04/Angela-Nunes.png" alt="" class="w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-110">
+                        <!-- Icone Badge -->
+                        <div class="absolute top-4 right-4 z-20 w-10 h-10 bg-marca-escuro/80 backdrop-blur-sm rounded-full flex items-center justify-center border border-marca-borda text-marca-vermelho shadow-lg">
+                            <i class="fa-solid fa-dna"></i>
+                        </div>
+                    </div>
+                    <!-- Conteúdo -->
+                    <div class="p-6 flex-1 flex flex-col relative z-20 bg-marca-cartao -mt-4">
+                        <h3 class="font-display font-bold text-2xl text-white uppercase tracking-wide mb-2 group-hover:text-marca-vermelho transition-colors">MMA & Grappling</h3>
+                        <p class="text-marca-suave text-sm mb-6 flex-1">Flua entre a luta em pé e o combate de chão. Aprenda transições vitais, drills de defesa de quedas, imobilizações e chaves de submissão.</p>
+                        <a href="mma_Grappling.html" class="w-full block text-center border border-marca-vermelho text-marca-vermelho hover:bg-marca-vermelho hover:text-white py-3 rounded font-display uppercase tracking-widest transition-colors font-bold">
+                            Saiba Mais
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Card 4: Cardio Combat -->
+                <div class="group flex flex-col bg-marca-cartao border border-marca-borda rounded-xl overflow-hidden hover:border-marca-vermelho transition-all duration-300 hover:shadow-[0_0_25px_rgba(255,0,60,0.15)] relative">
+                    <!-- Imagem -->
+                    <div class="h-56 overflow-hidden relative">
+                        <div class="absolute inset-0 bg-gradient-to-t from-marca-cartao via-transparent to-transparent z-10"></div>
+                        <img src="https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&w=600&q=80" alt="" class="w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-110">
+                        <!-- Icone Badge -->
+                        <div class="absolute top-4 right-4 z-20 w-10 h-10 bg-marca-escuro/80 backdrop-blur-sm rounded-full flex items-center justify-center border border-marca-borda text-marca-vermelho shadow-lg">
+                            <i class="fa-solid fa-heart-pulse"></i>
+                        </div>
+                    </div>
+                    <!-- Conteúdo -->
+                    <div class="p-6 flex-1 flex flex-col relative z-20 bg-marca-cartao -mt-4">
+                        <h3 class="font-display font-bold text-2xl text-white uppercase tracking-wide mb-2 group-hover:text-marca-vermelho transition-colors">Cardio Combat</h3>
+                        <p class="text-marca-suave text-sm mb-6 flex-1">Rotinas de HIIT implacáveis inspiradas em movimentos de artes marciais. Derreta gordura e construa uma resistência cardiovascular inesgotável.</p>
+                        <a href="cardio_Combat.html" class="w-full block text-center border border-marca-vermelho text-marca-vermelho hover:bg-marca-vermelho hover:text-white py-3 rounded font-display uppercase tracking-widest transition-colors font-bold">
+                            Saiba Mais
+                        </a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Seção de Treinadores -->
+    <section id="treinadores" class="py-24 bg-marca-cartao border-t border-marca-borda">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="font-display font-bold text-4xl md:text-5xl text-white uppercase tracking-wider mb-4">Mestres do <span class="text-marca-vermelho">Combate</span></h2>
+                <div class="h-1 w-24 bg-marca-vermelho mx-auto rounded"></div>
+                <p class="mt-4 text-marca-suave max-w-2xl mx-auto">Aprenda com quem já derramou suor e sangue no octógono. A nossa equipa é formada por ex-campeões e profissionais de elite.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
+                <!-- Treinador 1 -->
+                <div class="group relative overflow-hidden rounded-xl bg-marca-escuro border border-marca-borda transition-all duration-300 hover:border-marca-vermelho hover:shadow-[0_0_30px_rgba(255,0,60,0.15)]">
+                    <div class="h-80 overflow-hidden relative">
+                        <div class="absolute inset-0 bg-gradient-to-t from-marca-escuro to-transparent z-10"></div>
+                        <img src="https://images.unsplash.com/photo-1583454155184-870a1f63aebc?auto=format&fit=crop&w=600&q=80" alt="" class="w-full h-full object-cover object-top transition-transform duration-700 group-hover:scale-110">
+                    </div>
+                    <div class="p-6 relative z-20 -mt-16">
+                        <span class="bg-marca-vermelho text-white text-xs font-bold uppercase tracking-widest px-3 py-1 rounded">Head Coach / Boxe</span>
+                        <h3 class="font-display font-bold text-2xl text-white uppercase tracking-wide mt-3 mb-1">Victor "The Iron" Silva</h3>
+                        <p class="text-marca-suave text-sm mb-4">Ex-campeão nacional com mais de 15 anos de experiência em ringues internacionais.</p>
+                        <div class="flex space-x-3">
+                            <a href="#" class="text-marca-suave hover:text-marca-vermelho transition-colors"><i class="fa-brands fa-instagram"></i></a>
+                            <a href="#" class="text-marca-suave hover:text-marca-vermelho transition-colors"><i class="fa-brands fa-twitter"></i></a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Treinador 2 -->
+                <div class="group relative overflow-hidden rounded-xl bg-marca-escuro border border-marca-borda transition-all duration-300 hover:border-marca-vermelho hover:shadow-[0_0_30px_rgba(255,0,60,0.15)]">
+                    <div class="h-80 overflow-hidden relative">
+                        <div class="absolute inset-0 bg-gradient-to-t from-marca-escuro to-transparent z-10"></div>
+                        <img src="https://images.unsplash.com/photo-1555597673-b21d5c935865?auto=format&fit=crop&w=600&q=80" alt="" class="w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-110">
+                    </div>
+                    <div class="p-6 relative z-20 -mt-16">
+                        <span class="bg-marca-vermelho text-white text-xs font-bold uppercase tracking-widest px-3 py-1 rounded">Mestre / Muay Thai</span>
+                        <h3 class="font-display font-bold text-2xl text-white uppercase tracking-wide mt-3 mb-1">Elena "Razor" Costa</h3>
+                        <p class="text-marca-suave text-sm mb-4">Especialista na arte das oito armas, formada nos campos de treino rigorosos da Tailândia.</p>
+                        <div class="flex space-x-3">
+                            <a href="#" class="text-marca-suave hover:text-marca-vermelho transition-colors"><i class="fa-brands fa-instagram"></i></a>
+                            <a href="#" class="text-marca-suave hover:text-marca-vermelho transition-colors"><i class="fa-brands fa-youtube"></i></a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Treinador 3 -->
+                <div class="group relative overflow-hidden rounded-xl bg-marca-escuro border border-marca-borda transition-all duration-300 hover:border-marca-vermelho hover:shadow-[0_0_30px_rgba(255,0,60,0.15)]">
+                    <div class="h-80 overflow-hidden relative">
+                        <div class="absolute inset-0 bg-gradient-to-t from-marca-escuro to-transparent z-10"></div>
+                        <img src="https://images.unsplash.com/photo-1599552375245-20703f26194b?auto=format&fit=crop&w=600&q=80" alt="" class="w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-110">
+                    </div>
+                    <div class="p-6 relative z-20 -mt-16">
+                        <span class="bg-marca-vermelho text-white text-xs font-bold uppercase tracking-widest px-3 py-1 rounded">Especialista / Grappling</span>
+                        <h3 class="font-display font-bold text-2xl text-white uppercase tracking-wide mt-3 mb-1">Marcus "Python" Dias</h3>
+                        <p class="text-marca-suave text-sm mb-4">Mestre em submissões e quedas, focado na transição e domínio absoluto no solo.</p>
+                        <div class="flex space-x-3">
+                            <a href="#" class="text-marca-suave hover:text-marca-vermelho transition-colors"><i class="fa-brands fa-instagram"></i></a>
+                            <a href="#" class="text-marca-suave hover:text-marca-vermelho transition-colors"><i class="fa-brands fa-tiktok"></i></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Ferramenta Interativa: Timer de Treino -->
+    <section id="ferramentas" class="py-24 bg-marca-cartao border-y border-marca-borda relative overflow-hidden">
+        <!-- Detalhe visual de fundo -->
+        <div class="absolute -right-40 top-20 text-[300px] text-marca-escuro opacity-30 pointer-events-none font-display font-bold">TIMER</div>
+        
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div class="text-center mb-10">
+                <h2 class="font-display font-bold text-4xl text-white uppercase tracking-wider mb-2">Timer de <span class="text-marca-vermelho">Combate</span></h2>
+                <p class="text-marca-suave">Uma ferramenta essencial embutida para seu treino de saco de pancadas ou shadowboxing.</p>
+            </div>
+
+            <!-- Interface do Timer -->
+            <div class="bg-marca-escuro rounded-2xl border-2 border-marca-borda p-8 md:p-12 shadow-2xl flex flex-col items-center">
+                
+                <!-- Status (Luta / Descanso) -->
+                <div id="status-cronometro" class="font-display text-2xl md:text-3xl uppercase tracking-widest text-marca-suave mb-4 transition-colors duration-300">
+                    PRONTO PARA O ROUND?
+                </div>
+
+                <!-- Display do Relógio -->
+                <div id="visor-cronometro" class="visor-cronometro-fonte text-7xl md:text-9xl text-white mb-8 select-none">
+                    03:00
+                </div>
+
+                <!-- Controles -->
+                <div class="flex flex-wrap justify-center gap-4 mb-8 w-full">
+                    <button id="btn-iniciar" class="flex-1 md:flex-none bg-marca-vermelho hover:bg-marca-vermelhoHover text-white w-full md:w-40 py-4 rounded font-display text-xl uppercase tracking-wider transition-all botao-brilho">
+                        <i class="fa-solid fa-play mr-2"></i> Iniciar
+                    </button>
+                    <button id="btn-pausar" class="flex-1 md:flex-none bg-marca-borda hover:bg-gray-700 text-white w-full md:w-40 py-4 rounded font-display text-xl uppercase tracking-wider transition-all hidden">
+                        <i class="fa-solid fa-pause mr-2"></i> Pausa
+                    </button>
+                    <button id="btn-reiniciar" class="flex-1 md:flex-none bg-transparent border-2 border-marca-borda hover:border-marca-texto text-marca-texto w-full md:w-40 py-4 rounded font-display text-xl uppercase tracking-wider transition-all">
+                        <i class="fa-solid fa-rotate-left mr-2"></i> Reset
+                    </button>
+                </div>
+
+                <!-- Configurações do Timer -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 w-full border-t border-marca-borda pt-8">
+                    <div class="text-center">
+                        <label class="block text-marca-suave text-xs uppercase tracking-wider mb-2">Tempo de Luta</label>
+                        <select id="tempo-trabalho" class="bg-marca-cartao text-white border border-marca-borda rounded p-2 w-full focus:outline-none focus:border-marca-vermelho appearance-none text-center">
+                            <option value="60">1 Minuto</option>
+                            <option value="120">2 Minutos</option>
+                            <option value="180" selected>3 Minutos (Boxe)</option>
+                            <option value="300">5 Minutos (MMA)</option>
+                        </select>
+                    </div>
+                    <div class="text-center">
+                        <label class="block text-marca-suave text-xs uppercase tracking-wider mb-2">Descanso</label>
+                        <select id="tempo-descanso" class="bg-marca-cartao text-white border border-marca-borda rounded p-2 w-full focus:outline-none focus:border-marca-vermelho appearance-none text-center">
+                            <option value="30">30 Segundos</option>
+                            <option value="60" selected>1 Minuto</option>
+                            <option value="90">1.5 Minutos</option>
+                        </select>
+                    </div>
+                    <div class="text-center">
+                        <label class="block text-marca-suave text-xs uppercase tracking-wider mb-2">Rounds</label>
+                        <input type="number" id="total-rounds-input" value="3" min="1" max="15" class="bg-marca-cartao text-white border border-marca-borda rounded p-2 w-full focus:outline-none focus:border-marca-vermelho text-center">
+                    </div>
+                    <div class="text-center flex flex-col justify-center">
+                        <label class="block text-marca-suave text-xs uppercase tracking-wider mb-2">Round Atual</label>
+                        <div class="text-2xl font-display font-bold text-marca-vermelho">
+                            <span id="round-atual">1</span> / <span id="visor-total-rounds">3</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Seção de Planos (Pricing) -->
+    <section id="planos" class="py-24 bg-marca-escuro">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="font-display font-bold text-4xl md:text-5xl text-white uppercase tracking-wider mb-4">Escolha seu <span class="text-marca-vermelho">Arsenal</span></h2>
+                <div class="h-1 w-24 bg-marca-vermelho mx-auto rounded"></div>
+                <p class="mt-4 text-marca-suave max-w-2xl mx-auto">Planos sem fidelidade. Cancele quando quiser. Treine como um guerreiro.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+                <!-- Plano Básico -->
+                <div class="bg-marca-cartao border border-marca-borda rounded-xl p-8 flex flex-col hover:border-gray-500 transition-colors">
+                    <h3 class="font-display text-2xl text-white uppercase tracking-wider mb-2">Recruta</h3>
+                    <div class="text-marca-suave text-sm mb-6">Para quem está a começar a jornada.</div>
+                    <div class="mb-6">
+                        <span class="text-4xl font-bold text-white">19€</span><span class="text-marca-suave">/mês</span>
+                    </div>
+                    <ul class="space-y-4 mb-8 flex-1">
+                        <li class="flex items-start"><i class="fa-solid fa-check text-marca-vermelho mt-1 mr-3"></i> <span class="text-marca-texto">Acesso a treinos de nível Iniciante</span></li>
+                        <li class="flex items-start"><i class="fa-solid fa-check text-marca-vermelho mt-1 mr-3"></i> <span class="text-marca-texto">Aulas gravadas de fundamentos</span></li>
+                        <li class="flex items-start"><i class="fa-solid fa-check text-marca-vermelho mt-1 mr-3"></i> <span class="text-marca-texto">Timer de treino padrão</span></li>
+                    </ul>
+                    <a href="#" class="w-full block text-center border border-marca-texto text-marca-texto hover:bg-white hover:text-marca-escuro py-3 rounded font-display uppercase tracking-widest transition-colors font-bold">Assinar Recruta</a>
+                </div>
+
+                <!-- Plano Pro (Destaque) -->
+                <div class="bg-marca-cartao border-2 border-marca-vermelho rounded-xl p-8 flex flex-col relative transform md:-translate-y-4 shadow-[0_0_30px_rgba(255,0,60,0.1)]">
+                    <div class="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-marca-vermelho text-white font-bold text-xs uppercase tracking-widest px-4 py-1 rounded-full">
+                        Mais Popular
+                    </div>
+                    <h3 class="font-display text-2xl text-marca-vermelho uppercase tracking-wider mb-2">Guerreiro</h3>
+                    <div class="text-marca-suave text-sm mb-6">O pacote completo para evolução constante.</div>
+                    <div class="mb-6">
+                        <span class="text-5xl font-bold text-white">29€</span><span class="text-marca-suave">/mês</span>
+                    </div>
+                    <ul class="space-y-4 mb-8 flex-1">
+                        <li class="flex items-start"><i class="fa-solid fa-check text-marca-vermelho mt-1 mr-3"></i> <span class="text-marca-texto font-bold">Acesso total a todas as modalidades</span></li>
+                        <li class="flex items-start"><i class="fa-solid fa-check text-marca-vermelho mt-1 mr-3"></i> <span class="text-marca-texto">Novos treinos adicionados semanalmente</span></li>
+                        <li class="flex items-start"><i class="fa-solid fa-check text-marca-vermelho mt-1 mr-3"></i> <span class="text-marca-texto">Sessões avançadas de HIIT e Sparring</span></li>
+                        <li class="flex items-start"><i class="fa-solid fa-check text-marca-vermelho mt-1 mr-3"></i> <span class="text-marca-texto">Acesso à comunidade privada</span></li>
+                    </ul>
+                    <a href="#" class="w-full block text-center bg-marca-vermelho text-white hover:bg-marca-vermelhoHover py-4 rounded font-display uppercase tracking-widest transition-colors font-bold botao-brilho">Assinar Guerreiro</a>
+                </div>
+
+                <!-- Plano Anual -->
+                <div class="bg-marca-cartao border border-marca-borda rounded-xl p-8 flex flex-col hover:border-gray-500 transition-colors">
+                    <h3 class="font-display text-2xl text-white uppercase tracking-wider mb-2">Lenda (Anual)</h3>
+                    <div class="text-marca-suave text-sm mb-6">Comprometimento total. Pague menos.</div>
+                    <div class="mb-6">
+                        <span class="text-4xl font-bold text-white">249€</span><span class="text-marca-suave">/ano</span>
+                    </div>
+                    <ul class="space-y-4 mb-8 flex-1">
+                        <li class="flex items-start"><i class="fa-solid fa-check text-marca-vermelho mt-1 mr-3"></i> <span class="text-marca-texto">Tudo incluído no plano Guerreiro</span></li>
+                        <li class="flex items-start"><i class="fa-solid fa-check text-marca-vermelho mt-1 mr-3"></i> <span class="text-marca-texto">2 Meses grátis</span></li>
+                        <li class="flex items-start"><i class="fa-solid fa-check text-marca-vermelho mt-1 mr-3"></i> <span class="text-marca-texto">Análise de vídeos com treinadores</span></li>
+                    </ul>
+                    <a href="#" class="w-full block text-center border border-marca-texto text-marca-texto hover:bg-white hover:text-marca-escuro py-3 rounded font-display uppercase tracking-widest transition-colors font-bold">Assinar Lenda</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Seção de Testemunhos -->
+    <section id="testemunhos" class="py-24 bg-marca-cartao border-t border-marca-borda">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="font-display font-bold text-4xl md:text-5xl text-white uppercase tracking-wider mb-4">Hall da <span class="text-marca-vermelho">Fama</span></h2>
+                <div class="h-1 w-24 bg-marca-vermelho mx-auto rounded"></div>
+                <p class="mt-4 text-marca-suave max-w-2xl mx-auto">Não confie apenas na nossa palavra. Veja o que os lutadores que utilizam a nossa plataforma têm a dizer.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Testemunho 1 -->
+                <div class="bg-marca-escuro p-8 rounded-xl border border-marca-borda relative">
+                    <i class="fa-solid fa-quote-right absolute top-6 right-8 text-4xl text-marca-borda opacity-50"></i>
+                    <div class="flex text-marca-vermelho mb-4 text-sm">
+                        <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+                    </div>
+                    <p class="text-marca-texto italic mb-6">"O nível de detalhe nas aulas de Boxe é insano. Consegui corrigir a minha guarda e aumentar a potência dos meus golpes treinando no saco de pancadas da garagem."</p>
+                    <div class="flex items-center mt-auto">
+                        <div class="w-12 h-12 bg-gray-700 rounded-full mr-4 flex items-center justify-center font-bold font-display">RM</div>
+                        <div>
+                            <h4 class="text-white font-bold uppercase tracking-wider text-sm">Ricardo Mendes</h4>
+                            <span class="text-marca-suave text-xs">Amador / Boxe</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Testemunho 2 -->
+                <div class="bg-marca-escuro p-8 rounded-xl border border-marca-borda relative">
+                    <i class="fa-solid fa-quote-right absolute top-6 right-8 text-4xl text-marca-borda opacity-50"></i>
+                    <div class="flex text-marca-vermelho mb-4 text-sm">
+                        <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+                    </div>
+                    <p class="text-marca-texto italic mb-6">"O timer embutido e os treinos de HIIT salvaram o meu cardio para as competições. A interface não distrai e vai direto ao ponto. Excelente."</p>
+                    <div class="flex items-center mt-auto">
+                        <div class="w-12 h-12 bg-gray-700 rounded-full mr-4 flex items-center justify-center font-bold font-display">SO</div>
+                        <div>
+                            <h4 class="text-white font-bold uppercase tracking-wider text-sm">Sara Oliveira</h4>
+                            <span class="text-marca-suave text-xs">Competidora / MMA</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Testemunho 3 -->
+                <div class="bg-marca-escuro p-8 rounded-xl border border-marca-borda relative">
+                    <i class="fa-solid fa-quote-right absolute top-6 right-8 text-4xl text-marca-borda opacity-50"></i>
+                    <div class="flex text-marca-vermelho mb-4 text-sm">
+                        <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star-half-stroke"></i>
+                    </div>
+                    <p class="text-marca-texto italic mb-6">"Comecei do zero absoluto no Muay Thai. Os módulos para iniciantes passo a passo do Mestre Costa deram-me a confiança que precisava antes de pisar num ginásio real."</p>
+                    <div class="flex items-center mt-auto">
+                        <div class="w-12 h-12 bg-gray-700 rounded-full mr-4 flex items-center justify-center font-bold font-display">JF</div>
+                        <div>
+                            <h4 class="text-white font-bold uppercase tracking-wider text-sm">João Fernandes</h4>
+                            <span class="text-marca-suave text-xs">Iniciante / Fit Combat</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer CTA -->
+    <footer class="bg-marca-escuro border-t border-marca-borda pt-16 pb-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h2 class="font-display font-bold text-3xl md:text-5xl text-white uppercase mb-6">Pronto para dar o primeiro golpe?</h2>
+            <p class="text-marca-suave mb-8 max-w-xl mx-auto">Junte-se a milhares de guerreiros. Tenha acesso completo a toda a plataforma por um valor simbólico mensal.</p>
+            <button class="bg-marca-vermelho text-white font-display text-xl uppercase tracking-widest px-10 py-5 rounded font-bold hover:bg-marca-vermelhoHover transition-all botao-brilho mb-16">
+                Assinar Agora - R$ 29,90/mês
+            </button>
+
+            <div class="border-t border-marca-borda pt-8 flex flex-col md:flex-row justify-between items-center">
+                <div class="flex items-center mb-4 md:mb-0">
+                    <i class="fa-solid fa-fire-flame-curved text-marca-vermelho text-xl mr-2"></i>
+                    <span class="font-display font-bold text-xl tracking-wider text-white">FIGHT<span class="text-marca-vermelho">ZONE</span></span>
+                </div>
+                <div class="flex space-x-6">
+                    <a href="#" class="text-marca-suave hover:text-white transition-colors"><i class="fa-brands fa-instagram text-2xl"></i></a>
+                    <a href="#" class="text-marca-suave hover:text-white transition-colors"><i class="fa-brands fa-youtube text-2xl"></i></a>
+                    <a href="#" class="text-marca-suave hover:text-white transition-colors"><i class="fa-brands fa-tiktok text-2xl"></i></a>
+                </div>
+                <p class="text-marca-suave text-sm mt-4 md:mt-0">&copy; 2026 FightZone. Todos os direitos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts (Logica de UI e Lógica do Timer) -->
+    <script>
+        // --- LÓGICA DA TELA DE CARREGAMENTO (PRELOADER) ---
+        window.addEventListener('load', () => {
+            const telaCarregamento = document.getElementById('tela-carregamento');
+            // Pequeno delay para garantir que a animação inicial seja vista
+            setTimeout(() => {
+                telaCarregamento.style.opacity = '0';
+                telaCarregamento.style.pointerEvents = 'none'; // Evita bloqueio de cliques enquanto desaparece
+                
+                // Remove do DOM após a transição de fade-out (700ms)
+                setTimeout(() => {
+                    telaCarregamento.style.display = 'none';
+                }, 700);
+            }, 800); 
+        });
+
+        // --- LÓGICA DE INTERFACE (Navegação) ---
+        const btnMenuMobile = document.getElementById('btn-menu-mobile');
+        const menuMobile = document.getElementById('menu-mobile');
+        const barraNavegacao = document.getElementById('barra-navegacao');
+
+        // Alternar o Menu Mobile
+        btnMenuMobile.addEventListener('click', () => {
+            menuMobile.classList.toggle('hidden');
+        });
+
+        // Efeito de sombra na Barra de Navegação ao rolar
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 50) {
+                barraNavegacao.classList.add('shadow-lg', 'shadow-marca-vermelho/5');
+            } else {
+                barraNavegacao.classList.remove('shadow-lg', 'shadow-marca-vermelho/5');
+            }
+        });
+
+        // Fechar menu mobile ao clicar em um link
+        document.querySelectorAll('#menu-mobile a').forEach(link => {
+            link.addEventListener('click', () => {
+                menuMobile.classList.add('hidden');
+            });
+        });
+
+        // --- LÓGICA DO TIMER DE COMBATE ---
+        
+        // Elementos do DOM
+        const visorCronometro = document.getElementById('visor-cronometro');
+        const textoStatus = document.getElementById('status-cronometro');
+        const btnIniciar = document.getElementById('btn-iniciar');
+        const btnPausar = document.getElementById('btn-pausar');
+        const btnReiniciar = document.getElementById('btn-reiniciar');
+        
+        // Inputs de configuração
+        const inputTempoTrabalho = document.getElementById('tempo-trabalho');
+        const inputTempoDescanso = document.getElementById('tempo-descanso');
+        const inputTotalRounds = document.getElementById('total-rounds-input');
+        
+        // Displays de Round
+        const visorRoundAtual = document.getElementById('round-atual');
+        const visorTotalRounds = document.getElementById('visor-total-rounds');
+
+        // Variáveis de Estado
+        let intervaloRelogio;
+        let tempoRestante = parseInt(inputTempoTrabalho.value); // Tempo em segundos
+        let estaRodando = false;
+        let ehFaseTrabalho = true; // true = Luta, false = Descanso
+        let roundAtual = 1;
+        let totalDeRounds = parseInt(inputTotalRounds.value);
+
+        // Som simulado via Web Audio API
+        const tocarBipe = (frequencia, duracao) => {
+            try {
+                const contextoAudio = new (window.AudioContext || window.webkitAudioContext)();
+                const oscilador = contextoAudio.createOscillator();
+                const ganhoNode = contextoAudio.createGain();
+                
+                oscilador.type = 'sine';
+                oscilador.frequency.setValueAtTime(frequencia, contextoAudio.currentTime);
+                
+                ganhoNode.gain.setValueAtTime(1, contextoAudio.currentTime);
+                ganhoNode.gain.exponentialRampToValueAtTime(0.001, contextoAudio.currentTime + duracao);
+                
+                oscilador.connect(ganhoNode);
+                ganhoNode.connect(contextoAudio.destination);
+                
+                oscilador.start();
+                oscilador.stop(contextoAudio.currentTime + duracao);
+            } catch (e) { console.log("Áudio não suportado no navegador."); }
+        };
+
+        // Atualizar display MM:SS
+        const atualizarVisor = () => {
+            const minutos = Math.floor(tempoRestante / 60);
+            const segundos = tempoRestante % 60;
+            visorCronometro.textContent = `${minutos.toString().padStart(2, '0')}:${segundos.toString().padStart(2, '0')}`;
+            
+            // Alterar cor se estiver acabando (últimos 10 segundos de round)
+            if (tempoRestante <= 10 && tempoRestante > 0) {
+                visorCronometro.classList.add('text-marca-vermelho');
+                visorCronometro.classList.remove('text-white', 'text-green-500');
+            } else {
+                visorCronometro.classList.remove('text-marca-vermelho');
+            }
+        };
+
+        // Função de Atualização de Interface com base no estado
+        const atualizarEstadoInterface = () => {
+            visorTotalRounds.textContent = totalDeRounds;
+            visorRoundAtual.textContent = roundAtual;
+
+            if (ehFaseTrabalho) {
+                textoStatus.textContent = "LUTEM!";
+                textoStatus.classList.remove('text-marca-suave', 'text-green-500');
+                textoStatus.classList.add('text-marca-vermelho');
+                visorCronometro.classList.remove('text-green-500');
+                visorCronometro.classList.add('text-white');
+            } else {
+                textoStatus.textContent = "DESCANSO";
+                textoStatus.classList.remove('text-marca-suave', 'text-marca-vermelho');
+                textoStatus.classList.add('text-green-500');
+                visorCronometro.classList.remove('text-white', 'text-marca-vermelho');
+                visorCronometro.classList.add('text-green-500');
+            }
+        };
+
+        // Função principal do Timer a cada segundo
+        const tictac = () => {
+            if (tempoRestante > 0) {
+                tempoRestante--;
+                atualizarVisor();
+                
+                // Beep de aviso (últimos 3 segundos)
+                if (tempoRestante > 0 && tempoRestante <= 3) tocarBipe(800, 0.2);
+                
+            } else {
+                // Tempo acabou
+                tocarBipe(400, 1.0); // Som longo de fim de round
+                
+                if (ehFaseTrabalho) {
+                    // Foi o fim do trabalho. Entrar no descanso ou finalizar?
+                    if (roundAtual >= totalDeRounds) {
+                        // Fim do Treino
+                        clearInterval(intervaloRelogio);
+                        estaRodando = false;
+                        textoStatus.textContent = "TREINO FINALIZADO!";
+                        textoStatus.classList.replace('text-marca-vermelho', 'text-white');
+                        visorCronometro.classList.replace('text-marca-vermelho', 'text-white');
+                        alternarBotoes(false);
+                        tocarBipe(400, 0.5); setTimeout(() => tocarBipe(400, 1.0), 600); // 2 beeps
+                        return;
+                    }
+                    // Vai para o descanso
+                    ehFaseTrabalho = false;
+                    tempoRestante = parseInt(inputTempoDescanso.value);
+                } else {
+                    // Fim do descanso, iniciar próximo round
+                    ehFaseTrabalho = true;
+                    roundAtual++;
+                    tempoRestante = parseInt(inputTempoTrabalho.value);
+                }
+                
+                atualizarEstadoInterface();
+                atualizarVisor();
+            }
+        };
+
+        // Controlar visibilidade dos botões de Iniciar/Pausar
+        const alternarBotoes = (estaJogando) => {
+            if (estaJogando) {
+                btnIniciar.classList.add('hidden');
+                btnPausar.classList.remove('hidden');
+            } else {
+                btnIniciar.classList.remove('hidden');
+                btnPausar.classList.add('hidden');
+            }
+        };
+
+        // Eventos dos Botões
+        btnIniciar.addEventListener('click', () => {
+            if (!estaRodando) {
+                // Atualizar total de rounds caso usuário tenha digitado algo novo
+                totalDeRounds = parseInt(inputTotalRounds.value);
+                
+                // Se for a primeira vez iniciando (preparar estado)
+                if (textoStatus.textContent === "PRONTO PARA O ROUND?") {
+                    atualizarEstadoInterface();
+                    tocarBipe(600, 0.5); // Ding de início
+                }
+                
+                intervaloRelogio = setInterval(tictac, 1000);
+                estaRodando = true;
+                alternarBotoes(true);
+            }
+        });
+
+        btnPausar.addEventListener('click', () => {
+            if (estaRodando) {
+                clearInterval(intervaloRelogio);
+                estaRodando = false;
+                alternarBotoes(false);
+                textoStatus.textContent = "PAUSADO";
+                textoStatus.classList.replace('text-marca-vermelho', 'text-marca-suave');
+                textoStatus.classList.replace('text-green-500', 'text-marca-suave');
+            }
+        });
+
+        btnReiniciar.addEventListener('click', () => {
+            clearInterval(intervaloRelogio);
+            estaRodando = false;
+            ehFaseTrabalho = true;
+            roundAtual = 1;
+            totalDeRounds = parseInt(inputTotalRounds.value);
+            tempoRestante = parseInt(inputTempoTrabalho.value);
+            
+            alternarBotoes(false);
+            atualizarVisor();
+            
+            textoStatus.textContent = "PRONTO PARA O ROUND?";
+            textoStatus.className = "font-display text-2xl md:text-3xl uppercase tracking-widest text-marca-suave mb-4 transition-colors duration-300";
+            visorCronometro.className = "visor-cronometro-fonte text-7xl md:text-9xl text-white mb-8 select-none";
+            
+            visorRoundAtual.textContent = roundAtual;
+            visorTotalRounds.textContent = totalDeRounds;
+        });
+
+        // Eventos nos inputs para resetar tempo imediatamente se mudado antes de iniciar
+        const atualizarTempoInicial = () => {
+            if (!estaRodando && textoStatus.textContent === "PRONTO PARA O ROUND?") {
+                tempoRestante = parseInt(inputTempoTrabalho.value);
+                totalDeRounds = parseInt(inputTotalRounds.value);
+                atualizarVisor();
+                visorTotalRounds.textContent = totalDeRounds;
+            }
+        };
+        inputTempoTrabalho.addEventListener('change', atualizarTempoInicial);
+        inputTotalRounds.addEventListener('change', atualizarTempoInicial);
+
+        // Inicialização
+        atualizarVisor();
+
+    </script>
+</body>
+</html>

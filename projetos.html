@@ -182,22 +182,24 @@
         <div class="max-w-6xl mx-auto">
             <div class="grid gap-32">
                 
-                <!-- PROJETO 1 -->
+                <!-- PROJETO 3 -->
                 <article class="relative grid md:grid-cols-12 items-center revelar">
-                    <div class="md:col-span-7 relative group cursor-pointer overflow-hidden rounded-lg shadow-xl">
-                        <div class="absolute inset-0 bg-indigo-600/10 group-hover:bg-transparent transition-all z-10"></div>
-                        <img src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1200&auto=format&fit=crop&q=60" alt="Dashboard Nexus" class="w-full grayscale hover:grayscale-0 transition-all duration-700 min-h-[300px] object-cover">
-                    </div>
+                    <a href="projetos/batalhanaval.html" class="md:col-span-7 relative group cursor-pointer overflow-hidden rounded-lg shadow-xl block">
+                        <!-- Filtro invertido: bg-transparent vira índigo ao passar o rato -->
+                        <div class="absolute inset-0 bg-transparent group-hover:bg-indigo-600/10 transition-all z-10"></div>
+                        <!-- Imagem inverte de normal para escala de cinza ao passar o rato -->
+                        <img src="projetos/imagens/batalhanaval.png" alt="Dashboard Nexus" class="w-full hover:grayscale transition-all duration-700 min-h-[300px] object-cover">
+                    </a>
                     <div class="md:col-span-6 md:absolute md:right-0 z-20 mt-6 md:mt-0 text-right md:w-1/2">
-                        <p class="fonte-mono text-indigo-400 text-xs mb-2">Destaque // Cloud Plataform</p>
+                        <p class="fonte-mono text-indigo-400 text-xs mb-2">Jogo // Batalha Naval</p>
                         <h3 class="text-3xl font-bold mb-4 hover:text-indigo-400 transition-colors">Nexus Cloud</h3>
                         <div class="efeito-vidro p-8 rounded-lg text-slate-300 shadow-2xl mb-4 text-sm md:text-base border border-white/10">
-                            Uma plataforma de monitorização de microsserviços em tempo real. Implementa WebSockets para dashboards dinâmicos e integração nativa com infraestrutura Kubernetes.
+                            Sempre gostei desse estilo de jogo quando criança, estudei e pesquisei na internet se era possível, graça aos recursos na internet consegui fazer. 
                         </div>
                         <div class="flex flex-wrap justify-end gap-3 fonte-mono text-[10px] text-slate-400 mb-6 uppercase tracking-widest">
-                            <span class="bg-slate-800 px-2 py-1 rounded">React</span> 
-                            <span class="bg-slate-800 px-2 py-1 rounded">Node.js</span> 
-                            <span class="bg-slate-800 px-2 py-1 rounded">Socket.io</span> 
+                            <span class="bg-slate-800 px-2 py-1 rounded">HTML:5</span> 
+                            <span class="bg-slate-800 px-2 py-1 rounded">CSS</span> 
+                            <span class="bg-slate-800 px-2 py-1 rounded">JavaScript</span> 
                             <span class="bg-slate-800 px-2 py-1 rounded">Docker</span> 
                         </div>
                         <div class="flex justify-end gap-5 text-xl text-slate-300">
@@ -207,15 +209,9 @@
                     </div>
                 </article>
 
-                <!-- PROJETO 2 (Invertido) -->
+                <!-- PROJETO 4 (Invertido) -->
                 <article class="relative grid md:grid-cols-12 items-center revelar">
-                    <!-- Imagem forçada para o lado direito usando col-start-6 -->
-                    <div class="md:col-span-7 md:col-start-6 relative group cursor-pointer overflow-hidden rounded-lg shadow-xl">
-                        <div class="absolute inset-0 bg-indigo-600/10 group-hover:bg-transparent transition-all z-10"></div>
-                        <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=1200&auto=format&fit=crop&q=60" alt="Interface Mobile Zenith" class="w-full grayscale hover:grayscale-0 transition-all duration-700 min-h-[300px] object-cover">
-                    </div>
-                    <!-- Texto forçado para o lado esquerdo usando left-0 e mantendo sobreposição -->
-                    <div class="md:col-span-6 md:absolute md:left-0 z-20 mt-6 md:mt-0 text-left md:w-1/2">
+                    <div class="md:col-span-6 md:absolute md:left-0 z-20 mb-6 md:mb-0 text-left md:w-1/2 order-2 md:order-1">
                         <p class="fonte-mono text-indigo-400 text-xs mb-2">Fintech // Mobile App</p>
                         <h3 class="text-3xl font-bold mb-4 hover:text-indigo-400 transition-colors">Zenith Finanças</h3>
                         <div class="efeito-vidro p-8 rounded-lg text-slate-300 shadow-2xl mb-4 text-sm md:text-base border border-white/10">
@@ -231,14 +227,23 @@
                             <a href="#" class="hover:text-indigo-400"><i class="fas fa-external-link-alt"></i></a>
                         </div>
                     </div>
+                    <!-- Imagem forçada para a direita -->
+                    <a href="#" class="md:col-span-7 md:col-start-6 relative group cursor-pointer overflow-hidden rounded-lg order-1 md:order-2 shadow-xl block">
+                        <!-- Filtro invertido -->
+                        <div class="absolute inset-0 bg-transparent group-hover:bg-indigo-600/10 transition-all z-10"></div>
+                        <!-- Imagem Invertida (color -> gray) -->
+                        <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=1200&auto=format&fit=crop&q=60" alt="Interface Mobile Zenith" class="w-full hover:grayscale transition-all duration-700 min-h-[300px] object-cover">
+                    </a>
                 </article>
 
-                <!-- PROJETO 3 (Extra Exclusivo para esta página) -->
+                <!-- PROJETO 5 (Extra Exclusivo para esta página) -->
                 <article class="relative grid md:grid-cols-12 items-center revelar">
-                    <div class="md:col-span-7 relative group cursor-pointer overflow-hidden rounded-lg shadow-xl">
-                        <div class="absolute inset-0 bg-indigo-600/10 group-hover:bg-transparent transition-all z-10"></div>
-                        <img src="https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=1200&auto=format&fit=crop&q=60" alt="Terminal DevFlow" class="w-full grayscale hover:grayscale-0 transition-all duration-700 min-h-[300px] object-cover">
-                    </div>
+                    <a href="#" class="md:col-span-7 relative group cursor-pointer overflow-hidden rounded-lg shadow-xl block">
+                        <!-- Filtro invertido -->
+                        <div class="absolute inset-0 bg-transparent group-hover:bg-indigo-600/10 transition-all z-10"></div>
+                        <!-- Imagem Invertida (color -> gray) -->
+                        <img src="https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=1200&auto=format&fit=crop&q=60" alt="Terminal DevFlow" class="w-full hover:grayscale transition-all duration-700 min-h-[300px] object-cover">
+                    </a>
                     <div class="md:col-span-6 md:absolute md:right-0 z-20 mt-6 md:mt-0 text-right md:w-1/2">
                         <p class="fonte-mono text-indigo-400 text-xs mb-2">Ferramenta // Open Source</p>
                         <h3 class="text-3xl font-bold mb-4 hover:text-indigo-400 transition-colors">DevFlow CLI</h3>

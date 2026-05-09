@@ -15,7 +15,7 @@
             color: #7fcdff;
             overflow: hidden; /* Previne scroll durante o loading */
         }
-        .font-orbitron {
+        .fonte-orbitron {
             font-family: 'Orbitron', sans-serif;
         }
         /* --- Tela de Carregamento --- */
@@ -30,7 +30,7 @@
             flex-direction: column;
             transition: opacity 0.5s ease-out;
         }
-        .loader-sonar {
+        .carregador-sonar {
             width: 150px;
             height: 150px;
             position: relative;
@@ -38,21 +38,21 @@
             align-items: center;
             justify-content: center;
         }
-        .loader-sonar::before, .loader-sonar::after {
+        .carregador-sonar::before, .carregador-sonar::after {
             content: '';
             position: absolute;
             border-radius: 50%;
             border: 2px solid #7fcdff;
             animation: sonar-pulse 2s linear infinite;
         }
-        .loader-sonar::after {
+        .carregador-sonar::after {
             animation-delay: 1s;
         }
         @keyframes sonar-pulse {
             0% { width: 0; height: 0; opacity: 1; }
             100% { width: 100%; height: 100%; opacity: 0; }
         }
-        #loader.hidden {
+        #loader.escondido {
             opacity: 0;
             pointer-events: none;
         }
@@ -60,11 +60,11 @@
             opacity: 0;
             transition: opacity 0.5s ease-in;
         }
-        #main-content.loaded {
+        #main-content.carregado {
             opacity: 1;
         }
 
-        .grid-container {
+        .conteiner-grade {
             display: grid;
             grid-template-columns: repeat(16, minmax(0, 1fr));
             gap: 1px;
@@ -73,7 +73,7 @@
             background-color: #08141E;
             box-shadow: 0 0 15px rgba(66, 153, 225, 0.3);
         }
-        .grid-cell {
+        .celula-grade {
             width: 100%;
             padding-bottom: 100%; /* Aspect ratio 1:1 */
             position: relative;
@@ -81,10 +81,10 @@
             transition: all 0.2s ease;
             cursor: pointer;
         }
-        .grid-cell.player-view:hover {
+        .celula-grade.visao-jogador:hover {
             background-color: #2a628f;
         }
-        .grid-cell .content {
+        .celula-grade .conteudo {
             position: absolute;
             top: 0;
             left: 0;
@@ -94,32 +94,32 @@
             align-items: center;
             justify-content: center;
         }
-        .water { background-color: #1a3a59; }
+        .agua { background-color: #1a3a59; }
 
         /* --- Estilos dos Navios com CSS --- */
-        .ship-part { background-color: #718096; }
+        .parte-navio { background-color: #718096; }
         /* Horizontal */
-        .ship-bow-h { border-top-left-radius: 50%; border-bottom-left-radius: 50%; }
-        .ship-stern-h { border-top-right-radius: 50%; border-bottom-right-radius: 50%; }
+        .proa-navio-h { border-top-left-radius: 50%; border-bottom-left-radius: 50%; }
+        .popa-navio-h { border-top-right-radius: 50%; border-bottom-right-radius: 50%; }
         /* Vertical */
-        .ship-bow-v { border-top-left-radius: 50%; border-top-right-radius: 50%; }
-        .ship-stern-v { border-bottom-left-radius: 50%; border-bottom-right-radius: 50%; }
+        .proa-navio-v { border-top-left-radius: 50%; border-top-right-radius: 50%; }
+        .popa-navio-v { border-bottom-left-radius: 50%; border-bottom-right-radius: 50%; }
 
-        .hit {
+        .acerto {
             background-color: #e53e3e !important; /* Override ship color */
             animation: pulse-hit 1s;
         }
-        .miss .content::after {
+        .erro .conteudo::after {
             content: ''; display: block; width: 30%; height: 30%;
             background-color: #7fcdff; border-radius: 50%; opacity: 0.5;
         }
-        .sunk {
+        .afundado {
             background-color: #4a0e0e !important; /* Override ship color */
             border: 1px solid #e53e3e;
         }
         
-        .placement-hover-valid { background-color: #2f855a !important; }
-        .placement-hover-invalid { background-color: #c53030 !important; }
+        .hover-posicionamento-valido { background-color: #2f855a !important; }
+        .hover-posicionamento-invalido { background-color: #c53030 !important; }
 
         @keyframes pulse-hit {
             0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(229, 62, 62, 0.7); }
@@ -127,7 +127,7 @@
             100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(229, 62, 62, 0); }
         }
         #modal { transition: opacity 0.3s ease, transform 0.3s ease; }
-        .scanline {
+        .linha-varredura {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             pointer-events: none;
             background: linear-gradient(to bottom, rgba(13, 26, 38, 0) 50%, rgba(13, 26, 38, 0.5) 51%);
@@ -135,8 +135,8 @@
             animation: scan 10s linear infinite;
         }
         @keyframes scan { from { background-position: 0 0; } to { background-position: 0 -400px; } }
-        .ship-item.selected { background-color: #2a628f; border-color: #63b3ed; }
-        .btn-action {
+        .item-navio.selecionado { background-color: #2a628f; border-color: #63b3ed; }
+        .btn-acao {
             font-family: 'Orbitron', sans-serif;
             background-color: #1a3a59;
             color: #7fcdff;
@@ -146,7 +146,7 @@
             border: 1px solid #2a628f;
             transition: all 0.3s ease;
         }
-        .btn-action:hover {
+        .btn-acao:hover {
             background-color: #2a628f;
             border-color: #63b3ed;
         }
@@ -154,32 +154,32 @@
 </head>
 <body class="bg-gray-900 text-cyan-300">
     <div id="loader">
-        <div class="loader-sonar"></div>
-        <p class="font-orbitron text-2xl mt-8 tracking-widest">CARREGANDO SISTEMAS...</p>
+        <div class="carregador-sonar"></div>
+        <p class="fonte-orbitron text-2xl mt-8 tracking-widest">CARREGANDO SISTEMAS...</p>
     </div>
 
     <div id="main-content">
-        <div class="scanline"></div>
+        <div class="linha-varredura"></div>
 
         <div id="modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 opacity-0 pointer-events-none transform scale-95">
             <div class="bg-[#0d1a26] border-2 border-[#1a3a59] rounded-lg shadow-2xl p-8 max-w-md w-full text-center">
-                <h3 id="modal-title" class="font-orbitron text-2xl text-red-400 mb-4"></h3>
+                <h3 id="modal-title" class="fonte-orbitron text-2xl text-red-400 mb-4"></h3>
                 <p id="modal-body" class="mb-6 text-lg"></p>
-                <button onclick="closeModal()" class="font-orbitron bg-[#1a3a59] hover:bg-[#2a628f] text-cyan-300 font-bold py-2 px-6 rounded-lg border border-cyan-500 transition-all duration-300">
+                <button onclick="closeModal()" class="fonte-orbitron bg-[#1a3a59] hover:bg-[#2a628f] text-cyan-300 font-bold py-2 px-6 rounded-lg border border-cyan-500 transition-all duration-300">
                     CONTINUAR
                 </button>
             </div>
         </div>
 
         <header class="text-center p-4 md:p-6">
-            <h1 class="font-orbitron text-4xl md:text-5xl font-bold tracking-widest text-cyan-400" style="text-shadow: 0 0 10px #22d3ee;">BATALHA NAVAL</h1>
+            <h1 class="fonte-orbitron text-4xl md:text-5xl font-bold tracking-widest text-cyan-400" style="text-shadow: 0 0 10px #22d3ee;">BATALHA NAVAL</h1>
             <p id="status-bar" class="mt-2 text-lg h-8"></p>
         </header>
 
         <main class="container mx-auto px-4">
             <!-- SEÇÃO DE PREPARAÇÃO -->
             <div id="setup-phase" class="text-center">
-                 <h2 class="font-orbitron text-2xl mb-4">FASE DE PREPARAÇÃO</h2>
+                 <h2 class="fonte-orbitron text-2xl mb-4">FASE DE PREPARAÇÃO</h2>
                 <p class="mb-4">Posicione seus navios ou use as opções abaixo.</p>
                 <div id="setup-controls" class="flex flex-col md:flex-row items-center justify-center gap-6 mb-6 p-4 bg-[#08141E] border-2 border-[#1a3a59] rounded-lg">
                     <div id="ships-to-place-list" class="flex-grow">
@@ -187,11 +187,11 @@
                     </div>
                     <div class="flex flex-col items-center gap-4">
                          <div class="flex gap-4">
-                            <button id="rotate-btn" class="btn-action">Girar</button>
-                            <button id="random-place-btn" class="btn-action">Aleatório</button>
-                            <button id="reset-btn" class="btn-action">Limpar</button>
+                            <button id="rotate-btn" class="btn-acao">Girar</button>
+                            <button id="random-place-btn" class="btn-acao">Aleatório</button>
+                            <button id="reset-btn" class="btn-acao">Limpar</button>
                         </div>
-                        <button id="start-game-btn" disabled class="font-orbitron bg-gray-600 text-gray-400 font-bold py-2 px-4 rounded-lg cursor-not-allowed w-full">
+                        <button id="start-game-btn" disabled class="fonte-orbitron bg-gray-600 text-gray-400 font-bold py-2 px-4 rounded-lg cursor-not-allowed w-full">
                             Iniciar Batalha
                         </button>
                     </div>
@@ -199,8 +199,8 @@
                 <!-- Grade de preparação -->
                 <div class="flex justify-center">
                      <div class="flex-1 min-w-0 max-w-2xl">
-                        <h2 class="font-orbitron text-2xl text-center mb-4 text-green-400">SUA FROTA</h2>
-                        <div id="player-grid-setup" class="grid-container"></div>
+                        <h2 class="fonte-orbitron text-2xl text-center mb-4 text-green-400">SUA FROTA</h2>
+                        <div id="player-grid-setup" class="conteiner-grade"></div>
                     </div>
                 </div>
             </div>
@@ -208,17 +208,17 @@
             <!-- SEÇÃO DE JOGO -->
             <div id="game-phase" class="flex flex-col md:flex-row justify-center gap-8" style="display: none;">
                 <div class="flex-1 min-w-0">
-                    <h2 class="font-orbitron text-2xl text-center mb-4 text-red-400">FROTA INIMIGA</h2>
-                    <div id="computer-grid" class="grid-container"></div>
+                    <h2 class="fonte-orbitron text-2xl text-center mb-4 text-red-400">FROTA INIMIGA</h2>
+                    <div id="computer-grid" class="conteiner-grade"></div>
                 </div>
                 <div class="flex-1 min-w-0">
-                    <h2 class="font-orbitron text-2xl text-center mb-4 text-green-400">SUA FROTA</h2>
-                    <div id="player-grid" class="grid-container"></div>
+                    <h2 class="fonte-orbitron text-2xl text-center mb-4 text-green-400">SUA FROTA</h2>
+                    <div id="player-grid" class="conteiner-grade"></div>
                 </div>
             </div>
             
             <div id="mission-report" class="mt-8 p-6 bg-[#08141E] border-2 border-[#1a3a59] rounded-lg shadow-lg" style="display: none;">
-                <h3 class="font-orbitron text-xl mb-3 text-cyan-400">RELATÓRIO DA MISSÃO</h3>
+                <h3 class="fonte-orbitron text-xl mb-3 text-cyan-400">RELATÓRIO DA MISSÃO</h3>
                 <p class="text-sm md:text-base leading-relaxed">
                     "...Localizamos a frota inimiga... A batalha não terminará até que uma ou outra frota seja afundada em sua totalidade. Nossos artilheiros aguardam seus comandos. Contamos com você, senhor..."
                 </p>
@@ -270,8 +270,8 @@
         window.addEventListener('load', () => {
             // Simula um tempo de carregamento para a animação ser visível
             setTimeout(() => {
-                loaderEl.classList.add('hidden');
-                mainContentEl.classList.add('loaded');
+                loaderEl.classList.add('escondido');
+                mainContentEl.classList.add('carregado');
                 document.body.style.overflow = 'auto';
                 init();
             }, 2000); 
@@ -306,7 +306,7 @@
             startGameBtn.addEventListener('click', startGame);
 
             startGameBtn.disabled = true;
-            startGameBtn.className = 'font-orbitron bg-gray-600 text-gray-400 font-bold py-2 px-4 rounded-lg cursor-not-allowed w-full';
+            startGameBtn.className = 'fonte-orbitron bg-gray-600 text-gray-400 font-bold py-2 px-4 rounded-lg cursor-not-allowed w-full';
             statusBarEl.textContent = "Posicione sua frota para começar.";
         }
 
@@ -322,7 +322,7 @@
         }
 
         function renderShipsToPlace() {
-            shipsToPlaceListEl.innerHTML = '<h3 class="font-orbitron text-lg mb-2 text-cyan-400">Navios para posicionar:</h3>';
+            shipsToPlaceListEl.innerHTML = '<h3 class="fonte-orbitron text-lg mb-2 text-cyan-400">Navios para posicionar:</h3>';
             const list = document.createElement('ul');
             if (shipsToPlace.length === 0) {
                 list.innerHTML = '<li class="p-2 text-green-400">Toda a frota posicionada!</li>';
@@ -331,8 +331,8 @@
                     const item = document.createElement('li');
                     item.textContent = `${ship.name} (Tamanho: ${ship.len})`;
                     item.dataset.index = index;
-                    item.className = 'ship-item p-2 border border-transparent cursor-pointer hover:bg-[#1a3a59] rounded';
-                    if (index === selectedShipIndex) item.classList.add('selected');
+                    item.className = 'item-navio p-2 border border-transparent cursor-pointer hover:bg-[#1a3a59] rounded';
+                    if (index === selectedShipIndex) item.classList.add('selecionado');
                     item.addEventListener('click', () => {
                         selectedShipIndex = index;
                         renderShipsToPlace();
@@ -345,7 +345,7 @@
 
         function handlePlacementHover(e) {
             if (gameState !== 'SETUP' || selectedShipIndex === -1) return;
-            const cell = e.target.closest('.grid-cell');
+            const cell = e.target.closest('.celula-grade');
             if (!cell) return;
             clearPlacementHover();
             const ship = shipsToPlace[selectedShipIndex];
@@ -354,19 +354,19 @@
             const { isValid, cellsToHighlight } = checkPlacement(ship.len, y, x);
             cellsToHighlight.forEach(([cy, cx]) => {
                 const cellEl = document.getElementById(`ply_setup_${cy}_${cx}`);
-                if(cellEl) cellEl.classList.add(isValid ? 'placement-hover-valid' : 'placement-hover-invalid');
+                if(cellEl) cellEl.classList.add(isValid ? 'hover-posicionamento-valido' : 'hover-posicionamento-invalido');
             });
         }
         
         function clearPlacementHover() {
-            document.querySelectorAll('#player-grid-setup .grid-cell').forEach(c => {
-                c.classList.remove('placement-hover-valid', 'placement-hover-invalid');
+            document.querySelectorAll('#player-grid-setup .celula-grade').forEach(c => {
+                c.classList.remove('hover-posicionamento-valido', 'hover-posicionamento-invalido');
             });
         }
 
         function handlePlacementClick(e) {
             if (gameState !== 'SETUP' || selectedShipIndex === -1) return;
-            const cell = e.target.closest('.grid-cell');
+            const cell = e.target.closest('.celula-grade');
             if (!cell) return;
             const ship = shipsToPlace[selectedShipIndex];
             const y = parseInt(cell.dataset.y);
@@ -405,12 +405,12 @@
             playerlives++;
             const orientation = (isRandom ? Math.floor(Math.random() * 2) : shipOrientation) === 0 ? 'h' : 'v';
             for (let i = 0; i < ship.len; i++) {
-                let partClass = 'ship-mid-' + orientation;
+                let partClass = 'meio-navio-' + orientation;
                 if (ship.len > 1) {
-                    if (i === 0) partClass = 'ship-bow-' + orientation;
-                    else if (i === ship.len - 1) partClass = 'ship-stern-' + orientation;
+                    if (i === 0) partClass = 'proa-navio-' + orientation;
+                    else if (i === ship.len - 1) partClass = 'popa-navio-' + orientation;
                 } else {
-                     partClass = 'ship-bow-h';
+                     partClass = 'proa-navio-h';
                 }
                 let cx = x + (orientation === 'h' ? i : 0);
                 let cy = y + (orientation === 'v' ? i : 0);
@@ -442,7 +442,7 @@
 
         function enableStartButton() {
             startGameBtn.disabled = false;
-            startGameBtn.className = 'font-orbitron bg-green-600 hover:bg-green-500 text-white font-bold py-2 px-4 rounded-lg transition-all duration-300 w-full';
+            startGameBtn.className = 'fonte-orbitron bg-green-600 hover:bg-green-500 text-white font-bold py-2 px-4 rounded-lg transition-all duration-300 w-full';
             statusBarEl.textContent = "Todos os navios posicionados. Inicie a batalha!";
         }
 
@@ -485,11 +485,11 @@
                     const orientation = d === 0 ? 'h' : 'v';
                     let cx = x, cy = y;
                     for (let j = 0; j < len; ++j) {
-                        let partClass = 'ship-mid-' + orientation;
+                        let partClass = 'meio-navio-' + orientation;
                         if (len > 1) {
-                           if (j === 0) partClass = 'ship-bow-' + orientation;
-                           else if (j === len - 1) partClass = 'ship-stern-' + orientation;
-                        } else { partClass = 'ship-bow-h'; }
+                           if (j === 0) partClass = 'proa-navio-' + orientation;
+                           else if (j === len - 1) partClass = 'popa-navio-' + orientation;
+                        } else { partClass = 'proa-navio-h'; }
                         grid[cy][cx] = [1, shipno, partClass];
                         cx += dx; cy += dy;
                     }
@@ -509,24 +509,24 @@
             for (let y = 0; y < gridy; y++) {
                 for (let x = 0; x < gridx; x++) {
                     const cell = document.createElement('div');
-                    cell.className = 'grid-cell';
+                    cell.className = 'celula-grade';
                     cell.dataset.y = y;
                     cell.dataset.x = x;
                     cell.id = `${prefix}_${y}_${x}`;
                     const content = document.createElement('div');
-                    content.className = 'content';
+                    content.className = 'conteudo';
                     cell.appendChild(content);
                     const [type, , shapeClass] = gridData[y][x];
                     if (ispc) {
                         if (gameState === 'GAME') {
-                           cell.classList.add('player-view', 'water');
+                           cell.classList.add('visao-jogador', 'agua');
                            cell.addEventListener('click', () => gridClick(y, x));
                         }
                     } else {
                         if (shapeClass) {
-                            cell.classList.add('ship-part', shapeClass);
+                            cell.classList.add('parte-navio', shapeClass);
                         } else {
-                            cell.classList.add('water');
+                            cell.classList.add('agua');
                         }
                     }
                     gridEl.appendChild(cell);
@@ -538,7 +538,7 @@
             const prefix = ispc ? 'pc' : 'ply';
             const cell = document.getElementById(`${prefix}_${y}_${x}`);
             if (cell) {
-                cell.className = 'grid-cell';
+                cell.className = 'celula-grade';
                 cell.classList.add(state);
             }
         }
@@ -549,7 +549,7 @@
             if (cellState > 1) return;
             if (cellState === 1) {
                 computer[y][x][0] = 3;
-                updateCell(y, x, 'hit', true);
+                updateCell(y, x, 'acerto', true);
                 const shipno = computer[y][x][1];
                 if (--computersships[shipno][1] === 0) {
                     sinkShip(computer, shipno, true);
@@ -564,7 +564,7 @@
                 if (playflag) setTimeout(computerMove, 500);
             } else if (cellState === 0) {
                 computer[y][x][0] = 2;
-                updateCell(y, x, 'miss', true);
+                updateCell(y, x, 'erro', true);
                 setTimeout(computerMove, 500);
             }
         }
@@ -601,7 +601,7 @@
             }
             if (player[sy][sx][0] === 1) {
                 player[sy][sx][0] = 3;
-                updateCell(sy, sx, 'hit', false);
+                updateCell(sy, sx, 'acerto', false);
                 const shipno = player[sy][sx][1];
                 if (--playersships[shipno][1] === 0) {
                     sinkShip(player, shipno, false);
@@ -615,7 +615,7 @@
                 }
             } else {
                 player[sy][sx][0] = 2;
-                updateCell(sy, sx, 'miss', false);
+                updateCell(sy, sx, 'erro', false);
             }
         }
 
@@ -624,7 +624,7 @@
                 for (let x = 0; x < gridx; x++) {
                     if (grid[y][x][1] === shipno) {
                         grid[y][x][0] = 4;
-                        updateCell(y, x, 'sunk', ispc);
+                        updateCell(y, x, 'afundado', ispc);
                     }
                 }
             }
@@ -637,8 +637,8 @@
                     if (type === 1) {
                        const cell = document.getElementById(`pc_${y}_${x}`);
                        if(cell && shapeClass) {
-                           cell.classList.remove('water', 'player-view');
-                           cell.classList.add('ship-part', shapeClass);
+                           cell.classList.remove('agua', 'visao-jogador');
+                           cell.classList.add('parte-navio', shapeClass);
                        }
                     }
                 }

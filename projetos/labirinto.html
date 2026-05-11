@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Labirinto Estratégico</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @keyframes aproximar {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .animar-aproximar {
+            animation: aproximar 0.3s ease-out forwards;
+        }
+        #telaLabirinto {
+            image-rendering: crisp-edges;
+            max-width: 100%;
+            height: auto;
+            display: block;
+        }
+    </style>
+</head>
+<body class="transition-colors duration-300 bg-slate-50 text-slate-800 min-h-screen">
+    <div id="aplicacao" class="flex flex-col items-center justify-center min-h-screen p-4 font-sans">
+        <div id="cartao-jogo" class="max-w-md w-full rounded-3xl shadow-2xl p-4 sm:p-6 border border-slate-100 bg-white transition-colors duration-300">
+            
+            <!-- Cabeçalho e Dificuldade -->
+            <div class="flex justify-between items-center mb-4 gap-2">
+                <button id="alternar-tema" class="p-2 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors">
+                    <i data-lucide="moon" class="w-5 h-5"></i>
+                </button>
+                <h1 class="text-xl font-black uppercase tracking-tight text-center">Labirinto</h1>
+                <select id="seletor-dificuldade" class="bg-slate-100 text-slate-700 text-xs font-bold py-2 px-2 sm:px-3 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer transition-colors">
+                    <option value="facil">Fácil</option>
+                    <option value="medio" selected>Médio</option>
+                    <option value="dificil">Difícil</option>
+                    <option value="epico">Épico</option>
+                </select>
+            </div>
+
+            <!-- Aviso -->
+            <div id="distintivo-estado" class="flex items-center justify-center gap-2 mb-6 text-[10px] font-bold py-1 px-4 rounded-full mx-auto w-fit uppercase bg-amber-50 text-amber-600 transition-colors">
+                <i data-lucide="alert-triangle" class="w-3 h-3"></i>
+                <span>Sem saída = Fim de Jogo</span>
+            </div>
+
+            <!-- Contentor do Canvas -->
+            <div id="contentor-tela" class="relative flex justify-center p-1 sm:p-2 rounded-xl border-2 border-slate-200 bg-white overflow-hidden shadow-inner transition-colors">
+                <canvas id="telaLabirinto"></canvas>
+                
+                <!-- Sobreposição Fim de Jogo -->
+                <div id="sobreposicao-fimdejogo" class="hidden absolute inset-0 bg-slate-900/80 backdrop-blur-sm flex flex-col items-center justify-center animar-aproximar z-10">
+                    <div class="bg-red-500 p-4 rounded-full mb-4 shadow-lg">
+                        <i data-lucide="skull" class="w-12 h-12 text-white"></i>
+                    </div>
+                    <h2 class="text-3xl font-black text-white mb-2 uppercase tracking-widest italic text-center">Preso!</h2>
+                    <p class="text-red-200 mb-6 font-medium text-center px-6 text-sm">Beco sem saída. Não podes voltar atrás.</p>
+                    <button onclick="reiniciarJogo()" class="bg-white text-slate-900 px-8 py-3 rounded-full font-black shadow-xl hover:bg-slate-100 transition-all uppercase tracking-tighter text-sm">
+                        Tentar de Novo
+                    </button>
+                </div>
+
+                <!-- Sobreposição Vitória -->
+                <div id="sobreposicao-vitoria" class="hidden absolute inset-0 bg-emerald-500/90 flex flex-col items-center justify-center animar-aproximar z-10">
+                    <div class="bg-white p-4 rounded-full mb-4 shadow-lg">
+                        <i data-lucide="trophy" class="w-12 h-12 text-emerald-600"></i>
+                    </div>
+                    <h2 class="text-3xl font-black text-white mb-2 uppercase text-center">Vitória!</h2>
+                    <button onclick="reiniciarJogo()" class="bg-white text-emerald-600 px-8 py-3 rounded-full font-black shadow-xl hover:bg-slate-100 transition-all uppercase text-sm">
+                        Novo Desafio
+                    </button>
+                </div>
+            </div>
+
+            <!-- Controlos Inferiores -->
+            <div class="mt-6 sm:mt-8 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="flex flex-row sm:flex-col gap-2">
+                    <button onclick="reiniciarJogo()" class="flex-1 flex items-center justify-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 py-3 rounded-xl transition-all font-bold uppercase text-[10px] sm:text-xs" id="btn-reiniciar">
+                        <i data-lucide="refresh-cw" class="w-4 h-4"></i> Reiniciar
+                    </button>
+                    <button id="alternar-dica" class="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl transition-all font-bold uppercase text-[10px] sm:text-xs bg-slate-100 text-slate-700 hover:bg-slate-200">
+                        <i data-lucide="eye" class="w-4 h-4"></i> <span>Dica</span>
+                    </button>
+                </div>
+
+                <!-- Setas (Ajustadas para toque) -->
+                <div class="grid grid-cols-3 grid-rows-2 gap-2 mx-auto sm:mx-0 w-full max-w-[160px] sm:max-w-none">
+                    <div></div>
+                    <button onclick="mover(0, -1)" class="bg-blue-600 text-white p-3 rounded-xl flex justify-center hover:bg-blue-700 active:scale-95 transition-all shadow-md"><i data-lucide="chevron-up"></i></button>
+                    <div></div>
+                    <button onclick="mover(-1, 0)" class="bg-blue-600 text-white p-3 rounded-xl flex justify-center hover:bg-blue-700 active:scale-95 transition-all shadow-md"><i data-lucide="chevron-left"></i></button>
+                    <button onclick="mover(0, 1)" class="bg-blue-600 text-white p-3 rounded-xl flex justify-center hover:bg-blue-700 active:scale-95 transition-all shadow-md"><i data-lucide="chevron-down"></i></button>
+                    <button onclick="mover(1, 0)" class="bg-blue-600 text-white p-3 rounded-xl flex justify-center hover:bg-blue-700 active:scale-95 transition-all shadow-md"><i data-lucide="chevron-right"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configurações Dinâmicas
+        let tamanhoGrelha = 15;
+        let tamanhoCelula = 24; 
+        let inicioY = 7;
+        const tela = document.getElementById('telaLabirinto');
+        const ctx = tela.getContext('2d');
+
+        // Estado do Jogo
+        let labirinto = [];
+        let posicaoJogador = { x: 0, y: 7 };
+        let caminhoJogador = [{ x: 0, y: 7 }];
+        let solucao = [];
+        let mostrarSolucao = false;
+        let estadoJogo = 'jogar';
+        let modoEscuro = false;
+
+        function configurarDificuldade() {
+            const nivel = document.getElementById('seletor-dificuldade').value;
+            if (nivel === 'facil') { tamanhoGrelha = 10; tamanhoCelula = 30; }
+            else if (nivel === 'medio') { tamanhoGrelha = 15; tamanhoCelula = 24; }
+            else if (nivel === 'dificil') { tamanhoGrelha = 20; tamanhoCelula = 18; }
+            else if (nivel === 'epico') { tamanhoGrelha = 25; tamanhoCelula = 14; }
+            
+            inicioY = Math.floor(tamanhoGrelha / 2);
+            tela.width = tamanhoGrelha * tamanhoCelula + 20;
+            tela.height = tamanhoGrelha * tamanhoCelula + 20;
+        }
+
+        function gerarLabirinto() {
+            labirinto = Array(tamanhoGrelha).fill().map(() => 
+                Array(tamanhoGrelha).fill().map(() => ({
+                    visitado: false,
+                    paredes: { cima: true, direita: true, baixo: true, esquerda: true }
+                }))
+            );
+
+            const pilha = [];
+            const celulaInicial = { x: 0, y: inicioY };
+            labirinto[celulaInicial.y][celulaInicial.x].visitado = true;
+            pilha.push(celulaInicial);
+
+            while (pilha.length > 0) {
+                const atual = pilha[pilha.length - 1];
+                const vizinhos = [];
+                const direcoes = [
+                    { x: 0, y: -1, parede: 'cima', oposta: 'baixo' },
+                    { x: 1, y: 0, parede: 'direita', oposta: 'esquerda' },
+                    { x: 0, y: 1, parede: 'baixo', oposta: 'cima' },
+                    { x: -1, y: 0, parede: 'esquerda', oposta: 'direita' }
+                ];
+
+                for (const d of direcoes) {
+                    const nx = atual.x + d.x;
+                    const ny = atual.y + d.y;
+                    if (nx >= 0 && nx < tamanhoGrelha && ny >= 0 && ny < tamanhoGrelha && !labirinto[ny][nx].visitado) {
+                        vizinhos.push({ x: nx, y: ny, dir: d });
+                    }
+                }
+
+                if (vizinhos.length > 0) {
+                    const proximo = vizinhos[Math.floor(Math.random() * vizinhos.length)];
+                    labirinto[atual.y][atual.x].paredes[proximo.dir.parede] = false;
+                    labirinto[proximo.y][proximo.x].paredes[proximo.dir.oposta] = false;
+                    labirinto[proximo.y][proximo.x].visitado = true;
+                    pilha.push({ x: proximo.x, y: proximo.y });
+                } else {
+                    pilha.pop();
+                }
+            }
+
+            // Criar entrada e saída dinamicamente
+            labirinto[inicioY][0].paredes.esquerda = false;
+            labirinto[tamanhoGrelha - 1][tamanhoGrelha - 1].paredes.direita = false;
+
+            calcularSolucao();
+        }
+
+        function calcularSolucao() {
+            const fila = [{ x: 0, y: inicioY, caminho: [{ x: 0, y: inicioY }] }];
+            const visitados = new Set([`0,${inicioY}`]);
+            
+            while (fila.length > 0) {
+                const { x, y, caminho } = fila.shift();
+                if (x === tamanhoGrelha - 1 && y === tamanhoGrelha - 1) {
+                    solucao = caminho;
+                    return;
+                }
+                const direcoes = [
+                    { dx: 0, dy: -1, p: 'cima' }, { dx: 1, dy: 0, p: 'direita' },
+                    { dx: 0, dy: 1, p: 'baixo' }, { dx: -1, dy: 0, p: 'esquerda' }
+                ];
+                for (const d of direcoes) {
+                    if (!labirinto[y][x].paredes[d.p]) {
+                        const nx = x + d.dx, ny = y + d.dy;
+                        if (nx >= 0 && nx < tamanhoGrelha && ny >= 0 && ny < tamanhoGrelha && !visitados.has(`${nx},${ny}`)) {
+                            visitados.add(`${nx},${ny}`);
+                            fila.push({ x: nx, y: ny, caminho: [...caminho, { x: nx, y: ny }] });
+                        }
+                    }
+                }
+            }
+        }
+
+        function desenhar() {
+            const corParede = modoEscuro ? '#cbd5e1' : '#000000';
+            const corFundo = modoEscuro ? '#1e293b' : '#ffffff';
+            const corDica = modoEscuro ? 'rgba(239, 68, 68, 0.3)' : 'rgba(239, 68, 68, 0.15)';
+
+            ctx.clearRect(0, 0, tela.width, tela.height);
+            ctx.fillStyle = corFundo;
+            ctx.fillRect(0, 0, tela.width, tela.height);
+
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+
+            // Desenhar Paredes
+            ctx.strokeStyle = corParede;
+            ctx.lineWidth = 2.5;
+            for (let y = 0; y < tamanhoGrelha; y++) {
+                for (let x = 0; x < tamanhoGrelha; x++) {
+                    const px = x * tamanhoCelula + 10, py = y * tamanhoCelula + 10;
+                    const celula = labirinto[y][x];
+                    if (celula.paredes.cima) { ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(px + tamanhoCelula, py); ctx.stroke(); }
+                    if (celula.paredes.direita) { ctx.beginPath(); ctx.moveTo(px + tamanhoCelula, py); ctx.lineTo(px + tamanhoCelula, py + tamanhoCelula); ctx.stroke(); }
+                    if (celula.paredes.baixo) { ctx.beginPath(); ctx.moveTo(px + tamanhoCelula, py + tamanhoCelula); ctx.lineTo(px, py + tamanhoCelula); ctx.stroke(); }
+                    if (celula.paredes.esquerda && !(x === 0 && y === inicioY)) { ctx.beginPath(); ctx.moveTo(px, py + tamanhoCelula); ctx.lineTo(px, py); ctx.stroke(); }
+                }
+            }
+
+            // Dica
+            if (mostrarSolucao) {
+                ctx.strokeStyle = corDica;
+                ctx.lineWidth = 6;
+                ctx.beginPath();
+                ctx.moveTo(-5, inicioY * tamanhoCelula + 10 + tamanhoCelula / 2);
+                solucao.forEach(p => ctx.lineTo(p.x * tamanhoCelula + 10 + tamanhoCelula / 2, p.y * tamanhoCelula + 10 + tamanhoCelula / 2));
+                ctx.stroke();
+            }
+
+            // Rastro do Jogador
+            if (caminhoJogador.length > 1) {
+                ctx.strokeStyle = estadoJogo === 'fimdejogo' ? (modoEscuro ? '#475569' : '#94a3b8') : '#ef4444';
+                ctx.lineWidth = 3.5;
+                ctx.beginPath();
+                ctx.moveTo(-5, inicioY * tamanhoCelula + 10 + tamanhoCelula / 2);
+                caminhoJogador.forEach(p => ctx.lineTo(p.x * tamanhoCelula + 10 + tamanhoCelula / 2, p.y * tamanhoCelula + 10 + tamanhoCelula / 2));
+                ctx.stroke();
+            }
+
+            // Jogador (Ponto)
+            ctx.fillStyle = estadoJogo === 'fimdejogo' ? (modoEscuro ? '#64748b' : '#475569') : '#ef4444';
+            ctx.beginPath();
+            ctx.arc(posicaoJogador.x * tamanhoCelula + 10 + tamanhoCelula / 2, posicaoJogador.y * tamanhoCelula + 10 + tamanhoCelula / 2, tamanhoCelula / 3, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Saída
+            ctx.fillStyle = '#10b981';
+            ctx.beginPath();
+            ctx.arc((tamanhoGrelha - 1) * tamanhoCelula + 10 + tamanhoCelula / 2, (tamanhoGrelha - 1) * tamanhoCelula + 10 + tamanhoCelula / 2, tamanhoCelula / 5, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        function mover(dx, dy) {
+            if (estadoJogo !== 'jogar') return;
+
+            const nx = posicaoJogador.x + dx, ny = posicaoJogador.y + dy;
+            if (nx < 0 || nx >= tamanhoGrelha || ny < 0 || ny >= tamanhoGrelha) return;
+
+            const celulaAtual = labirinto[posicaoJogador.y][posicaoJogador.x];
+            if (dx === 1 && celulaAtual.paredes.direita) return;
+            if (dx === -1 && celulaAtual.paredes.esquerda) return;
+            if (dy === 1 && celulaAtual.paredes.baixo) return;
+            if (dy === -1 && celulaAtual.paredes.cima) return;
+
+            if (caminhoJogador.length > 1) {
+                const ultimoPasso = caminhoJogador[caminhoJogador.length - 2];
+                if (nx === ultimoPasso.x && ny === ultimoPasso.y) return;
+            }
+
+            posicaoJogador = { x: nx, y: ny };
+            caminhoJogador.push({ ...posicaoJogador });
+
+            if (nx === tamanhoGrelha - 1 && ny === tamanhoGrelha - 1) {
+                estadoJogo = 'vitoria';
+                document.getElementById('sobreposicao-vitoria').classList.remove('hidden');
+            } else {
+                verificarBecoSemSaida();
+            }
+            desenhar();
+        }
+
+        function verificarBecoSemSaida() {
+            const direcoes = [
+                { dx: 0, dy: -1, p: 'cima' }, { dx: 1, dy: 0, p: 'direita' },
+                { dx: 0, dy: 1, p: 'baixo' }, { dx: -1, dy: 0, p: 'esquerda' }
+            ];
+            const ultimoPasso = caminhoJogador.length > 1 ? caminhoJogador[caminhoJogador.length - 2] : null;
+
+            const temMovimento = direcoes.some(d => {
+                if (labirinto[posicaoJogador.y][posicaoJogador.x].paredes[d.p]) return false;
+                const nx = posicaoJogador.x + d.dx, ny = posicaoJogador.y + d.dy;
+                if (ultimoPasso && nx === ultimoPasso.x && ny === ultimoPasso.y) return false;
+                return true;
+            });
+
+            if (!temMovimento) {
+                estadoJogo = 'fimdejogo';
+                document.getElementById('sobreposicao-fimdejogo').classList.remove('hidden');
+            }
+        }
+
+        function reiniciarJogo() {
+            configurarDificuldade();
+            posicaoJogador = { x: 0, y: inicioY };
+            caminhoJogador = [{ ...posicaoJogador }];
+            estadoJogo = 'jogar';
+            mostrarSolucao = false;
+            
+            document.getElementById('sobreposicao-fimdejogo').classList.add('hidden');
+            document.getElementById('sobreposicao-vitoria').classList.add('hidden');
+            
+            const btnDica = document.getElementById('alternar-dica');
+            btnDica.classList.remove('bg-red-500/20', 'text-red-400');
+            btnDica.querySelector('span').textContent = 'Dica';
+            
+            gerarLabirinto();
+            desenhar();
+        }
+
+        // Eventos da Interface
+        document.getElementById('seletor-dificuldade').addEventListener('change', reiniciarJogo);
+
+        document.getElementById('alternar-tema').addEventListener('click', () => {
+            modoEscuro = !modoEscuro;
+            const corpo = document.body;
+            const cartao = document.getElementById('cartao-jogo');
+            const distintivo = document.getElementById('distintivo-estado');
+            const contentorTela = document.getElementById('contentor-tela');
+            const btnTema = document.getElementById('alternar-tema');
+            const btnReiniciar = document.getElementById('btn-reiniciar');
+            const btnDica = document.getElementById('alternar-dica');
+            const seletorDif = document.getElementById('seletor-dificuldade');
+
+            if (modoEscuro) {
+                corpo.className = "transition-colors duration-300 bg-slate-950 text-slate-100 min-h-screen";
+                cartao.classList.replace('bg-white', 'bg-slate-900');
+                cartao.classList.replace('border-slate-100', 'border-slate-800');
+                distintivo.classList.replace('bg-amber-50', 'bg-amber-900/30');
+                distintivo.classList.replace('text-amber-600', 'text-amber-400');
+                contentorTela.classList.replace('bg-white', 'bg-slate-800');
+                contentorTela.classList.replace('border-slate-200', 'border-slate-700');
+                btnReiniciar.classList.replace('bg-slate-100', 'bg-slate-800');
+                btnReiniciar.classList.replace('text-slate-700', 'text-slate-300');
+                btnDica.classList.replace('bg-slate-100', 'bg-slate-800');
+                btnDica.classList.replace('text-slate-700', 'text-slate-300');
+                seletorDif.classList.replace('bg-slate-100', 'bg-slate-800');
+                seletorDif.classList.replace('text-slate-700', 'text-slate-300');
+                btnTema.innerHTML = '<i data-lucide="sun" class="w-5 h-5"></i>';
+            } else {
+                corpo.className = "transition-colors duration-300 bg-slate-50 text-slate-800 min-h-screen";
+                cartao.classList.replace('bg-slate-900', 'bg-white');
+                cartao.classList.replace('border-slate-800', 'border-slate-100');
+                distintivo.classList.replace('bg-amber-900/30', 'bg-amber-50');
+                distintivo.classList.replace('text-amber-400', 'text-amber-600');
+                contentorTela.classList.replace('bg-slate-800', 'bg-white');
+                contentorTela.classList.replace('border-slate-700', 'border-slate-200');
+                btnReiniciar.classList.replace('bg-slate-800', 'bg-slate-100');
+                btnReiniciar.classList.replace('text-slate-300', 'text-slate-700');
+                btnDica.classList.replace('bg-slate-800', 'bg-slate-100');
+                btnDica.classList.replace('text-slate-300', 'text-slate-700');
+                seletorDif.classList.replace('bg-slate-800', 'bg-slate-100');
+                seletorDif.classList.replace('text-slate-300', 'text-slate-700');
+                btnTema.innerHTML = '<i data-lucide="moon" class="w-5 h-5"></i>';
+            }
+            lucide.createIcons();
+            desenhar();
+        });
+
+        document.getElementById('alternar-dica').addEventListener('click', function() {
+            mostrarSolucao = !mostrarSolucao;
+            const texto = this.querySelector('span');
+            if (mostrarSolucao) {
+                this.classList.add('bg-red-500/20', 'text-red-400');
+                texto.textContent = 'Ocultar Dica';
+            } else {
+                this.classList.remove('bg-red-500/20', 'text-red-400');
+                texto.textContent = 'Dica';
+            }
+            desenhar();
+        });
+
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowUp') mover(0, -1);
+            if (e.key === 'ArrowDown') mover(0, 1);
+            if (e.key === 'ArrowLeft') mover(-1, 0);
+            if (e.key === 'ArrowRight') mover(1, 0);
+        });
+
+        // Inicializar
+        lucide.createIcons();
+        reiniciarJogo();
+
+    </script>
+</body>
+</html>

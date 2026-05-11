@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="pt-pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Neon Shadow Labyrinth</title>
+    <style>
+        :root {
+            --azul-neon: #00f3ff;
+            --roxo-neon: #bc13fe;
+            --rosa-neon: #ff00de;
+            --fundo-escuro: #0a0a0c;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--fundo-escuro);
+            color: white;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            overflow: hidden;
+            touch-action: none;
+        }
+
+        #contentor-jogo {
+            position: relative;
+            box-shadow: 0 0 20px rgba(0, 243, 255, 0.2);
+            border: 2px solid var(--azul-neon);
+            border-radius: 8px;
+        }
+
+        canvas {
+            display: block;
+            background: #000;
+            cursor: none;
+        }
+
+        .interface-topo {
+            position: absolute;
+            top: -50px;
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--azul-neon);
+        }
+
+        .camada-sobreposicao {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            text-align: center;
+            transition: opacity 0.3s;
+        }
+
+        .escondido {
+            display: none !important;
+        }
+
+        h1 {
+            color: var(--rosa-neon);
+            text-shadow: 0 0 10px var(--rosa-neon);
+            margin-bottom: 10px;
+        }
+
+        button {
+            background: transparent;
+            color: var(--azul-neon);
+            border: 2px solid var(--azul-neon);
+            padding: 10px 30px;
+            font-size: 1.2rem;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 20px;
+            border-radius: 5px;
+        }
+
+        button:hover {
+            background: var(--azul-neon);
+            color: black;
+            box-shadow: 0 0 15px var(--azul-neon);
+        }
+
+        .dica-controlos {
+            margin-top: 20px;
+            font-size: 0.8rem;
+            color: #888;
+        }
+
+        #controlos-moveis {
+            display: none;
+            margin-top: 20px;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+
+        @media (max-height: 600px) {
+            .interface-topo { top: -40px; font-size: 0.8rem; }
+        }
+
+        @media (pointer: coarse) {
+            #controlos-moveis { display: grid; }
+        }
+
+        .botao-controlo {
+            width: 50px;
+            height: 50px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--azul-neon);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--azul-neon);
+            user-select: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="contentor-jogo">
+        <div class="interface-topo">
+            <div id="visor-nivel">Nível: 1</div>
+            <div id="visor-tempo">Tempo: 60s</div>
+        </div>
+
+        <canvas id="ecraJogo"></canvas>
+
+        <!-- Menu Inicial -->
+        <div id="camada-inicial" class="camada-sobreposicao">
+            <h1>Labirinto Diferente</h1>
+            <p>Encontra a saída no labirinto de sombras.</p>
+            <button onclick="iniciarJogo()">Começar Jogo</button>
+            <p class="dica-controlos">Usa as SETAS ou WASD para mover</p>
+        </div>
+
+        <!-- Ecrã de Mensagens (Vitória/Derrota) -->
+        <div id="camada-mensagem" class="camada-sobreposicao escondido">
+            <h1 id="titulo-mensagem">VITÓRIA!</h1>
+            <p id="corpo-mensagem">Conseguiste chegar à saída.</p>
+            <button onclick="proximoNivel()" id="botao-mensagem">Próximo Nível</button>
+        </div>
+    </div>
+
+    <!-- Botões para ecrãs táteis -->
+    <div id="controlos-moveis">
+        <div></div>
+        <div class="botao-controlo" onpointerdown="moverJogador('cima')">▲</div>
+        <div></div>
+        <div class="botao-controlo" onpointerdown="moverJogador('esquerda')">◀</div>
+        <div class="botao-controlo" onpointerdown="moverJogador('baixo')">▼</div>
+        <div class="botao-controlo" onpointerdown="moverJogador('direita')">▶</div>
+    </div>
+
+    <script>
+        const ecra = document.getElementById('ecraJogo');
+        const contexto = ecra.getContext('2d');
+        const visorNivel = document.getElementById('visor-nivel');
+        const visorTempo = document.getElementById('visor-tempo');
+        const camadaInicial = document.getElementById('camada-inicial');
+        const camadaMensagem = document.getElementById('camada-mensagem');
+        const tituloMensagem = document.getElementById('titulo-mensagem');
+        const corpoMensagem = document.getElementById('corpo-mensagem');
+        const botaoMensagem = document.getElementById('botao-mensagem');
+
+        // Estado do Jogo
+        let tamanhoGrelha = 15; 
+        let tamanhoCelula;
+        let labirinto = [];
+        let jogador = { x: 1, y: 1 };
+        let saida = { x: 0, y: 0 };
+        let nivelAtual = 1;
+        let tempoRestante = 60;
+        let intervaloTemporizador;
+        let jogoAtivo = false;
+        let raioLuz = 2.5; // Distância que o jogador consegue ver
+
+        function redimensionar() {
+            const tamanho = Math.min(window.innerWidth * 0.9, window.innerHeight * 0.7, 600);
+            ecra.width = tamanho;
+            ecra.height = tamanho;
+            tamanhoCelula = ecra.width / tamanhoGrelha;
+            if (jogoAtivo) desenhar();
+        }
+
+        window.addEventListener('resize', redimensionar);
+        redimensionar();
+
+        class Celula {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.eParede = true;
+                this.visitada = false;
+            }
+        }
+
+        function gerarLabirinto() {
+            // Aumenta a complexidade com o nível
+            tamanhoGrelha = 13 + (nivelAtual * 2); 
+            if (tamanhoGrelha > 35) tamanhoGrelha = 35; 
+            tamanhoCelula = ecra.width / tamanhoGrelha;
+
+            // Inicializar matriz
+            labirinto = [];
+            for (let y = 0; y < tamanhoGrelha; y++) {
+                labirinto[y] = [];
+                for (let x = 0; x < tamanhoGrelha; x++) {
+                    labirinto[y][x] = new Celula(x, y);
+                }
+            }
+
+            // Algoritmo de DFS (Depth-First Search) para caminhos perfeitos
+            const pilha = [];
+            const celulaInicial = labirinto[1][1];
+            celulaInicial.eParede = false;
+            celulaInicial.visitada = true;
+            pilha.push(celulaInicial);
+
+            while (pilha.length > 0) {
+                const atual = pilha[pilha.length - 1];
+                const vizinhos = obterVizinhos(atual);
+
+                if (vizinhos.length > 0) {
+                    const proximo = vizinhos[Math.floor(Math.random() * vizinhos.length)];
+                    // Abrir caminho removendo a parede intermédia
+                    const paredeX = atual.x + (proximo.x - atual.x) / 2;
+                    const paredeY = atual.y + (proximo.y - atual.y) / 2;
+                    labirinto[paredeY][paredeX].eParede = false;
+                    
+                    proximo.eParede = false;
+                    proximo.visitada = true;
+                    pilha.push(proximo);
+                } else {
+                    pilha.pop();
+                }
+            }
+
+            // Definir ponto de saída no canto oposto
+            saida = { x: tamanhoGrelha - 2, y: tamanhoGrelha - 2 };
+            labirinto[saida.y][saida.x].eParede = false;
+            
+            // Resetar posição do jogador
+            jogador = { x: 1, y: 1 };
+        }
+
+        function obterVizinhos(celula) {
+            const vizinhos = [];
+            const direcoes = [
+                { x: 0, y: -2 }, { x: 2, y: 0 },
+                { x: 0, y: 2 }, { x: -2, y: 0 }
+            ];
+
+            direcoes.forEach(d => {
+                const nx = celula.x + d.x;
+                const ny = celula.y + d.y;
+                if (nx > 0 && nx < tamanhoGrelha - 1 && ny > 0 && ny < tamanhoGrelha - 1) {
+                    if (!labirinto[ny][nx].visitada) {
+                        vizinhos.push(labirinto[ny][nx]);
+                    }
+                }
+            });
+            return vizinhos;
+        }
+
+        function desenhar() {
+            contexto.clearRect(0, 0, ecra.width, ecra.height);
+
+            // 1. Desenhar o Labirinto Base
+            for (let y = 0; y < tamanhoGrelha; y++) {
+                for (let x = 0; x < tamanhoGrelha; x++) {
+                    if (labirinto[y][x].eParede) {
+                        contexto.fillStyle = '#1a1a22';
+                        contexto.fillRect(x * tamanhoCelula, y * tamanhoCelula, tamanhoCelula, tamanhoCelula);
+                        contexto.strokeStyle = 'rgba(0, 243, 255, 0.05)';
+                        contexto.strokeRect(x * tamanhoCelula, y * tamanhoCelula, tamanhoCelula, tamanhoCelula);
+                    }
+                }
+            }
+
+            // 2. Desenhar Saída (Rosa Neon)
+            contexto.fillStyle = obterCorVar('--rosa-neon');
+            contexto.shadowBlur = 15;
+            contexto.shadowColor = obterCorVar('--rosa-neon');
+            contexto.fillRect(saida.x * tamanhoCelula + tamanhoCelula * 0.2, saida.y * tamanhoCelula + tamanhoCelula * 0.2, tamanhoCelula * 0.6, tamanhoCelula * 0.6);
+            contexto.shadowBlur = 0;
+
+            // 3. Desenhar Jogador (Círculo Azul)
+            contexto.fillStyle = obterCorVar('--azul-neon');
+            contexto.shadowBlur = 10;
+            contexto.shadowColor = obterCorVar('--azul-neon');
+            contexto.beginPath();
+            contexto.arc(
+                jogador.x * tamanhoCelula + tamanhoCelula / 2,
+                jogador.y * tamanhoCelula + tamanhoCelula / 2,
+                tamanhoCelula / 3, 0, Math.PI * 2
+            );
+            contexto.fill();
+            contexto.shadowBlur = 0;
+
+            // 4. Aplicar Máscara de Iluminação (Shadow Fog)
+            aplicarNevoeiro();
+        }
+
+        function aplicarNevoeiro() {
+            const pX = jogador.x * tamanhoCelula + tamanhoCelula / 2;
+            const pY = jogador.y * tamanhoCelula + tamanhoCelula / 2;
+            const raioReal = tamanhoCelula * raioLuz;
+
+            // Cria o círculo de luz onde o jogador está
+            const gradiente = contexto.createRadialGradient(pX, pY, raioReal * 0.2, pX, pY, raioReal);
+            gradiente.addColorStop(0, 'transparent');
+            gradiente.addColorStop(0.8, 'rgba(0, 0, 0, 0.7)');
+            gradiente.addColorStop(1, 'rgba(0, 0, 0, 1)');
+
+            // Recortar a área visível
+            contexto.globalCompositeOperation = 'destination-in';
+            contexto.fillStyle = 'white';
+            contexto.beginPath();
+            contexto.arc(pX, pY, raioReal, 0, Math.PI * 2);
+            contexto.fill();
+            
+            // Pintar o resto de preto
+            contexto.globalCompositeOperation = 'destination-over';
+            contexto.fillStyle = 'black';
+            contexto.fillRect(0, 0, ecra.width, ecra.height);
+            
+            // Resetar modo de composição
+            contexto.globalCompositeOperation = 'source-over';
+        }
+
+        function obterCorVar(nome) {
+            return getComputedStyle(document.documentElement).getPropertyValue(nome).trim();
+        }
+
+        function moverJogador(direcao) {
+            if (!jogoAtivo) return;
+
+            let dx = 0, dy = 0;
+            if (direcao === 'cima') dy = -1;
+            if (direcao === 'baixo') dy = 1;
+            if (direcao === 'esquerda') dx = -1;
+            if (direcao === 'direita') dx = 1;
+
+            const proximoX = jogador.x + dx;
+            const proximoY = jogador.y + dy;
+
+            // Verificar se está dentro da grelha e não é parede
+            if (proximoX >= 0 && proximoX < tamanhoGrelha && proximoY >= 0 && proximoY < tamanhoGrelha) {
+                if (!labirinto[proximoY][proximoX].eParede) {
+                    jogador.x = proximoX;
+                    jogador.y = proximoY;
+                    desenhar();
+                    verificarVitoria();
+                }
+            }
+        }
+
+        function verificarVitoria() {
+            if (jogador.x === saida.x && jogador.y === saida.y) {
+                finalizarJogo(true);
+            }
+        }
+
+        function iniciarJogo() {
+            nivelAtual = 1;
+            tempoRestante = 60;
+            camadaInicial.classList.add('escondido');
+            camadaMensagem.classList.add('escondido');
+            inicializarNivel();
+        }
+
+        function proximoNivel() {
+            nivelAtual++;
+            tempoRestante += 30; // Bónus de tempo
+            if (tempoRestante > 150) tempoRestante = 150;
+            camadaMensagem.classList.add('escondido');
+            inicializarNivel();
+        }
+
+        function inicializarNivel() {
+            jogoAtivo = true;
+            visorNivel.innerText = `Nível: ${nivelAtual}`;
+            gerarLabirinto();
+            desenhar();
+            
+            // Gerir o temporizador
+            clearInterval(intervaloTemporizador);
+            intervaloTemporizador = setInterval(() => {
+                tempoRestante--;
+                visorTempo.innerText = `Tempo: ${tempoRestante}s`;
+                if (tempoRestante <= 0) {
+                    finalizarJogo(false);
+                }
+            }, 1000);
+        }
+
+        function finalizarJogo(vitoria) {
+            jogoAtivo = false;
+            clearInterval(intervaloTemporizador);
+            camadaMensagem.classList.remove('escondido');
+            
+            if (vitoria) {
+                tituloMensagem.innerText = "NÍVEL CONCLUÍDO!";
+                tituloMensagem.style.color = obterCorVar('--azul-neon');
+                corpoMensagem.innerText = `Chegaste à saída com ${tempoRestante}s disponíveis.`;
+                botaoMensagem.innerText = "Próximo Nível";
+                botaoMensagem.onclick = proximoNivel;
+            } else {
+                tituloMensagem.innerText = "TEMPO ESGOTADO!";
+                tituloMensagem.style.color = obterCorVar('--rosa-neon');
+                corpoMensagem.innerText = `Ficaste perdido nas sombras no nível ${nivelAtual}.`;
+                botaoMensagem.innerText = "Tentar Novamente";
+                botaoMensagem.onclick = iniciarJogo;
+            }
+        }
+
+        window.addEventListener('keydown', (e) => {
+            const tecla = e.key.toLowerCase();
+            if (tecla === 'arrowup' || tecla === 'w') moverJogador('cima');
+            if (tecla === 'arrowdown' || tecla === 's') moverJogador('baixo');
+            if (tecla === 'arrowleft' || tecla === 'a') moverJogador('esquerda');
+            if (tecla === 'arrowright' || tecla === 'd') moverJogador('direita');
+        });
+
+        // Suporte para Swipe (Deslizar) em dispositivos móveis
+        let toqueInicioX = 0;
+        let toqueInicioY = 0;
+
+        ecra.addEventListener('touchstart', (e) => {
+            toqueInicioX = e.touches[0].clientX;
+            toqueInicioY = e.touches[0].clientY;
+            e.preventDefault();
+        }, { passive: false });
+
+        ecra.addEventListener('touchend', (e) => {
+            const toqueFimX = e.changedTouches[0].clientX;
+            const toqueFimY = e.changedTouches[0].clientY;
+            
+            const difX = toqueFimX - toqueInicioX;
+            const difY = toqueFimY - toqueInicioY;
+            
+            // Determina se o movimento foi mais horizontal ou vertical
+            if (Math.abs(difX) > Math.abs(difY)) {
+                if (Math.abs(difX) > 30) moverJogador(difX > 0 ? 'direita' : 'esquerda');
+            } else {
+                if (Math.abs(difY) > 30) moverJogador(difY > 0 ? 'baixo' : 'cima');
+            }
+        }, { passive: false });
+
+    </script>
+</body>
+</html>

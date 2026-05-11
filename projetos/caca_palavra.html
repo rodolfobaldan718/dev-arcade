@@ -1,504 +1,554 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Caça-Palavras Profissional</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Caça-Palavras Gerador</title>
+    <!-- Tailwind CSS para estilização -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f0f4f8;
-            height: 100vh;
-            overflow: hidden; /* Evita a rolagem */
-        }
-        .container {
-            background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
-            border-radius: 1.5rem;
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
-        }
-        #game-board {
-            display: grid;
-            border-radius: 0.75rem;
-            overflow: hidden;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        .grid-cell {
-            width: 100%;
-            height: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 1.2rem;
-            font-weight: bold;
-            color: #d1d5db;
-            background-color: #374151;
-            border: 1px solid #4b5563;
+        /* Ajustes para evitar a seleção de texto nativa do dispositivo móvel ao deslizar o dedo */
+        .selecao-nula {
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
             user-select: none;
-            cursor: pointer;
-            transition: all 0.2s ease-in-out;
-        }
-        .grid-cell:hover {
-            background-color: #4b5563;
-        }
-        .grid-cell.selected {
-            background-color: #6ee7b7;
-            color: #111827;
-        }
-        .grid-cell.found {
-            background-color: #10b981;
-            color: #ffffff;
-            animation: bounceIn 0.5s ease-in-out;
-        }
-        #word-list {
-            background-color: #374151;
-            border-radius: 0.75rem;
-            padding: 1rem;
-            color: #d1d5db;
-        }
-        #word-list h2 {
-            color: #a1a1a1;
-        }
-        .word {
-            text-decoration: none;
-            transition: all 0.2s ease-in-out;
-        }
-        .word.found {
-            text-decoration: line-through;
-            color: #10b981;
-            font-style: italic;
-        }
-        #message-box {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%) scale(0.8);
-            background-color: rgba(17, 24, 39, 0.95);
-            color: #fff;
-            padding: 2rem;
-            border-radius: 1rem;
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
-            text-align: center;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s ease-in-out;
-            z-index: 100;
-        }
-        #message-box.show {
-            opacity: 1;
-            visibility: visible;
-            transform: translate(-50%, -50%) scale(1);
-        }
-        #message-box h3 {
-            font-size: 2rem;
-            font-weight: bold;
-            margin-bottom: 1rem;
-            color: #6ee7b7;
-        }
-        #message-box p {
-            margin-bottom: 1.5rem;
-        }
-        #message-box button {
-            background-color: #10b981;
-            color: #fff;
-            padding: 0.75rem 2rem;
-            border-radius: 0.5rem;
-            font-weight: bold;
-            transition: background-color 0.2s;
-        }
-        #message-box button:hover {
-            background-color: #059669;
-        }
-        @keyframes bounceIn {
-            0% { transform: scale(0.5); opacity: 0; }
-            100% { transform: scale(1); opacity: 1; }
-        }
-        .spinner {
-            border: 4px solid rgba(255, 255, 255, 0.1);
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            border-left-color: #6ee7b7;
-            animation: spin 1s ease infinite;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        /* Mobile specific styles */
-        @media (max-width: 768px) {
-            .grid-cell {
-                font-size: 0.8rem;
-            }
-            #word-list {
-                margin-top: 1rem;
-            }
         }
     </style>
 </head>
-<body class="bg-gray-200 flex items-center justify-center h-screen w-screen p-4">
+<body class="bg-gray-50 text-black font-sans selecao-nula overflow-x-hidden">
 
-    <div id="game-container" class="container h-full w-full max-w-7xl p-8 flex flex-col md:flex-row gap-8">
-        <!-- Game Board Section -->
-        <div class="flex-1 flex flex-col items-center justify-center">
-            <h1 class="text-3xl md:text-4xl font-bold mb-4 text-white">Caça-Palavras</h1>
-            <div id="game-board" class="w-full h-full aspect-square md:w-96 md:h-96 max-w-md max-h-md"></div>
-        </div>
-
-        <!-- Word List Section -->
-        <div id="word-list" class="flex-none w-full md:w-64 flex flex-col items-center">
-            <h2 class="text-xl font-bold mb-4 text-center md:text-left">Palavras para Encontrar:</h2>
-            <ul id="word-list-items" class="list-none p-0 flex flex-wrap gap-2 justify-center md:flex-col md:justify-start md:gap-0"></ul>
-            <div id="loading-spinner" class="mt-4 hidden">
-                <div class="spinner"></div>
-                <p class="text-white mt-2">Gerando palavras...</p>
-            </div>
-        </div>
-    </div>
-
-    <!-- Message Box -->
-    <div id="message-box" class="hidden">
-        <h3 id="message-title"></h3>
-        <p id="message-text"></p>
-        <button id="message-button">Jogar Novamente</button>
-    </div>
+    <!-- Container principal onde a interface será renderizada -->
+    <div id="aplicativo"></div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            let words = [];
-            const boardSize = 12;
-            const board = [];
-            const foundWords = new Set();
-            let selectedCells = [];
-            let isDragging = false;
-            let startCell = null;
+        // --- BANCO DE PALAVRAS PRONTAS (Mais de 50 palavras) ---
+        // Usado para a funcionalidade de preenchimento aleatório e prático
+        const bancoDePalavras = [
+            "SOL", "CHUVA", "VENTO", "PRAIA", "MAR", "MONTANHA", "RIO", "LUA", "ESTRELA", "FLOR", "ARVORE", "FOLHA",
+            "CAO", "GATO", "LEAO", "TIGRE", "URSO", "PEIXE", "PASSARO", "COBRA", "SAPO", "RATO", "CAVALO", "VACA",
+            "AMOR", "FELIZ", "PAZ", "RAIVA", "MEDO", "TRISTEZA", "CALMA", "ALEGRIA", "SAUDADE", "CORAGEM", "SORRISO",
+            "CAFE", "COMIDA", "BOLO", "PAO", "QUEIJO", "ARROZ", "CARNE", "FRUTA", "DOCE", "LEITE", "OVO", "SALADA",
+            "LIVRO", "LUZ", "CARRO", "CASA", "MESA", "CADEIRA", "PORTA", "JANELA", "RELOGIO", "SAPATO", "ROUPA", "FOGO"
+        ];
 
-            const boardElement = document.getElementById('game-board');
-            const wordListElement = document.getElementById('word-list-items');
-            const messageBox = document.getElementById('message-box');
-            const messageTitle = document.getElementById('message-title');
-            const messageText = document.getElementById('message-text');
-            const messageButton = document.getElementById('message-button');
-            const loadingSpinner = document.getElementById('loading-spinner');
+        // --- PALETA DE CORES PARA AS PALAVRAS ---
+        // Define as cores de fundo (bg) e texto (text) que serão usadas quando uma palavra for achada
+        const paletaCores = [
+            { fundo: 'bg-red-200', texto: 'text-red-900' },
+            { fundo: 'bg-blue-200', texto: 'text-blue-900' },
+            { fundo: 'bg-green-200', texto: 'text-green-900' },
+            { fundo: 'bg-yellow-200', texto: 'text-yellow-900' },
+            { fundo: 'bg-purple-200', texto: 'text-purple-900' },
+            { fundo: 'bg-pink-200', texto: 'text-pink-900' },
+            { fundo: 'bg-teal-200', texto: 'text-teal-900' },
+            { fundo: 'bg-orange-200', texto: 'text-orange-900' },
+            { fundo: 'bg-indigo-200', texto: 'text-indigo-900' },
+            { fundo: 'bg-cyan-200', texto: 'text-cyan-900' },
+            { fundo: 'bg-lime-200', texto: 'text-lime-900' }
+        ];
 
-            // Initialize the board with empty cells
-            function initializeBoard() {
-                boardElement.innerHTML = '';
-                boardElement.style.gridTemplateColumns = `repeat(${boardSize}, 1fr)`;
-                for (let i = 0; i < boardSize * boardSize; i++) {
-                    board[i] = '';
-                    const cell = document.createElement('div');
-                    cell.className = 'grid-cell';
-                    cell.dataset.index = i;
-                    boardElement.appendChild(cell);
-                }
-            }
+        // --- ESTADO GLOBAL DO JOGO ---
+        let estadoJogo = 'configuracao'; // Pode ser 'configuracao' (tela inicial) ou 'jogando' (tela da grelha)
+        let palavrasEntrada = Array(11).fill(''); // Guarda as palavras digitadas ou geradas pelo usuário
+        
+        let grelha = []; // A matriz bidimensional (linhas e colunas) que contém as letras do caça-palavras
+        let palavrasDoJogo = []; // Lista de objetos contendo a palavra, status (achou/não achou) e cor
+        let tamanhoGrelha = 0; // Tamanho atual da matriz gerada (ex: 12x12)
+        let inicioArrasto = null; // Coordenada de início [linha, coluna] quando o jogador clica/toca
+        let arrastoAtual = null; // Coordenada atual [linha, coluna] enquanto o jogador arrasta
+        let celulasEncontradas = new Map(); // Guarda as células já encontradas e suas respectivas cores
+        let venceu = false; // Define se o jogador já encontrou todas as palavras
 
-            // Shuffle an array
-            function shuffle(array) {
-                for (let i = array.length - 1; i > 0; i--) {
-                    const j = Math.floor(Math.random() * (i + 1));
-                    [array[i], array[j]] = [array[j], array[i]];
-                }
-            }
+        // Ícones SVG para os botões da interface
+        const icones = {
+            jogar: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>`,
+            voltar: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>`,
+            reiniciar: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>`,
+            lampada: `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.9 1.2 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg>`,
+            dado: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><circle cx="8" cy="8" r="2"></circle><circle cx="16" cy="16" r="2"></circle><circle cx="8" cy="16" r="2"></circle><circle cx="16" cy="8" r="2"></circle></svg>`
+        };
 
-            // Get words from Gemini API
-            async function getWordsFromAI() {
-                const systemPrompt = "Gere uma lista de 10 palavras em português, de dificuldade média, para um jogo de caça-palavras. As palavras devem ser relacionadas ao tema \"tecnologia\". Responda apenas com a lista de palavras, separadas por vírgulas e em letras maiúsculas.";
-                const userQuery = "Gere as palavras.";
-                const apiKey = "";
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+        // --- LÓGICA DE GERAÇÃO DO QUEBRA-CABEÇA ---
+        function gerarQuebraCabeca(listaDePalavras) {
+            // Remove espaços extras e ignora palavras muito pequenas ou vazias
+            const palavrasLimpas = listaDePalavras
+                .map(p => p.trim().toUpperCase())
+                .filter(p => p.length > 1);
 
-                const payload = {
-                    contents: [{ parts: [{ text: userQuery }] }],
-                    systemInstruction: {
-                        parts: [{ text: systemPrompt }]
-                    },
-                };
+            if (palavrasLimpas.length === 0) return null;
 
-                try {
-                    const response = await fetch(apiUrl, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
-                    });
+            // O tamanho inicial da grelha é baseado na maior palavra + uma pequena margem (mínimo de 10)
+            let tamanho = Math.max(10, ...palavrasLimpas.map(p => p.length)) + 2;
+            
+            // As 8 direções possíveis no caça-palavras [linha, coluna]
+            const direcoes = [
+                [0, 1], [1, 0], [1, 1], [-1, 1],   // Direita, Baixo, Diagonais direitas
+                [0, -1], [-1, 0], [-1, -1], [1, -1] // Esquerda, Cima, Diagonais esquerdas
+            ];
 
-                    if (!response.ok) {
-                        throw new Error(`Erro na API: ${response.statusText}`);
-                    }
+            let grelhaGerada = [];
+            let objetosPalavrasPosicionadas = [];
+            let obteveSucesso = false;
+            let tentativas = 0;
 
-                    const result = await response.json();
-                    const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
-                    if (text) {
-                        return text.split(',').map(word => word.trim().toUpperCase());
-                    } else {
-                        return ["API", "FALHOU", "TENTE", "NOVAMENTE"];
-                    }
-                } catch (error) {
-                    console.error('Erro ao gerar palavras:', error);
-                    return ["API", "FALHOU", "TENTE", "NOVAMENTE"];
-                }
-            }
+            // Tenta criar a matriz encaixando as palavras. Aumenta a matriz caso não caiba.
+            while (!obteveSucesso && tentativas < 15) {
+                // Cria matriz preenchida com strings vazias
+                grelhaGerada = Array(tamanho).fill(null).map(() => Array(tamanho).fill(''));
+                objetosPalavrasPosicionadas = [];
+                obteveSucesso = true;
 
-            // Try to place a word on the board
-            function placeWord(word) {
-                const directions = [
-                    [1, 0],   // Horizontal
-                    [0, 1],   // Vertical
-                    [1, 1],   // Diagonal down-right
-                    [1, -1]   // Diagonal down-left
-                ];
-                shuffle(directions);
+                // Ordena palavras das maiores para as menores para encaixar as mais difíceis primeiro
+                const palavrasOrdenadas = [...palavrasLimpas].sort((a, b) => b.length - a.length);
+                let indiceDeCor = 0; // Para rotacionar as cores da paleta
 
-                for (const [dx, dy] of directions) {
-                    const positions = [];
-                    for (let y = 0; y < boardSize; y++) {
-                        for (let x = 0; x < boardSize; x++) {
-                            positions.push({ x, y });
-                        }
-                    }
-                    shuffle(positions);
+                for (let palavra of palavrasOrdenadas) {
+                    let posicionou = false;
+                    let tentativasPalavra = 0;
 
-                    for (const { x, y } of positions) {
-                        let canPlace = true;
-                        const wordLength = word.length;
-                        const cellsToPlace = [];
+                    // Tenta posicionar uma palavra específica na grelha até 300 vezes
+                    while (!posicionou && tentativasPalavra < 300) {
+                        const dir = direcoes[Math.floor(Math.random() * direcoes.length)];
+                        const linha = Math.floor(Math.random() * tamanho);
+                        const coluna = Math.floor(Math.random() * tamanho);
 
-                        for (let i = 0; i < wordLength; i++) {
-                            const newX = x + i * dx;
-                            const newY = y + i * dy;
-                            const newIndex = newY * boardSize + newX;
+                        let podePosicionar = true;
+                        
+                        // Verifica se a palavra cabe nessa posição e direção sem sobrepor incorretamente
+                        for (let i = 0; i < palavra.length; i++) {
+                            const novaLinha = linha + i * dir[0];
+                            const novaColuna = coluna + i * dir[1];
 
-                            if (newX >= boardSize || newY >= boardSize || newX < 0 || newY < 0 || (board[newIndex] !== '' && board[newIndex] !== word[i])) {
-                                canPlace = false;
+                            // Fora dos limites da matriz
+                            if (novaLinha < 0 || novaLinha >= tamanho || novaColuna < 0 || novaColuna >= tamanho) {
+                                podePosicionar = false;
                                 break;
                             }
-                            cellsToPlace.push({ index: newIndex, letter: word[i] });
-                        }
 
-                        if (canPlace) {
-                            for (const { index, letter } of cellsToPlace) {
-                                board[index] = letter;
+                            // Verifica se já tem uma letra diferente ocupando a célula
+                            const caractereExistente = grelhaGerada[novaLinha][novaColuna];
+                            if (caractereExistente !== '' && caractereExistente !== palavra[i]) {
+                                podePosicionar = false;
+                                break;
                             }
-                            return true;
-                        }
-                    }
-                }
-                return false;
-            }
-
-            // Fill empty cells with random letters
-            function fillEmptyCells() {
-                const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-                for (let i = 0; i < board.length; i++) {
-                    if (board[i] === '') {
-                        board[i] = alphabet.charAt(Math.floor(Math.random() * alphabet.length));
-                    }
-                }
-            }
-
-            // Render the board
-            function renderBoard() {
-                const cells = boardElement.children;
-                for (let i = 0; i < board.length; i++) {
-                    cells[i].textContent = board[i];
-                }
-            }
-
-            // Render the word list
-            function renderWordList() {
-                wordListElement.innerHTML = '';
-                words.forEach(word => {
-                    const li = document.createElement('li');
-                    li.textContent = word;
-                    li.className = 'word text-sm md:text-base font-medium transition-all duration-200';
-                    li.dataset.word = word;
-                    wordListElement.appendChild(li);
-                });
-            }
-
-            // Handle start of selection
-            function handleMouseDown(e) {
-                e.preventDefault();
-                const cell = e.target.closest('.grid-cell');
-                if (!cell) return;
-                isDragging = true;
-                startCell = cell;
-                selectedCells = [cell];
-                cell.classList.add('selected');
-            }
-
-            // Handle movement during selection
-            function handleMouseMove(e) {
-                if (!isDragging) return;
-                const cell = e.target.closest('.grid-cell');
-                if (!cell || selectedCells.includes(cell)) return;
-
-                const newCellIndex = parseInt(cell.dataset.index);
-                const lastCellIndex = parseInt(selectedCells[selectedCells.length - 1].dataset.index);
-
-                // Check for valid continuous movement
-                const rowStart = Math.floor(parseInt(startCell.dataset.index) / boardSize);
-                const colStart = parseInt(startCell.dataset.index) % boardSize;
-                const rowNew = Math.floor(newCellIndex / boardSize);
-                const colNew = newCellIndex % boardSize;
-
-                const dRow = Math.abs(rowNew - rowStart);
-                const dCol = Math.abs(colNew - colStart);
-
-                if (dRow === dCol || dRow === 0 || dCol === 0) {
-                    // It's a straight line, add all cells in between
-                    const cellsInBetween = getCellsInLine(startCell, cell);
-                    if (cellsInBetween.length === selectedCells.length + 1) {
-                        // Clear previous selection and add new line
-                        selectedCells.forEach(c => c.classList.remove('selected'));
-                        selectedCells = cellsInBetween;
-                        selectedCells.forEach(c => c.classList.add('selected'));
-                    }
-                }
-            }
-
-            // Get all cells in a straight line between two points
-            function getCellsInLine(startCell, endCell) {
-                const startIndex = parseInt(startCell.dataset.index);
-                const endIndex = parseInt(endCell.dataset.index);
-                const startRow = Math.floor(startIndex / boardSize);
-                const startCol = startIndex % boardSize;
-                const endRow = Math.floor(endIndex / boardSize);
-                const endCol = endIndex % boardSize;
-
-                const cells = [];
-                let dx = 0, dy = 0;
-                if (startCol < endCol) dx = 1;
-                else if (startCol > endCol) dx = -1;
-                if (startRow < endRow) dy = 1;
-                else if (startRow > endRow) dy = -1;
-
-                let x = startCol;
-                let y = startRow;
-                while (true) {
-                    const index = y * boardSize + x;
-                    cells.push(boardElement.children[index]);
-                    if (x === endCol && y === endRow) break;
-                    x += dx;
-                    y += dy;
-                }
-                return cells;
-            }
-
-            // Handle end of selection
-            function handleMouseUp() {
-                isDragging = false;
-                if (selectedCells.length > 1) {
-                    const word = selectedCells.map(cell => cell.textContent).join('');
-                    const reversedWord = word.split('').reverse().join('');
-
-                    let found = false;
-                    const normalizedWord = word.toUpperCase();
-                    const normalizedReversed = reversedWord.toUpperCase();
-
-                    if (words.includes(normalizedWord) && !foundWords.has(normalizedWord)) {
-                        found = true;
-                        foundWords.add(normalizedWord);
-                    } else if (words.includes(normalizedReversed) && !foundWords.has(normalizedReversed)) {
-                        found = true;
-                        foundWords.add(normalizedReversed);
-                    }
-
-                    if (found) {
-                        selectedCells.forEach(cell => {
-                            cell.classList.remove('selected');
-                            cell.classList.add('found');
-                        });
-                        
-                        const wordElement = document.querySelector(`[data-word="${normalizedWord}"]`) || document.querySelector(`[data-word="${normalizedReversed}"]`);
-                        if (wordElement) {
-                            wordElement.classList.add('found');
                         }
 
-                        if (foundWords.size === words.length) {
-                            showEndGameMessage(true);
+                        // Se puder posicionar, escreve na matriz e salva a palavra na lista
+                        if (podePosicionar) {
+                            for (let i = 0; i < palavra.length; i++) {
+                                grelhaGerada[linha + i * dir[0]][coluna + i * dir[1]] = palavra[i];
+                            }
+                            objetosPalavrasPosicionadas.push({ 
+                                texto: palavra, 
+                                achou: false,
+                                cor: paletaCores[indiceDeCor % paletaCores.length] // Atribui uma cor única
+                            });
+                            indiceDeCor++;
+                            posicionou = true;
                         }
+                        tentativasPalavra++;
+                    }
+
+                    // Se falhou ao colocar alguma palavra, a tentativa da matriz falhou inteira
+                    if (!posicionou) {
+                        obteveSucesso = false;
+                        break;
+                    }
+                }
+
+                if (!obteveSucesso) tamanho++; // Aumenta a matriz e tenta novamente
+                tentativas++;
+            }
+
+            if (!obteveSucesso) return null; // Falha grave após muitas tentativas
+
+            // Preenche os espaços vazios restantes com letras aleatórias do alfabeto
+            const alfabeto = "ABCDEFGHIJKLMNOPQRSTUVWXYZÁÉÍÓÚÂÊÎÔÛÃÕÇ";
+            for (let l = 0; l < tamanho; l++) {
+                for (let c = 0; c < tamanho; c++) {
+                    if (grelhaGerada[l][c] === '') {
+                        grelhaGerada[l][c] = alfabeto[Math.floor(Math.random() * alfabeto.length)];
+                    }
+                }
+            }
+
+            return { matriz: grelhaGerada, lista: objetosPalavrasPosicionadas, tamanhoMatriz: tamanho };
+        }
+
+        // Função utilitária: Pega as coordenadas do início ao fim formando uma linha reta ou diagonal
+        function obterCelulasDaLinha(inicio, fim) {
+            if (!inicio || !fim) return [];
+            const [l1, c1] = inicio;
+            const [l2, c2] = fim;
+
+            // Define a direção do movimento (-1, 0 ou 1)
+            const direcaoLinha = Math.sign(l2 - l1);
+            const direcaoColuna = Math.sign(c2 - c1);
+            // Conta os passos totais
+            const passos = Math.max(Math.abs(l2 - l1), Math.abs(c2 - c1));
+
+            // Garante que é uma linha perfeitamente reta ou diagonal (impede zigue-zague)
+            if (direcaoLinha !== 0 && direcaoColuna !== 0 && Math.abs(l2 - l1) !== Math.abs(c2 - c1)) return [];
+
+            const celulas = [];
+            for (let i = 0; i <= passos; i++) {
+                celulas.push([l1 + i * direcaoLinha, c1 + i * direcaoColuna]);
+            }
+            return celulas;
+        }
+
+        // --- MANIPULADORES DE EVENTOS E AÇÕES GLOBAIS ---
+        
+        // Atualiza a lista de palavras conforme o usuário digita na configuração
+        function lidarComMudancaDeEntrada(indice, valor) {
+            palavrasEntrada[indice] = valor;
+        }
+
+        // Sorteia 11 palavras aleatórias do banco e preenche a entrada
+        function preencherPalavrasAleatorias() {
+            // Embaralha o banco e pega as primeiras 11
+            const bancoEmbaralhado = [...bancoDePalavras].sort(() => 0.5 - Math.random());
+            const palavrasEscolhidas = bancoEmbaralhado.slice(0, 11);
+            
+            // Atualiza o estado da entrada e re-renderiza
+            palavrasEntrada = palavrasEscolhidas.concat(Array(11 - palavrasEscolhidas.length).fill(''));
+            renderizarInterface();
+        }
+
+        // Tenta gerar a grelha e transitar para a tela do Jogo
+        function iniciarNovoJogo() {
+            const quebraCabeca = gerarQuebraCabeca(palavrasEntrada);
+            if (quebraCabeca) {
+                grelha = quebraCabeca.matriz;
+                palavrasDoJogo = quebraCabeca.lista.sort((a, b) => a.texto.localeCompare(b.texto)); // Ordem alfabética
+                tamanhoGrelha = quebraCabeca.tamanhoMatriz;
+                celulasEncontradas = new Map(); // Zera o mapa
+                venceu = false;
+                estadoJogo = 'jogando';
+                renderizarInterface();
+            } else {
+                alert("Por favor, adicione pelo menos uma palavra válida para gerar o jogo.");
+            }
+        }
+
+        function mudarEstadoJogo(novoEstado) {
+            estadoJogo = novoEstado;
+            renderizarInterface();
+        }
+
+        // Função da lâmpada, mostra qual palavra falta
+        function exibirDica() {
+            const faltando = palavrasDoJogo.filter(p => !p.achou);
+            if (faltando.length === 0) return;
+            alert(`Dica: Faltam ${faltando.length} palavras! Tente procurar a palavra "${faltando[0].texto}".`);
+        }
+
+        // --- LÓGICA DE SELEÇÃO E INTERAÇÃO NA GRELHA ---
+        
+        // Ocorre ao clicar ou tocar em uma célula
+        function comecarSelecao(l, c) {
+            inicioArrasto = [l, c];
+            arrastoAtual = [l, c];
+            atualizarCoresDaGrelha();
+        }
+
+        // Ocorre ao arrastar o mouse/dedo sobre uma célula
+        function passarPelaCelula(l, c) {
+            if (inicioArrasto) {
+                arrastoAtual = [l, c];
+                atualizarCoresDaGrelha();
+            }
+        }
+
+        // Ocorre ao soltar o mouse ou levantar o dedo
+        function finalizarSelecao() {
+            if (!inicioArrasto || !arrastoAtual) return;
+
+            const linha = obterCelulasDaLinha(inicioArrasto, arrastoAtual);
+            if (linha.length > 0) {
+                // Monta a palavra baseada nas letras das células selecionadas
+                const palavraSelecionada = linha.map(([l, c]) => grelha[l][c]).join('');
+                // Pega a versão invertida da palavra também (caso o jogador selecione de trás pra frente)
+                const palavraInvertida = palavraSelecionada.split('').reverse().join('');
+
+                // Busca se essa palavra existe na lista do jogo
+                const indiceCorrespondente = palavrasDoJogo.findIndex(
+                    p => !p.achou && (p.texto === palavraSelecionada || p.texto === palavraInvertida)
+                );
+
+                // Se achou, marca como encontrada e pinta as células
+                if (indiceCorrespondente !== -1) {
+                    palavrasDoJogo[indiceCorrespondente].achou = true;
+                    const corDaPalavra = palavrasDoJogo[indiceCorrespondente].cor;
+                    
+                    // Salva a cor de cada célula no Map. Em interseções, a cor mais nova prevalece
+                    linha.forEach(([l, c]) => celulasEncontradas.set(`${l}-${c}`, corDaPalavra));
+                    atualizarListaVisualDePalavras();
+                }
+            }
+
+            // Reseta a seleção
+            inicioArrasto = null;
+            arrastoAtual = null;
+            atualizarCoresDaGrelha();
+            verificarSeVenceu();
+        }
+
+        // Verifica se completou todas as palavras
+        function verificarSeVenceu() {
+            if (palavrasDoJogo.length > 0 && palavrasDoJogo.every(p => p.achou)) {
+                venceu = true;
+                renderizarInterface(); // Atualiza a interface para mostrar o pop-up de vitória
+            }
+        }
+
+        // Eventos globais de mouseup e touchend para largar a linha mesmo que solte o clique fora da grelha
+        window.addEventListener('mouseup', () => { if (estadoJogo === 'jogando') finalizarSelecao(); });
+        window.addEventListener('touchend', () => { if (estadoJogo === 'jogando') finalizarSelecao(); });
+
+        // --- ATUALIZAÇÃO DO VISUAL DA GRELHA (DOM MANUAL) ---
+        // Funções separadas da renderização total para maior performance durante o arrasto do mouse
+        
+        function atualizarListaVisualDePalavras() {
+            palavrasDoJogo.forEach((p, i) => {
+                const elementoPalavra = document.getElementById(`palavra-${i}`);
+                if (elementoPalavra) {
+                    if (p.achou) {
+                        // Atribui fundo colorido e risca a palavra na lista lateral
+                        elementoPalavra.className = `px-3 py-1 rounded-md font-bold line-through ${p.cor.fundo} ${p.cor.texto} transition-all duration-300`;
                     } else {
-                        selectedCells.forEach(cell => cell.classList.remove('selected'));
+                        elementoPalavra.className = 'px-3 py-1 rounded-md font-bold text-black transition-all duration-300';
                     }
-                } else {
-                    selectedCells.forEach(cell => cell.classList.remove('selected'));
                 }
-                selectedCells = [];
-            }
+            });
+        }
 
-            // Show a message to the user
-            function showEndGameMessage(win) {
-                messageBox.classList.add('show');
-                if (win) {
-                    messageTitle.textContent = 'Parabéns!';
-                    messageText.textContent = 'Você encontrou todas as palavras!';
-                } else {
-                    messageTitle.textContent = 'Fim de Jogo';
-                    messageText.textContent = 'Tente novamente para encontrar todas as palavras.';
+        function atualizarCoresDaGrelha() {
+            const linhaArrastoAtual = obterCelulasDaLinha(inicioArrasto, arrastoAtual);
+            const chavesLinhaAtual = new Set(linhaArrastoAtual.map(([l, c]) => `${l}-${c}`));
+
+            // Define o tamanho visual baseado na quantidade de células (matriz muito grande = células menores)
+            let classesTamanho = tamanhoGrelha > 12 ? 'w-6 h-6 md:w-8 md:h-8 text-base md:text-xl' : 'w-8 h-8 md:w-12 md:h-12 text-lg md:text-3xl';
+
+            for (let l = 0; l < tamanhoGrelha; l++) {
+                for (let c = 0; c < tamanhoGrelha; c++) {
+                    const chaveCor = `${l}-${c}`;
+                    const elementoCelula = document.getElementById(`celula-${l}-${c}`);
+                    if (!elementoCelula) continue;
+
+                    const estaArrastandoAqui = chavesLinhaAtual.has(chaveCor);
+
+                    // Reset das classes base
+                    elementoCelula.className = `celula ${classesTamanho} flex items-center justify-center font-extrabold rounded-full cursor-pointer transition-colors duration-150`;
+
+                    if (estaArrastandoAqui) {
+                        // Estilo cinza de pré-seleção
+                        elementoCelula.classList.add('bg-gray-300', 'text-black', 'scale-110', 'shadow-md', 'z-10');
+                    } else if (celulasEncontradas.has(chaveCor)) {
+                        // Aplica a cor da palavra encontrada!
+                        const informacaoCor = celulasEncontradas.get(chaveCor);
+                        elementoCelula.classList.add(informacaoCor.fundo, informacaoCor.texto);
+                    } else {
+                        // Comportamento normal sem seleção
+                        elementoCelula.classList.add('hover:bg-gray-100', 'text-black');
+                    }
                 }
-                messageBox.classList.remove('hidden');
-                messageBox.classList.add('flex');
+            }
+        }
+
+        // --- GESTÃO DA TELA E RENDERIZAÇÃO PRINCIPAL ---
+        
+        // Tela 1: Onde o usuário digita as palavras ou clica em preencher aleatório
+        function renderizarTelaConfiguracao() {
+            let htmlCamposEntrada = '';
+            for(let i = 0; i < 11; i++) {
+                htmlCamposEntrada += `
+                    <div class="flex items-center">
+                        <span class="w-8 text-gray-400 font-bold">${i + 1}.</span>
+                        <input
+                            type="text"
+                            value="${palavrasEntrada[i]}"
+                            oninput="lidarComMudancaDeEntrada(${i}, this.value)"
+                            placeholder="Ex: FELIZ"
+                            class="flex-1 p-3 border-2 border-gray-300 rounded-lg focus:border-black focus:outline-none uppercase font-bold text-gray-800 transition-colors"
+                            maxlength="15"
+                        />
+                    </div>
+                `;
             }
 
-            // Start a new game
-            async function newGame() {
-                foundWords.clear();
-                selectedCells = [];
-                isDragging = false;
-                startCell = null;
-                messageBox.classList.remove('show', 'flex');
-                messageBox.classList.add('hidden');
-                wordListElement.innerHTML = '';
-                loadingSpinner.classList.remove('hidden');
+            return `
+                <div class="min-h-screen flex flex-col items-center py-10 px-4">
+                    <h1 class="text-3xl md:text-5xl font-extrabold tracking-tight mb-8 text-center text-gray-900">
+                        Criar Caça-Palavras
+                    </h1>
+                    <p class="mb-8 text-gray-600 font-medium text-center max-w-md">
+                        Escreva até 11 palavras abaixo ou deixe-nos preencher para você! O sistema criará a grelha colorida para jogar.
+                    </p>
 
-                // Generate words from AI
-                words = await getWordsFromAI();
-                
-                loadingSpinner.classList.add('hidden');
-                
-                initializeBoard();
-                
-                // Shuffle words for random placement
-                shuffle(words);
+                    <!-- Botão de preenchimento automático -->
+                    <div class="mb-8 flex flex-col sm:flex-row gap-4 w-full max-w-2xl justify-center">
+                        <button 
+                            onclick="preencherPalavrasAleatorias()"
+                            class="flex justify-center items-center gap-2 bg-gray-200 text-gray-800 px-6 py-3 rounded-full font-bold hover:bg-gray-300 transition-all"
+                        >
+                            ${icones.dado} Preencher Aleatório
+                        </button>
+                    </div>
 
-                // Place words on the board
-                words.forEach(word => {
-                    placeWord(word.toUpperCase());
-                });
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-2xl mb-10">
+                        ${htmlCamposEntrada}
+                    </div>
 
-                fillEmptyCells();
-                renderBoard();
-                renderWordList();
+                    <!-- Botão de gerar e começar -->
+                    <button 
+                        onclick="iniciarNovoJogo()"
+                        class="flex items-center gap-2 bg-black text-white px-8 py-4 rounded-full text-xl font-bold hover:bg-gray-800 hover:scale-105 transition-all shadow-xl"
+                    >
+                        ${icones.jogar} Gerar e Jogar Agora
+                    </button>
+                </div>
+            `;
+        }
+
+        // Tela 2: A tela de jogabilidade com as palavras geradas e coloridas
+        function renderizarTelaJogando() {
+            let htmlListaPalavras = palavrasDoJogo.map((p, i) => `
+                <div class="flex justify-center lg:justify-start">
+                    <span id="palavra-${i}" class="px-3 py-1 rounded-md font-bold ${p.achou ? `line-through ${p.cor.fundo} ${p.cor.texto}` : 'text-black'} transition-all duration-300">
+                        ${p.texto}
+                    </span>
+                </div>
+            `).join('');
+
+            let htmlMatrizGrelha = '';
+            for (let l = 0; l < tamanhoGrelha; l++) {
+                for (let c = 0; c < tamanhoGrelha; c++) {
+                    const letra = grelha[l][c];
+                    htmlMatrizGrelha += `
+                        <div
+                            id="celula-${l}-${c}"
+                            data-linha="${l}"
+                            data-coluna="${c}"
+                            class="celula"
+                        >
+                            ${letra}
+                        </div>
+                    `;
+                }
             }
 
-            // Event listeners
-            boardElement.addEventListener('mousedown', handleMouseDown);
-            boardElement.addEventListener('mousemove', handleMouseMove);
-            boardElement.addEventListener('mouseup', handleMouseUp);
-            boardElement.addEventListener('mouseleave', handleMouseUp); // End selection if mouse leaves the board
+            let telaVitoria = venceu ? `
+                <div class="absolute inset-0 bg-white/90 flex flex-col items-center justify-center rounded-xl animate-[fadeIn_0.5s_ease-in-out] z-20">
+                    <span class="text-4xl md:text-5xl font-extrabold text-black mb-4">Parabéns! 🎉</span>
+                    <button 
+                        onclick="mudarEstadoJogo('configuracao')"
+                        class="bg-black text-white px-6 py-2 rounded-full font-bold hover:bg-gray-800"
+                    >
+                        Criar Novo
+                    </button>
+                </div>
+            ` : '';
 
-            // Touch events for mobile
-            boardElement.addEventListener('touchstart', (e) => {
-                e.preventDefault();
-                const touch = e.touches[0];
-                handleMouseDown({ target: document.elementFromPoint(touch.clientX, touch.clientY) });
-            });
-            boardElement.addEventListener('touchmove', (e) => {
-                e.preventDefault();
-                const touch = e.touches[0];
-                handleMouseMove({ target: document.elementFromPoint(touch.clientX, touch.clientY) });
-            });
-            boardElement.addEventListener('touchend', handleMouseUp);
-            boardElement.addEventListener('touchcancel', handleMouseUp);
+            return `
+                <div class="min-h-screen bg-white flex flex-col items-center py-10 px-4">
+                    <!-- Topo de Navegação -->
+                    <div class="w-full max-w-5xl flex justify-between items-center mb-8 px-4">
+                        <button onclick="mudarEstadoJogo('configuracao')" class="flex items-center gap-2 text-gray-500 hover:text-black font-bold transition-colors">
+                            ${icones.voltar} Voltar
+                        </button>
+                        <button onclick="iniciarNovoJogo()" class="flex items-center gap-2 text-gray-500 hover:text-black font-bold transition-colors">
+                            ${icones.reiniciar} Baralhar
+                        </button>
+                    </div>
 
-            messageButton.addEventListener('click', newGame);
+                    <h1 class="text-2xl md:text-4xl font-extrabold tracking-tight mb-12 text-center">
+                        Meu Deus! Esse jogo é super relaxante
+                    </h1>
 
-            // Initial game start
-            newGame();
-        });
+                    <div class="flex flex-col lg:flex-row items-center lg:items-start gap-12 lg:gap-24">
+                        <!-- Lista Lateral Colorida -->
+                        <div class="flex flex-col items-center w-full lg:w-64">
+                            <div class="grid grid-cols-2 lg:grid-cols-1 gap-y-3 gap-x-4 text-sm md:text-lg text-center lg:text-left w-full">
+                                ${htmlListaPalavras}
+                            </div>
+                        </div>
+
+                        <!-- Grelha Central -->
+                        <div class="relative">
+                            <div 
+                                id="grelha-palavras"
+                                class="grid gap-1 md:gap-1.5 p-4 rounded-xl touch-none bg-white shadow-sm border border-gray-100"
+                                style="grid-template-columns: repeat(${tamanhoGrelha}, minmax(0, 1fr));"
+                            >
+                                ${htmlMatrizGrelha}
+                            </div>
+                            ${telaVitoria}
+                        </div>
+                    </div>
+
+                    <!-- Botão de Dica -->
+                    <div 
+                        onclick="exibirDica()"
+                        class="mt-12 bg-gray-800 text-yellow-400 rounded-full p-4 cursor-pointer hover:bg-black hover:scale-110 transition-all shadow-lg"
+                        title="Dica"
+                    >
+                        ${icones.lampada}
+                    </div>
+                </div>
+            `;
+        }
+
+        // Centraliza a renderização, decide qual tela desenhar com base no estado do jogo
+        function renderizarInterface() {
+            const aplicativo = document.getElementById('aplicativo');
+            if (estadoJogo === 'configuracao') {
+                document.body.className = "bg-gray-50 text-black font-sans selecao-nula overflow-x-hidden";
+                aplicativo.innerHTML = renderizarTelaConfiguracao();
+            } else {
+                document.body.className = "bg-white text-black font-sans selecao-nula overflow-x-hidden";
+                aplicativo.innerHTML = renderizarTelaJogando();
+                
+                // Mapeia eventos de mouse e toque diretamente para a Grelha após inseri-la no DOM
+                const elementoGrelha = document.getElementById('grelha-palavras');
+                if (elementoGrelha) {
+                    
+                    // Mouse e Desktop
+                    elementoGrelha.addEventListener('mousedown', (e) => {
+                        const celula = e.target.closest('.celula');
+                        if (celula) comecarSelecao(parseInt(celula.dataset.linha), parseInt(celula.dataset.coluna));
+                    });
+
+                    elementoGrelha.addEventListener('mouseover', (e) => {
+                        const celula = e.target.closest('.celula');
+                        if (celula) passarPelaCelula(parseInt(celula.dataset.linha), parseInt(celula.dataset.coluna));
+                    });
+
+                    // Mobile e Touchscreens
+                    elementoGrelha.addEventListener('touchstart', (e) => {
+                        const toque = e.touches[0];
+                        const celula = document.elementFromPoint(toque.clientX, toque.clientY)?.closest('.celula');
+                        if (celula) comecarSelecao(parseInt(celula.dataset.linha), parseInt(celula.dataset.coluna));
+                    }, { passive: false });
+
+                    elementoGrelha.addEventListener('touchmove', (e) => {
+                        e.preventDefault(); // Previne rolar a tela enquanto arrasta na matriz
+                        if (!inicioArrasto) return;
+                        const toque = e.touches[0];
+                        const celula = document.elementFromPoint(toque.clientX, toque.clientY)?.closest('.celula');
+                        if (celula) passarPelaCelula(parseInt(celula.dataset.linha), parseInt(celula.dataset.coluna));
+                    }, { passive: false });
+                }
+
+                // Inicia as cores corretas após desenhar a grelha
+                atualizarCoresDaGrelha();
+            }
+        }
+
+        // Inicia a aplicação na primeira abertura
+        renderizarInterface();
+
     </script>
 </body>
 </html>

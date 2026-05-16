@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jogo da Memória Moderno</title>
+    <!-- Importando o Tailwind CSS para utilitários rápidos (se necessário) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Importando a fonte Poppins do Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Estilos gerais da página */
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #1a237e 0%, #3949ab 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            color: #ffffff;
+            overflow: hidden; /* Evita rolagem na tela */
+        }
+        
+        /* Contêiner principal que centraliza o conteúdo */
+        .conteiner-principal {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 24px;
+            padding: 20px;
+            width: 100%;
+            max-width: 90vw;
+            max-height: 95vh;
+        }
+
+        /* Estilo da área onde o jogo é desenhado */
+        canvas {
+            display: block;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            max-width: 100%;
+        }
+
+        /* Textos centralizados */
+        .cabecalho, .rodape {
+            text-align: center;
+        }
+
+        /* Título do jogo flexível baseado no tamanho da tela */
+        .titulo {
+            font-size: clamp(2rem, 5vw, 2.5rem);
+            font-weight: 700;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+
+        /* Texto de estatísticas (jogadas, etc) */
+        .estatisticas {
+            font-size: clamp(1rem, 3vw, 1.25rem);
+            font-weight: 400;
+            opacity: 0.9;
+        }
+
+        /* Estilo padrão para todos os botões */
+        .botao {
+            background-color: #ff4081;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease; /* Animação suave ao passar o mouse */
+            box-shadow: 0 4px 15px rgba(255, 64, 129, 0.4);
+        }
+
+        /* Efeito ao passar o mouse no botão */
+        .botao:hover {
+            transform: translateY(-2px); /* Levanta o botão levemente */
+            box-shadow: 0 6px 20px rgba(255, 64, 129, 0.5);
+        }
+
+        /* Variação de cor para o botão secundário */
+        .botao.secundario {
+            background-color: #5c6bc0;
+            box-shadow: 0 4px 15px rgba(92, 107, 192, 0.4);
+        }
+
+        .botao.secundario:hover {
+             box-shadow: 0 6px 20px rgba(92, 107, 192, 0.5);
+        }
+
+        /* Agrupador para alinhar botões lado a lado */
+        .grupo-botoes {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        /* Caixa de mensagem que aparece ao vencer o jogo */
+        .mensagem-vitoria {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.8);
+            background-color: rgba(0, 0, 0, 0.75);
+            color: white;
+            padding: 40px 60px;
+            border-radius: 20px;
+            text-align: center;
+            font-size: clamp(1.5rem, 5vw, 2.5rem);
+            font-weight: 600;
+            opacity: 0; /* Começa invisível */
+            visibility: hidden;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Animação de "pulo" */
+            z-index: 100;
+        }
+
+        /* Classe adicionada via JavaScript para mostrar a mensagem */
+        .mensagem-vitoria.mostrar {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Classe utilitária para esconder elementos */
+        .oculto {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="conteiner-principal" class="conteiner-principal">
+        
+        <!-- Tela de Seleção de Dificuldade -->
+        <div id="seletor-dificuldade">
+            <div class="cabecalho">
+                <h1 class="titulo">Jogo da Memória</h1>
+                <p class="estatisticas mt-2">Escolha a dificuldade</p>
+            </div>
+            <div class="grupo-botoes mt-8">
+                <!-- Botões para escolher o nível -->
+                <button id="btn-facil" class="botao">Fácil (4x4)</button>
+                <button id="btn-medio" class="botao">Médio (6x4)</button>
+                <button id="btn-dificil" class="botao">Difícil (8x4)</button>
+            </div>
+        </div>
+
+        <!-- Tela do Jogo (Oculta por padrão) -->
+        <div id="conteiner-jogo" class="oculto">
+            <div class="cabecalho">
+                <h1 class="titulo">Jogo da Memória</h1>
+                <p class="estatisticas">Jogadas: <span id="contador-jogadas">0</span></p>
+            </div>
+            <!-- Elemento onde o jogo será desenhado -->
+            <canvas id="canvas-memoria"></canvas>
+            <div class="rodape grupo-botoes">
+                <button id="btn-reiniciar" class="botao">Reiniciar Nível</button>
+                <button id="btn-mudar-dificuldade" class="botao secundario">Mudar Dificuldade</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mensagem de Vitória (Sobrepõe a tela) -->
+    <div id="mensagem-vitoria" class="mensagem-vitoria">
+        Parabéns, você venceu!
+    </div>
+
+    <script>
+        // === Seleção de Elementos do HTML (DOM) ===
+        const telaDificuldade = document.getElementById('seletor-dificuldade');
+        const telaJogo = document.getElementById('conteiner-jogo');
+        const canvas = document.getElementById('canvas-memoria');
+        const contexto = canvas.getContext('2d'); // Ferramenta para desenhar no canvas
+        const textoJogadas = document.getElementById('contador-jogadas');
+        const caixaVitoria = document.getElementById('mensagem-vitoria');
+
+        // Seleção dos botões
+        const btnFacil = document.getElementById('btn-facil');
+        const btnMedio = document.getElementById('btn-medio');
+        const btnDificil = document.getElementById('btn-dificil');
+        const btnReiniciar = document.getElementById('btn-reiniciar');
+        const btnMudarDificuldade = document.getElementById('btn-mudar-dificuldade');
+
+        // === Configurações Globais do Jogo ===
+        // Lista completa de emojis disponíveis para o jogo
+        const todosEmojis = ['🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼', '🐨', '🐯', '🦁', '🐮', '🐷', '🐸', '🐵', '🐔'];
+        
+        // Definição das configurações para cada nível
+        const configuracoesDificuldade = {
+            facil:   { linhas: 4, colunas: 4, totalPares: 8 },  // 16 cartas no total
+            medio:   { linhas: 4, colunas: 6, totalPares: 12 }, // 24 cartas no total
+            dificil: { linhas: 4, colunas: 8, totalPares: 16 }  // 32 cartas no total
+        };
+
+        // Variáveis de estado do jogo
+        let dificuldadeAtual; // Guarda qual nível foi escolhido
+        let listaCartas = []; // Lista que armazenará os objetos das cartas
+        let cartasViradas = []; // Guarda as 2 cartas que o jogador acabou de virar
+        let paresEncontrados = 0; // Quantos pares já foram achados
+        let contagemJogadas = 0; // Quantas vezes o jogador tentou adivinhar
+        let podeInteragir = true; // Bloqueia cliques enquanto as cartas estão virando de volta
+
+        const ESPACO_ENTRE_CARTAS = 15; // Espaçamento em pixels entre as cartas
+        const TEMPO_ANIMACAO_VIRAR = 300; // Tempo em milissegundos para a carta virar
+
+        // === Classe que representa cada carta no jogo ===
+        class Carta {
+            constructor(posX, posY, tamanhoCarta, emojiIcone) {
+                this.x = posX; 
+                this.y = posY; 
+                this.tamanho = tamanhoCarta; 
+                this.emoji = emojiIcone;
+                
+                // Estados da carta
+                this.estaVirada = false; 
+                this.foiEncontrada = false;
+                
+                // Variáveis para controlar a animação 3D de virada
+                this.progressoVirada = 0; // 0 = verso, 1 = frente
+                this.estaSendoAnimada = false;
+            }
+
+            // Método responsável por desenhar a carta no canvas
+            desenhar() {
+                contexto.save();
+                
+                // Move o eixo de desenho para o centro da carta para rotacionar a partir do centro
+                contexto.translate(this.x + this.tamanho / 2, this.y + this.tamanho / 2);
+                
+                // Efeito de encolher horizontalmente para simular o 3D (Cosseno)
+                const escalaX = Math.cos(this.progressoVirada * Math.PI);
+                contexto.scale(escalaX, 1);
+                
+                // Se passou da metade da animação, desenha a frente, senão o verso
+                if (this.progressoVirada <= 0.5) {
+                    this.desenharVerso();
+                } else {
+                    this.desenharFrente();
+                }
+                
+                contexto.restore(); // Restaura o eixo original do canvas
+            }
+
+            // Desenha a parte de trás da carta (escondida)
+            desenharVerso() {
+                // Cria um fundo com gradiente roxo/azul
+                const gradiente = contexto.createLinearGradient(0, 0, this.tamanho, this.tamanho);
+                gradiente.addColorStop(0, '#6574cf'); 
+                gradiente.addColorStop(1, '#7e57c2');
+                contexto.fillStyle = gradiente;
+                
+                // Desenha o quadrado arredondado
+                this.desenharRetanguloArredondado(contexto, -this.tamanho / 2, -this.tamanho / 2, this.tamanho, this.tamanho, 12);
+                contexto.fill();
+                
+                // Desenha o ponto de interrogação no centro
+                contexto.fillStyle = 'rgba(255, 255, 255, 0.5)';
+                contexto.font = `bold ${this.tamanho * 0.5}px Poppins`;
+                contexto.textAlign = 'center'; 
+                contexto.textBaseline = 'middle';
+                contexto.fillText('?', 0, 0);
+            }
+
+            // Desenha a frente da carta (revelando o emoji)
+            desenharFrente() {
+                // Fundo branco
+                contexto.fillStyle = '#ffffff';
+                this.desenharRetanguloArredondado(contexto, -this.tamanho / 2, -this.tamanho / 2, this.tamanho, this.tamanho, 12);
+                contexto.fill();
+                
+                // Desenha o emoji
+                contexto.font = `${this.tamanho * 0.6}px sans-serif`;
+                contexto.textAlign = 'center'; 
+                contexto.textBaseline = 'middle';
+                contexto.fillText(this.emoji, 0, 5); // 5px de ajuste visual para baixo
+            }
+
+            // Função auxiliar para criar retângulos com bordas arredondadas no canvas
+            desenharRetanguloArredondado(ctx, x, y, largura, altura, raioBorda) {
+                ctx.beginPath(); 
+                ctx.moveTo(x + raioBorda, y); 
+                ctx.lineTo(x + largura - raioBorda, y);
+                ctx.quadraticCurveTo(x + largura, y, x + largura, y + raioBorda); 
+                ctx.lineTo(x + largura, y + altura - raioBorda);
+                ctx.quadraticCurveTo(x + largura, y + altura, x + largura - raioBorda, y + altura); 
+                ctx.lineTo(x + raioBorda, y + altura);
+                ctx.quadraticCurveTo(x, y + altura, x, y + altura - raioBorda); 
+                ctx.lineTo(x, y - raioBorda);
+                ctx.quadraticCurveTo(x, y, x + raioBorda, y); 
+                ctx.closePath();
+            }
+
+            // Inicia o processo de virar a carta
+            virar() {
+                // Ignora cliques se a carta já estiver no meio de uma animação
+                if (this.estaSendoAnimada) return;
+                this.estaSendoAnimada = true;
+                
+                // Define o alvo: se está virada (1), o alvo é voltar (0). E vice-versa.
+                const progressoAlvo = this.estaVirada ? 0 : 1;
+                this.animarVirada(progressoAlvo);
+            }
+
+            // Executa a animação de virar frame a frame
+            animarVirada(alvo) {
+                const progressoInicial = this.progressoVirada; 
+                const mudanca = alvo - progressoInicial; 
+                let tempoInicio = null;
+                
+                // Loop de animação executado pelo navegador
+                const animarFrame = (tempoAtual) => {
+                    if (!tempoInicio) tempoInicio = tempoAtual;
+                    const tempoDecorrido = tempoAtual - tempoInicio;
+                    
+                    // Calcula de 0 a 1 o quanto a animação andou
+                    const percentualTempo = Math.min(tempoDecorrido / TEMPO_ANIMACAO_VIRAR, 1);
+                    
+                    // Aplica uma fórmula matemática (EaseOutCubic) para a animação começar rápida e terminar suave
+                    this.progressoVirada = progressoInicial + mudanca * (Math.pow(percentualTempo - 1, 3) + 1); 
+                    
+                    if (percentualTempo < 1) { 
+                        requestAnimationFrame(animarFrame); // Continua animando
+                    } else {
+                        // Terminou a animação
+                        this.estaVirada = !this.estaVirada; 
+                        this.estaSendoAnimada = false;
+                        // Garante que o valor fique exato (0 ou 1) no final para evitar falhas visuais
+                        if (!this.estaVirada) { this.progressoVirada = 0; }
+                    }
+                };
+                requestAnimationFrame(animarFrame);
+            }
+        }
+
+        // === Funções de Controle do Jogo ===
+
+        // Inicia o jogo ocultando o menu e mostrando a tela do jogo
+        function iniciarJogoComDificuldade(configuracao) {
+            dificuldadeAtual = configuracao;
+            telaDificuldade.classList.add('oculto');
+            telaJogo.classList.remove('oculto');
+            prepararTabuleiro();
+        }
+
+        // Prepara ou reseta as variáveis e as cartas do tabuleiro
+        function prepararTabuleiro() {
+            const config = dificuldadeAtual;
+            
+            // Zerando o estado do jogo
+            listaCartas = []; 
+            cartasViradas = []; 
+            paresEncontrados = 0; 
+            contagemJogadas = 0; 
+            podeInteragir = true;
+            textoJogadas.textContent = contagemJogadas;
+            caixaVitoria.classList.remove('mostrar'); // Esconde mensagem de vitória
+
+            // Pegando a quantidade exata de emojis necessários para a dificuldade
+            let emojisSelecionados = todosEmojis.slice(0, config.totalPares);
+            // Duplicando para formar os pares
+            emojisSelecionados = [...emojisSelecionados, ...emojisSelecionados];
+
+            // Embaralhando os emojis (Algoritmo de Fisher-Yates)
+            for (let i = emojisSelecionados.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [emojisSelecionados[i], emojisSelecionados[j]] = [emojisSelecionados[j], emojisSelecionados[i]];
+            }
+
+            // Calcula o tamanho do canvas para caber na tela atual
+            redimensionarCanvas(); 
+
+            // Criando os objetos das cartas
+            for (let i = 0; i < config.linhas * config.colunas; i++) {
+                listaCartas.push(new Carta(0, 0, 0, emojisSelecionados[i])); 
+            }
+            
+            // Posicionando as cartas fisicamente no Canvas
+            recalcularPosicoesCartas();
+        }
+
+        // Ajusta o tamanho do elemento canvas dependendo do tamanho da tela do celular/PC
+        function redimensionarCanvas() {
+            if (!dificuldadeAtual) return;
+
+            const config = dificuldadeAtual;
+            
+            // Calcula espaços ocupados pelo cabeçalho, rodapé e margens
+            const alturaCabecalho = telaJogo.querySelector('.cabecalho').offsetHeight;
+            const alturaRodape = telaJogo.querySelector('.rodape').offsetHeight;
+            const espacamentoPadrao = 40;
+            const espacoVerticalExtra = 48;
+
+            // Espaço de tela realmente livre para o Canvas
+            const larguraLivre = document.getElementById('conteiner-principal').clientWidth - espacamentoPadrao;
+            const alturaLivre = window.innerHeight - alturaCabecalho - alturaRodape - espacamentoPadrao - espacoVerticalExtra;
+            
+            // Proporção baseada no número de colunas e linhas
+            const proporcaoTabuleiro = config.colunas / config.linhas;
+
+            let larguraCanvas = larguraLivre;
+            let alturaCanvas = larguraCanvas / proporcaoTabuleiro;
+
+            // Se ficar muito alto, inverte o cálculo e baseia na altura limite
+            if (alturaCanvas > alturaLivre) {
+                alturaCanvas = alturaLivre;
+                larguraCanvas = alturaCanvas * proporcaoTabuleiro;
+            }
+
+            canvas.width = larguraCanvas;
+            canvas.height = alturaCanvas;
+            
+            recalcularPosicoesCartas(); // Atualiza a posição X e Y de cada carta
+        }
+
+        // Distribui as cartas no espaço disponível do Canvas de forma simétrica
+        function recalcularPosicoesCartas() {
+            if (listaCartas.length === 0 || !dificuldadeAtual) return;
+            const config = dificuldadeAtual;
+
+            // Calcula qual será o tamanho quadrado de cada carta
+            const tamanhoBaseX = (canvas.width - (config.colunas + 1) * ESPACO_ENTRE_CARTAS) / config.colunas;
+            const tamanhoBaseY = (canvas.height - (config.linhas + 1) * ESPACO_ENTRE_CARTAS) / config.linhas;
+            const tamanhoRealCarta = Math.min(tamanhoBaseX, tamanhoBaseY);
+
+            // Calcula o tamanho total do "bloco" de cartas juntas para centralizá-las no Canvas
+            const larguraTotalCartas = config.colunas * tamanhoRealCarta + (config.colunas - 1) * ESPACO_ENTRE_CARTAS;
+            const alturaTotalCartas = config.linhas * tamanhoRealCarta + (config.linhas - 1) * ESPACO_ENTRE_CARTAS;
+            
+            // Margem para centralizar o bloco de cartas
+            const margemEsquerda = (canvas.width - larguraTotalCartas) / 2;
+            const margemTopo = (canvas.height - alturaTotalCartas) / 2;
+
+            let index = 0;
+            // Passa por todas as linhas e colunas definindo onde cada carta vai ser desenhada
+            for (let linha = 0; linha < config.linhas; linha++) {
+                for (let coluna = 0; coluna < config.colunas; coluna++) {
+                    const carta = listaCartas[index];
+                    if (carta) {
+                        carta.x = margemEsquerda + coluna * (tamanhoRealCarta + ESPACO_ENTRE_CARTAS);
+                        carta.y = margemTopo + linha * (tamanhoRealCarta + ESPACO_ENTRE_CARTAS);
+                        carta.tamanho = tamanhoRealCarta;
+                    }
+                    index++;
+                }
+            }
+        }
+
+        // Loop infinito responsável por limpar e desenhar a tela 60 vezes por segundo
+        function loopDoJogo() {
+            contexto.clearRect(0, 0, canvas.width, canvas.height); // Limpa tela
+            listaCartas.forEach(carta => carta.desenhar()); // Manda cada carta se desenhar
+            requestAnimationFrame(loopDoJogo); // Chama a si mesmo
+        }
+
+        // Descobre em qual carta o jogador clicou
+        function processarCliqueCanvas(evento) {
+            if (!podeInteragir) return; // Bloqueia se o jogo estiver validando as cartas
+            
+            // Pega a posição exata do clique considerando o Canvas na tela
+            const retanguloCanvas = canvas.getBoundingClientRect();
+            const cliqueX = evento.clientX - retanguloCanvas.left;
+            const cliqueY = evento.clientY - retanguloCanvas.top;
+
+            // Verifica qual carta estava dentro da área clicada
+            for (const carta of listaCartas) {
+                if (cliqueX >= carta.x && cliqueX <= carta.x + carta.tamanho &&
+                    cliqueY >= carta.y && cliqueY <= carta.y + carta.tamanho) {
+                    
+                    // Só vira a carta se ela já não estiver virada, não estiver encontrada e se tivermos virado menos de 2 cartas
+                    if (!carta.estaVirada && !carta.foiEncontrada && cartasViradas.length < 2) {
+                        acaoVirarCarta(carta);
+                    }
+                    break; // Achou a carta clicada, para de procurar
+                }
+            }
+        }
+
+        // Aciona a virada da carta e avalia o número de cartas abertas
+        function acaoVirarCarta(carta) {
+            carta.virar();
+            cartasViradas.push(carta); // Guarda essa carta na memória temporária
+            
+            // Se o usuário já virou 2 cartas, conta como jogada e verifica o par
+            if (cartasViradas.length === 2) {
+                contagemJogadas++;
+                textoJogadas.textContent = contagemJogadas;
+                podeInteragir = false; // Trava interações temporariamente
+                verificarSeCartasCombinam();
+            }
+        }
+
+        // Lógica para saber se o par é igual ou diferente
+        function verificarSeCartasCombinam() {
+            const [primeiraCarta, segundaCarta] = cartasViradas;
+            
+            if (primeiraCarta.emoji === segundaCarta.emoji) {
+                // ACERTOU! As cartas combinam
+                primeiraCarta.foiEncontrada = true; 
+                segundaCarta.foiEncontrada = true;
+                paresEncontrados++;
+                cartasViradas = []; // Limpa a memória temporária
+                podeInteragir = true; // Libera o clique novamente
+                verificarCondicaoDeVitoria();
+            } else {
+                // ERROU! Cartas diferentes. Aguarda 1 segundo e desvira as duas.
+                setTimeout(() => {
+                    primeiraCarta.virar(); 
+                    segundaCarta.virar();
+                    cartasViradas = []; 
+                    podeInteragir = true;
+                }, 1000);
+            }
+        }
+
+        // Verifica se todos os pares foram revelados
+        function verificarCondicaoDeVitoria() {
+            if (paresEncontrados === dificuldadeAtual.totalPares) {
+                // Aguarda meia segundo para exibir a mensagem e não ser tão abrupto
+                setTimeout(() => caixaVitoria.classList.add('mostrar'), 500);
+            }
+        }
+
+        // === Eventos de Clique (Listeners) ===
+        
+        // Botões do menu principal
+        btnFacil.addEventListener('click', () => iniciarJogoComDificuldade(configuracoesDificuldade.facil));
+        btnMedio.addEventListener('click', () => iniciarJogoComDificuldade(configuracoesDificuldade.medio));
+        btnDificil.addEventListener('click', () => iniciarJogoComDificuldade(configuracoesDificuldade.dificil));
+        
+        // Botões dentro da partida
+        btnReiniciar.addEventListener('click', prepararTabuleiro);
+        btnMudarDificuldade.addEventListener('click', () => {
+            telaJogo.classList.add('oculto');
+            telaDificuldade.classList.remove('oculto');
+            caixaVitoria.classList.remove('mostrar');
+        });
+
+        // Eventos do Canvas e Janela
+        canvas.addEventListener('click', processarCliqueCanvas);
+        window.addEventListener('resize', redimensionarCanvas); // Reorganiza o jogo se girar o celular
+
+        // === Inicialização Automática ===
+        loopDoJogo(); // Liga o "motor" do jogo para desenhar na tela constantemente
+
+    </script>
+</body>
+</html>

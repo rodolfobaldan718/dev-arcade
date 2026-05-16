@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blackjack (21)</title>
+    <!-- Importa o Tailwind CSS para estilos rápidos -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@500;700&family=Rubik:wght@400;700&display=swap');
+
+        /* Estilos base do corpo da página */
+        body {
+            font-family: 'Rubik', sans-serif;
+            background-color: #1a4731; /* Verde mesa de cassino */
+            /* Padrão quadriculado simulando a textura da mesa */
+            background-image: radial-gradient(#1f553b 15%, transparent 16%), radial-gradient(#1f553b 15%, transparent 16%);
+            background-size: 60px 60px;
+            background-position: 0 0, 30px 30px;
+        }
+
+        /* Estilização da Carta */
+        .carta-jogo {
+            width: 80px;
+            height: 112px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 8px;
+            position: relative;
+            font-family: 'Roboto Mono', monospace;
+            font-weight: bold;
+            user-select: none; /* Impede a seleção do texto na carta */
+            transition: transform 0.3s ease, margin-left 0.3s ease; /* Animação suave para hover */
+        }
+
+        /* Efeito de empilhar cartas */
+        .recipiente-mao .carta-jogo:not(:first-child) {
+            margin-left: -50px; /* Sobreposição para as cartas seguintes */
+        }
+        
+        /* Animação ao passar o mouse por cima da carta */
+        .recipiente-mao .carta-jogo:hover {
+            transform: translateY(-10px) rotate(-2deg); /* Levanta e gira levemente */
+            z-index: 10; /* Traz a carta para frente */
+        }
+
+        /* Verso da carta (Dealer escondida) */
+        .verso-carta {
+            /* Padrão listrado diagonal vermelho escuro */
+            background: repeating-linear-gradient(
+                45deg,
+                #b91c1c,
+                #b91c1c 10px,
+                #991b1b 10px,
+                #991b1b 20px
+            );
+            border: 4px solid white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Adiciona um diamante central no verso da carta */
+        .verso-carta::after {
+            content: '♦';
+            font-size: 40px;
+            color: white;
+            opacity: 0.5;
+        }
+
+        /* Cores para os naipes */
+        .naipe-vermelho { color: #dc2626; }
+        .naipe-preto { color: #1f2937; }
+
+        /* Posiciona o naipe principal no centro da carta */
+        .naipe-centro {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 2.5rem;
+        }
+
+        /* Animação de entrada */
+        @keyframes distribuir {
+            from { opacity: 0; transform: translateY(-50px) scale(0.5); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .animar-distribuicao {
+            animation: distribuir 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        /* Área de Status do Jogo */
+        .badge-status {
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+
+        /* Ajustes de tamanho para telas maiores (tablets/desktops) */
+        @media (min-width: 640px) {
+            .carta-jogo {
+                width: 100px;
+                height: 140px;
+            }
+            .recipiente-mao .carta-jogo:not(:first-child) {
+                margin-left: -60px; /* Ajusta a sobreposição em telas maiores */
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4 text-white">
+
+    <!-- Container principal do jogo -->
+    <div class="w-full max-w-4xl bg-green-900/80 backdrop-blur-sm rounded-2xl shadow-2xl border border-green-700 overflow-hidden relative">
+        
+        <!-- Header -->
+        <header class="bg-green-950/50 p-4 flex justify-between items-center border-b border-green-800 relative">
+            <div class="w-8"></div> <!-- Espaçador para centralizar o título -->
+            <h1 class="text-3xl font-bold tracking-wider text-yellow-400 text-center">BLACKJACK <span class="text-white text-lg font-normal">21</span></h1>
+            <!-- Botão para abrir o modal de regras -->
+            <button onclick="alternarRegras()" class="text-gray-300 hover:text-white transition w-8 h-8 flex items-center justify-center rounded-full border border-gray-500 hover:border-white hover:bg-white/10" title="Como Jogar">
+                ?
+            </button>
+        </header>
+
+        <main class="p-6 flex flex-col gap-8">
+            
+            <!-- Área do Dealer (Computador) -->
+            <div class="flex flex-col items-center min-h-[160px]">
+                <div class="flex items-center gap-4 mb-2">
+                    <h2 class="text-lg font-bold text-gray-300 uppercase tracking-widest">Dealer</h2>
+                    <!-- Mostra a pontuação do Dealer (oculta no início) -->
+                    <span id="pontuacao-dealer" class="bg-gray-800 px-3 py-1 rounded-full text-sm font-mono border border-gray-600">?</span>
+                </div>
+                <div id="mao-dealer" class="recipiente-mao flex justify-center items-center">
+                    <!-- Cartas do Dealer serão injetadas aqui via JavaScript -->
+                </div>
+            </div>
+
+            <!-- Área de Mensagens / Resultado -->
+            <div class="h-16 flex items-center justify-center">
+                <div id="mensagem-jogo" class="hidden text-center">
+                    <h3 id="texto-resultado" class="text-2xl md:text-4xl font-black badge-status mb-1">VOCÊ VENCEU!</h3>
+                    <p id="subtexto-resultado" class="text-sm opacity-90">O Dealer estourou.</p>
+                </div>
+            </div>
+
+            <!-- Área do Jogador -->
+            <div class="flex flex-col items-center min-h-[160px]">
+                <div id="mao-jogador" class="recipiente-mao flex justify-center items-center mb-4">
+                    <!-- Cartas do Jogador serão injetadas aqui via JavaScript -->
+                </div>
+                <div class="flex items-center gap-4">
+                    <h2 class="text-lg font-bold text-yellow-400 uppercase tracking-widest">Você</h2>
+                    <!-- Mostra a pontuação atual do jogador -->
+                    <span id="pontuacao-jogador" class="bg-gray-800 px-3 py-1 rounded-full text-sm font-mono border border-gray-600">0</span>
+                </div>
+            </div>
+
+            <!-- Controles (Botões) -->
+            <div class="flex justify-center gap-4 mt-2">
+                <button id="btn-pedir" onclick="pedirCarta()" class="bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-8 rounded-lg shadow-lg transform transition active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed border-b-4 border-blue-800">
+                    PEDIR CARTA
+                </button>
+                <button id="btn-parar" onclick="parar()" class="bg-red-600 hover:bg-red-500 text-white font-bold py-3 px-8 rounded-lg shadow-lg transform transition active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed border-b-4 border-red-800">
+                    PARAR
+                </button>
+                <button id="btn-reiniciar" onclick="iniciarJogo()" class="hidden bg-yellow-500 hover:bg-yellow-400 text-black font-bold py-3 px-8 rounded-lg shadow-lg transform transition active:scale-95 border-b-4 border-yellow-700 animate-pulse">
+                    NOVO JOGO
+                </button>
+            </div>
+        </main>
+
+        <!-- Footer com texto auxiliar para abrir regras -->
+        <footer class="bg-green-950/50 p-2 text-center text-xs text-gray-400 border-t border-green-800 cursor-pointer hover:text-white transition" onclick="alternarRegras()">
+            Clique no botão '?' ou aqui para ver as regras completas.
+        </footer>
+    </div>
+
+    <!-- Modal de Regras (Inicia oculto) -->
+    <div id="modal-regras" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 animate-fade-in" onclick="if(event.target === this) alternarRegras()">
+        <div class="bg-gray-900 border border-green-600 p-6 rounded-xl max-w-md w-full shadow-2xl relative text-gray-200">
+            <!-- Botão fechar modal -->
+            <button onclick="alternarRegras()" class="absolute top-4 right-4 text-gray-400 hover:text-white text-xl p-2 leading-none">✕</button>
+            
+            <h2 class="text-2xl font-bold text-yellow-400 mb-4 flex items-center gap-2">
+                <span class="text-3xl">📜</span> Como Jogar
+            </h2>
+            
+            <div class="space-y-4 text-sm md:text-base leading-relaxed">
+                <div>
+                    <h3 class="font-bold text-white mb-1">🎯 Objetivo</h3>
+                    <p class="text-gray-400">Chegar o mais próximo possível de <strong class="text-green-400">21</strong> sem ultrapassar.</p>
+                </div>
+
+                <div>
+                    <h3 class="font-bold text-white mb-1">🃏 Valores das Cartas</h3>
+                    <ul class="list-disc pl-5 text-gray-400 space-y-1">
+                        <li><strong>2 a 10:</strong> Valem o número da carta.</li>
+                        <li><strong>J, Q, K:</strong> Valem 10.</li>
+                        <li><strong>Ás (A):</strong> Vale 1 ou 11 (o que for melhor para sua mão).</li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h3 class="font-bold text-white mb-1">🎮 Seus Comandos</h3>
+                    <ul class="list-disc pl-5 text-gray-400 space-y-1">
+                        <li><strong class="text-blue-400">Pedir Carta (Hit):</strong> Você recebe mais uma carta. Cuidado para não estourar (passar de 21)!</li>
+                        <li><strong class="text-red-400">Parar (Stand):</strong> Você encerra sua vez. O Dealer então joga a mão dele.</li>
+                    </ul>
+                </div>
+
+                <div class="bg-gray-800 p-3 rounded-lg border border-gray-700">
+                    <h3 class="font-bold text-white text-xs uppercase tracking-wider mb-1">🤖 Regra do Dealer</h3>
+                    <p class="text-gray-400 text-xs">O computador joga depois de você. Ele é obrigado a pedir cartas até ter <strong class="text-white">17 ou mais</strong>.</p>
+                </div>
+            </div>
+
+            <button onclick="alternarRegras()" class="w-full mt-6 bg-green-700 hover:bg-green-600 text-white font-bold py-3 rounded-lg transition shadow-lg">
+                Entendi, Vamos Jogar!
+            </button>
+        </div>
+    </div>
+
+    <!-- Script JavaScript com a lógica do jogo -->
+    <script>
+        // --- Configuração e Estado do Jogo ---
+        const naipes = ['♠', '♥', '♣', '♦']; // Define os 4 naipes
+        const valores = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']; // Define os valores das cartas
+        
+        let baralho = []; // Array que armazenará o baralho atual
+        let maoJogador = []; // Array que armazenará as cartas do jogador na rodada
+        let maoDealer = []; // Array que armazenará as cartas do dealer na rodada
+        let jogoFinalizado = false; // Flag para controlar se a rodada atual terminou
+
+        // Elementos DOM (referências aos elementos HTML para manipulação)
+        const elMaoDealer = document.getElementById('mao-dealer');
+        const elMaoJogador = document.getElementById('mao-jogador');
+        const elPontuacaoDealer = document.getElementById('pontuacao-dealer');
+        const elPontuacaoJogador = document.getElementById('pontuacao-jogador');
+        const elMensagemJogo = document.getElementById('mensagem-jogo');
+        const elTextoResultado = document.getElementById('texto-resultado');
+        const elSubtextoResultado = document.getElementById('subtexto-resultado');
+        const btnPedir = document.getElementById('btn-pedir');
+        const btnParar = document.getElementById('btn-parar');
+        const btnReiniciar = document.getElementById('btn-reiniciar');
+        const modalRegras = document.getElementById('rules-modal') || document.getElementById('modal-regras'); // Adicionado fallback por precaucao
+
+        // --- Lógica do Jogo ---
+
+        /**
+         * Cria um novo baralho com todas as 52 cartas.
+         * Atribui pesos (valores de pontuação) para cada carta.
+         */
+        function criarBaralho() {
+            baralho = [];
+            for (let naipe of naipes) {
+                for (let valor of valores) {
+                    let peso = parseInt(valor); // Tenta converter o valor para número (para cartas 2-10)
+                    // Atribui peso 10 para as figuras (Valete, Dama, Rei)
+                    if (valor === 'J' || valor === 'Q' || valor === 'K') peso = 10;
+                    // Atribui peso inicial 11 para o Ás (a lógica de cálculo ajusta para 1 se necessário)
+                    if (valor === 'A') peso = 11;
+                    
+                    // Adiciona o objeto carta ao baralho
+                    baralho.push({ valor: valor, naipe: naipe, peso: peso });
+                }
+            }
+        }
+
+        /**
+         * Embaralha as cartas do baralho atual de forma aleatória.
+         * Implementa o algoritmo de Fisher-Yates shuffle.
+         */
+        function embaralharBaralho() {
+            for (let i = 0; i < baralho.length; i++) {
+                let indiceTroca = Math.floor(Math.random() * baralho.length);
+                let temporario = baralho[indiceTroca];
+                baralho[indiceTroca] = baralho[i];
+                baralho[i] = temporario;
+            }
+        }
+
+        /**
+         * Calcula a pontuação total de uma mão de cartas.
+         * Lida com a regra especial do Ás (valendo 1 ou 11).
+         * @param {Array} mao - O array de cartas (mão do jogador ou do dealer).
+         * @returns {number} A pontuação calculada.
+         */
+        function calcularPontuacao(mao) {
+            let pontuacao = 0;
+            let ases = 0;
+
+            // Soma inicial dos pesos e contagem de Ases
+            for (let carta of mao) {
+                pontuacao += carta.peso;
+                if (carta.valor === 'A') ases++;
+            }
+
+            // Ajuste do Ás (11 ou 1)
+            // Se a pontuação passar de 21 e houver Ases valendo 11,
+            // subtrai 10 para cada Ás (fazendo-o valer 1) até que a pontuação
+            // seja menor ou igual a 21, ou até que não haja mais Ases para converter.
+            while (pontuacao > 21 && ases > 0) {
+                pontuacao -= 10;
+                ases--;
+            }
+
+            return pontuacao;
+        }
+
+        // --- Funções de UI (Interface do Usuário) ---
+
+        /**
+         * Alterna a visibilidade do modal de regras.
+         */
+        function alternarRegras() {
+            modalRegras.classList.toggle('hidden');
+        }
+
+        /**
+         * Cria o elemento HTML (DOM) para representar uma carta visualmente.
+         * @param {Object} carta - Objeto contendo valor e naipe da carta.
+         * @param {boolean} isOculta - Define se a carta deve mostrar o verso (true) ou a face (false).
+         * @returns {HTMLElement} A div representando a carta.
+         */
+        function criarElementoCarta(carta, isOculta = false) {
+            const div = document.createElement('div');
+            
+            // Se a carta estiver oculta, aplica o estilo do verso
+            if (isOculta) {
+                div.className = 'carta-jogo verso-carta animar-distribuicao';
+                return div;
+            }
+
+            // Determina a cor com base no naipe (Copas e Ouros são vermelhos)
+            const isVermelho = carta.naipe === '♥' || carta.naipe === '♦';
+            const classeCor = isVermelho ? 'naipe-vermelho' : 'naipe-preto';
+
+            // Estrutura HTML da face da carta
+            div.className = `carta-jogo animar-distribuicao ${classeCor}`;
+            div.innerHTML = `
+                <div class="text-lg leading-none">${carta.valor}</div>
+                <div class="naipe-centro">${carta.naipe}</div>
+                <div class="text-lg leading-none self-end rotate-180">${carta.valor}</div>
+            `;
+            return div;
+        }
+
+        /**
+         * Atualiza a exibição visual das mãos do jogador e do dealer na tela.
+         * Atualiza também as pontuações visíveis.
+         * @param {boolean} mostrarOcultaDealer - Define se a primeira carta do dealer deve ser revelada.
+         */
+        function renderizarMaos(mostrarOcultaDealer = false) {
+            // Limpa as áreas de cartas no HTML antes de re-renderizar
+            elMaoJogador.innerHTML = '';
+            elMaoDealer.innerHTML = '';
+
+            // Renderiza as cartas do Dealer
+            maoDealer.forEach((carta, indice) => {
+                // A primeira carta do dealer fica escondida até o final do jogo
+                // a menos que mostrarOcultaDealer seja true (fim do jogo)
+                const isOculta = indice === 0 && !mostrarOcultaDealer;
+                elMaoDealer.appendChild(criarElementoCarta(carta, isOculta));
+            });
+
+            // Renderiza as cartas do Jogador
+            maoJogador.forEach(carta => {
+                elMaoJogador.appendChild(criarElementoCarta(carta));
+            });
+
+            // Atualiza as pontuações na tela
+            elPontuacaoJogador.innerText = calcularPontuacao(maoJogador);
+            
+            // Lógica de exibição da pontuação do Dealer
+            if (mostrarOcultaDealer) {
+                // Fim de jogo: mostra a pontuação total do dealer
+                elPontuacaoDealer.innerText = calcularPontuacao(maoDealer);
+            } else {
+                // Durante o jogo: mostra apenas "?"
+                elPontuacaoDealer.innerText = "?"; 
+            }
+        }
+
+        /**
+         * Exibe a mensagem de fim de jogo (Vitória, Derrota, Empate).
+         * @param {string} titulo - O texto principal da mensagem.
+         * @param {string} subtitulo - O texto explicativo secundário.
+         * @param {string} classeCor - A classe CSS (Tailwind) para colorir o texto principal.
+         */
+        function exibirMensagem(titulo, subtitulo, classeCor) {
+            elMensagemJogo.classList.remove('hidden');
+            elTextoResultado.innerText = titulo;
+            // Combina as classes base com a classe de cor recebida
+            elTextoResultado.className = `text-2xl md:text-4xl font-black badge-status mb-1 ${classeCor}`;
+            elSubtextoResultado.innerText = subtitulo;
+        }
+
+        /**
+         * Ativa ou desativa os botões de controle do jogo dependendo do estado (jogando ou fim de jogo).
+         * @param {boolean} ativo - True se o jogador estiver no seu turno, False se o jogo acabou.
+         */
+        function alternarControles(ativo) {
+            btnPedir.disabled = !ativo;
+            btnParar.disabled = !ativo;
+            if (!ativo) {
+                // Estado: Jogo Finalizado
+                btnPedir.classList.add('opacity-50', 'cursor-not-allowed');
+                btnParar.classList.add('opacity-50', 'cursor-not-allowed');
+                btnReiniciar.classList.remove('hidden'); // Mostra botão de reiniciar
+                btnPedir.classList.add('hidden'); // Oculta Hit/Stand no fim para focar no Restart
+                btnParar.classList.add('hidden');
+            } else {
+                // Estado: Jogando
+                btnPedir.classList.remove('opacity-50', 'cursor-not-allowed', 'hidden');
+                btnParar.classList.remove('opacity-50', 'cursor-not-allowed', 'hidden');
+                btnReiniciar.classList.add('hidden'); // Esconde botão de reiniciar
+            }
+        }
+
+        // --- Controle do Jogo (Fluxo Principal) ---
+
+        /**
+         * Inicializa uma nova rodada do jogo.
+         */
+        function iniciarJogo() {
+            jogoFinalizado = false;
+            elMensagemJogo.classList.add('hidden'); // Oculta mensagens antigas
+            
+            criarBaralho();
+            embaralharBaralho();
+            
+            // Distribui as duas cartas iniciais para cada (retirando do final do array baralho)
+            maoJogador = [baralho.pop(), baralho.pop()];
+            maoDealer = [baralho.pop(), baralho.pop()];
+
+            alternarControles(true); // Habilita os botões de ação
+            renderizarMaos(false); // Renderiza as mãos (Esconde primeira carta do dealer)
+
+            // Regra especial: Verifica Blackjack instantâneo (21 na primeira mão) do jogador
+            const pontuacaoJ = calcularPontuacao(maoJogador);
+            if (pontuacaoJ === 21) {
+                parar(); // Passa direto para validação do dealer (encerra o turno do jogador automaticamente)
+            }
+        }
+
+        /**
+         * Ação do jogador de pedir mais uma carta (Hit).
+         */
+        function pedirCarta() {
+            if (jogoFinalizado) return; // Evita ações se o jogo já acabou
+
+            maoJogador.push(baralho.pop()); // Adiciona uma carta do baralho à mão do jogador
+            renderizarMaos(false); // Atualiza a tela
+
+            // Verifica se o jogador "estourou" (passou de 21) após pedir a carta
+            const pontuacao = calcularPontuacao(maoJogador);
+            if (pontuacao > 21) {
+                finalizarJogo("VOCÊ ESTOUROU!", "Soma maior que 21", "text-red-400"); // Derrota imediata
+            }
+        }
+
+        /**
+         * Ação do jogador de parar de pedir cartas (Stand) e passar o turno para o Dealer.
+         */
+        function parar() {
+            if (jogoFinalizado) return;
+
+            // Inicia o Turno do Dealer
+            // Regra principal do Cassino: O Dealer deve comprar cartas até ter 17 ou mais
+            let pontuacaoD = calcularPontuacao(maoDealer);
+            
+            // O dealer compra cartas em um loop até atingir 17 ou mais
+            while (pontuacaoD < 17) {
+                maoDealer.push(baralho.pop());
+                pontuacaoD = calcularPontuacao(maoDealer);
+            }
+
+            determinarVencedor(); // Após o dealer parar, verifica quem ganhou
+        }
+
+        /**
+         * Compara as pontuações finais para determinar o resultado da rodada.
+         */
+        function determinarVencedor() {
+            const pontuacaoJ = calcularPontuacao(maoJogador);
+            const pontuacaoD = calcularPontuacao(maoDealer);
+
+            renderizarMaos(true); // Fim de jogo: Revela todas as cartas (incluindo a oculta do dealer)
+
+            // Condições de Vitória/Derrota
+            if (pontuacaoD > 21) {
+                // Dealer estourou (passou de 21)
+                finalizarJogo("VOCÊ VENCEU!", "Dealer estourou a mão", "text-green-400");
+            } else if (pontuacaoD > pontuacaoJ) {
+                // Dealer tem pontuação maior (sem estourar)
+                finalizarJogo("DEALER VENCEU!", `Dealer fez ${pontuacaoD} contra ${pontuacaoJ}`, "text-red-400");
+            } else if (pontuacaoJ > pontuacaoD) {
+                // Jogador tem pontuação maior
+                finalizarJogo("VOCÊ VENCEU!", `Você fez ${pontuacaoJ} contra ${pontuacaoD}`, "text-green-400");
+            } else {
+                // Pontuações iguais
+                finalizarJogo("EMPATE", "Ninguém perde fichas", "text-yellow-400");
+            }
+        }
+
+        /**
+         * Executa as ações necessárias para finalizar a rodada atual.
+         * @param {string} titulo - Mensagem principal de fim de jogo.
+         * @param {string} subtitulo - Mensagem explicativa.
+         * @param {string} classeCor - Cor do texto da mensagem.
+         */
+        function finalizarJogo(titulo, subtitulo, classeCor) {
+            jogoFinalizado = true;
+            renderizarMaos(true); // Garante que a carta oculta apareça
+            exibirMensagem(titulo, subtitulo, classeCor); // Mostra o resultado na tela
+            alternarControles(false); // Desabilita botões Hit/Stand e mostra botão Restart
+        }
+
+        // Iniciar jogo automaticamente quando a página carregar
+        window.onload = () => {
+            iniciarJogo();
+            // Descomente a linha abaixo se quiser que o modal de regras abra automaticamente na primeira vez que entrar
+            // alternarRegras();
+        };
+
+    </script>
+</body>
+</html>

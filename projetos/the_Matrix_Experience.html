@@ -1,0 +1,949 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Matrix | Welcome to the Real World</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: VT323 (Terminal-like) and Roboto -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&family=VT323&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        matrix: {
+                            black: '#030303',
+                            dark: '#0D0D0D',
+                            green: '#00FF41',
+                            dimGreen: '#008F11',
+                            pale: '#D3FBD8',
+                            error: '#FF0000'
+                        }
+                    },
+                    fontFamily: {
+                        mono: ['"Share Tech Mono"', '"VT323"', 'monospace'],
+                        sans: ['"Roboto"', 'sans-serif'],
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'glitch': 'glitch 1s linear infinite',
+                        'float': 'float 6s ease-in-out infinite',
+                        'fill-bar': 'fillBar 2s ease-out forwards',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-20px)' },
+                        },
+                        fillBar: {
+                            '0%': { width: '0%' },
+                            '100%': { width: 'var(--target-width)' } // JS will set this or use style attribute
+                        }
+                    },
+                    boxShadow: {
+                        'neon': '0 0 5px #00FF41, 0 0 20px #008F11',
+                        'error': '0 0 5px #FF0000, 0 0 20px #8B0000',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* CSS Customizado para Efeitos Específicos */
+        body {
+            background-color: #000;
+            color: #e0e0e0;
+            overflow-x: hidden;
+        }
+
+        /* Loading Screen Style */
+        #loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #000;
+            z-index: 100000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Share Tech Mono', monospace;
+            color: #00FF41;
+            transition: opacity 0.8s ease-out, visibility 0.8s;
+        }
+
+        .loading-bar-container {
+            width: 300px;
+            max-width: 80%;
+            height: 4px;
+            background: #0D0D0D;
+            border: 1px solid #008F11;
+            margin-top: 20px;
+            position: relative;
+            box-shadow: 0 0 10px rgba(0, 255, 65, 0.2);
+        }
+
+        .loading-bar {
+            height: 100%;
+            background: #00FF41;
+            width: 0%;
+            box-shadow: 0 0 15px #00FF41;
+            transition: width 0.1s linear;
+        }
+
+        .loading-status {
+            min-height: 1.5em;
+            text-shadow: 0 0 5px #00FF41;
+        }
+
+        /* Scrollbar Personalizada */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #000;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #008F11;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #00FF41;
+        }
+
+        /* --- BACKGROUNDS TEMÁTICOS --- */
+        
+        /* O Construto (Grid) */
+        .bg-construct {
+            background-color: #050505;
+            background-image:
+                linear-gradient(rgba(0, 143, 17, 0.15) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 143, 17, 0.15) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+
+        /* Scanlines (Monitor CRT) */
+        .bg-training {
+            background-color: #080808;
+            background-image: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                rgba(0, 50, 0, 0.3) 2px,
+                rgba(0, 50, 0, 0.3) 4px
+            );
+        }
+
+        /* Data Dots (Dados Brutos) */
+        .bg-characters {
+            background-color: #020202;
+            background-image: radial-gradient(
+                rgba(0, 143, 17, 0.2) 1px, 
+                transparent 1px
+            );
+            background-size: 20px 20px;
+        }
+
+        /* Neural Net (Malha Diagonal) */
+        .bg-philosophy {
+            background-color: #0a0a0a;
+            background-image: 
+                repeating-linear-gradient(45deg, rgba(0, 255, 65, 0.03) 0px, rgba(0, 255, 65, 0.03) 1px, transparent 1px, transparent 10px),
+                repeating-linear-gradient(-45deg, rgba(0, 255, 65, 0.03) 0px, rgba(0, 255, 65, 0.03) 1px, transparent 1px, transparent 10px);
+        }
+
+        /* --- FIM BACKGROUNDS --- */
+
+        /* Terminal Flutuante */
+        .terminal-window {
+            display: none;
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 90%;
+            max-width: 500px;
+            height: 300px;
+            background: rgba(0, 0, 0, 0.95);
+            border: 1px solid #00FF41;
+            z-index: 100;
+            box-shadow: 0 0 15px rgba(0, 255, 65, 0.2);
+            font-family: 'VT323', monospace;
+            flex-direction: column;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        
+        .terminal-header {
+            background: #008F11;
+            color: #000;
+            padding: 5px 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: bold;
+            cursor: move;
+        }
+
+        .terminal-body {
+            flex: 1;
+            padding: 10px;
+            overflow-y: auto;
+            color: #00FF41;
+            font-size: 1.1rem;
+        }
+
+        .terminal-input-line {
+            display: flex;
+            margin-top: 5px;
+        }
+
+        .terminal-prompt {
+            margin-right: 8px;
+        }
+
+        .terminal-input {
+            background: transparent;
+            border: none;
+            color: #00FF41;
+            flex: 1;
+            outline: none;
+            font-family: 'VT323', monospace;
+            font-size: 1.1rem;
+        }
+
+        /* Efeito de Glitch no Texto */
+        .glitch-text {
+            position: relative;
+        }
+        .glitch-text::before, .glitch-text::after {
+            content: attr(data-text);
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        .glitch-text::before {
+            left: 2px;
+            text-shadow: -1px 0 red;
+            clip: rect(24px, 550px, 90px, 0);
+            animation: glitch-anim-2 3s infinite linear alternate-reverse;
+        }
+        .glitch-text::after {
+            left: -2px;
+            text-shadow: -1px 0 blue;
+            clip: rect(85px, 550px, 140px, 0);
+            animation: glitch-anim 2.5s infinite linear alternate-reverse;
+        }
+
+        @keyframes glitch-anim {
+            0% { clip: rect(10px, 9999px, 81px, 0); }
+            20% { clip: rect(68px, 9999px, 19px, 0); }
+            40% { clip: rect(2px, 9999px, 88px, 0); }
+            60% { clip: rect(98px, 9999px, 53px, 0); }
+            80% { clip: rect(31px, 9999px, 12px, 0); }
+            100% { clip: rect(76px, 9999px, 64px, 0); }
+        }
+        @keyframes glitch-anim-2 {
+            0% { clip: rect(65px, 9999px, 91px, 0); }
+            20% { clip: rect(28px, 9999px, 21px, 0); }
+            40% { clip: rect(4px, 9999px, 36px, 0); }
+            60% { clip: rect(56px, 9999px, 4px, 0); }
+            80% { clip: rect(12px, 9999px, 78px, 0); }
+            100% { clip: rect(48px, 9999px, 82px, 0); }
+        }
+
+        /* Cursor piscando */
+        .typing-cursor::after {
+            content: '█';
+            animation: blink 1s step-start infinite;
+            color: #00FF41;
+            margin-left: 2px;
+        }
+        @keyframes blink { 50% { opacity: 0; } }
+
+        /* Utilitários de Vidro */
+        .glass-panel {
+            background: rgba(0, 10, 0, 0.85); /* Mais escuro para contraste */
+            backdrop-filter: blur(5px);
+            border: 1px solid #008F11;
+            box-shadow: 0 0 15px rgba(0, 255, 65, 0.1);
+        }
+
+        /* Canvas Background */
+        #matrix-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            opacity: 0.25; 
+        }
+
+        /* Vírus Agent Smith */
+        .agent-clone {
+            position: fixed;
+            z-index: 9999;
+            width: 200px;
+            background: black;
+            border: 2px solid red;
+            color: red;
+            padding: 10px;
+            text-align: center;
+            font-family: 'Share Tech Mono', monospace;
+            box-shadow: 0 0 10px red;
+            pointer-events: none; /* Deixa clicar no botão de reset */
+            animation: float 2s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body class="antialiased selection:bg-matrix-green selection:text-black">
+
+    <!-- Loading Screen -->
+    <div id="loading-screen">
+        <div class="text-3xl mb-4 animate-pulse tracking-widest">SYSTEM_BOOT</div>
+        <div class="loading-status text-matrix-dimGreen text-sm mb-1" id="loading-text">> INICIANDO PROTOCOLO...</div>
+        <div class="loading-bar-container">
+            <div class="loading-bar" id="loading-bar"></div>
+        </div>
+        <div class="mt-2 text-xs text-matrix-dimGreen font-bold" id="loading-percentage">0%</div>
+    </div>
+
+    <!-- Canvas para Chuva Digital -->
+    <canvas id="matrix-canvas"></canvas>
+
+    <!-- Navigation -->
+    <nav class="fixed w-full z-50 top-0 left-0 border-b border-matrix-dimGreen bg-black/90 backdrop-blur-md transition-all duration-300" id="navbar">
+        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <a href="#" class="text-2xl font-mono font-bold text-matrix-green tracking-widest hover:text-white transition-colors">
+                THE_MATRIX<span class="animate-pulse">_</span>
+            </a>
+            
+            <div class="hidden md:flex space-x-8 font-mono text-sm uppercase tracking-wider">
+                <a href="#home" class="text-gray-300 hover:text-matrix-green hover:shadow-neon transition-all duration-300">Início</a>
+                <a href="#about" class="text-gray-300 hover:text-matrix-green hover:shadow-neon transition-all duration-300">Conceito</a>
+                <a href="#training" class="text-gray-300 hover:text-matrix-green hover:shadow-neon transition-all duration-300">Treinamento</a>
+                <a href="#characters" class="text-gray-300 hover:text-matrix-green hover:shadow-neon transition-all duration-300">Personagens</a>
+                <a href="#contact" class="text-gray-300 hover:text-matrix-green hover:shadow-neon transition-all duration-300">Junte-se</a>
+            </div>
+
+            <!-- Mobile Menu Button -->
+            <button class="md:hidden text-matrix-green focus:outline-none" onclick="toggleMobileMenu()">
+                <i class="fas fa-bars text-2xl"></i>
+            </button>
+        </div>
+        
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden md:hidden bg-black border-t border-matrix-dimGreen">
+            <div class="flex flex-col px-6 py-4 space-y-4 font-mono">
+                <a href="#home" class="text-gray-300 hover:text-matrix-green">Início</a>
+                <a href="#about" class="text-gray-300 hover:text-matrix-green">Conceito</a>
+                <a href="#training" class="text-gray-300 hover:text-matrix-green">Treinamento</a>
+                <a href="#characters" class="text-gray-300 hover:text-matrix-green">Personagens</a>
+                <a href="#contact" class="text-gray-300 hover:text-matrix-green">Junte-se</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Terminal Button -->
+    <button onclick="toggleTerminal()" class="fixed bottom-6 right-6 z-40 bg-black border border-matrix-green text-matrix-green w-12 h-12 rounded-full flex items-center justify-center hover:bg-matrix-green hover:text-black transition-all shadow-neon" title="Abrir Terminal (Tecla ')">
+        <i class="fas fa-terminal"></i>
+    </button>
+
+    <!-- Terminal Window -->
+    <div id="terminal" class="terminal-window">
+        <div class="terminal-header">
+            <span>TERMINAL CONSTRUCT v2.1</span>
+            <button onclick="toggleTerminal()" class="text-black hover:text-white">X</button>
+        </div>
+        <div class="terminal-body" id="terminal-body">
+            <div class="mb-2">Bem-vindo ao Construct. Digite 'help' para comandos.</div>
+        </div>
+        <div class="terminal-input-line px-2 pb-2">
+            <span class="terminal-prompt">></span>
+            <input type="text" id="terminal-input" class="terminal-input" autocomplete="off">
+        </div>
+    </div>
+
+    <!-- Hero Section (Mantém fundo transparente para mostrar a chuva digital) -->
+    <section id="home" class="relative min-h-screen flex items-center justify-center pt-16">
+        <div class="text-center z-10 px-4">
+            <p class="font-mono text-matrix-green mb-4 text-lg tracking-widest typing-cursor" id="typing-text"></p>
+            <h1 class="text-5xl md:text-8xl font-bold text-white mb-6 uppercase tracking-tighter glitch-text hover-decoder cursor-default" data-text="WAKE UP, NEO." data-original="WAKE UP, NEO.">
+                WAKE UP, NEO.
+            </h1>
+            <p class="text-gray-400 max-w-2xl mx-auto mb-10 font-sans text-lg drop-shadow-md">
+                A Matrix está em todo lugar. Está à nossa volta. Mesmo agora, nesta mesma sala.
+            </p>
+            
+            <div class="flex flex-col md:flex-row justify-center gap-6 mt-8">
+                <button onclick="choosePill('blue')" class="group relative px-8 py-3 bg-black/50 border border-blue-500 text-blue-400 font-mono uppercase tracking-widest hover:bg-blue-500/10 transition-all duration-300 rounded-sm">
+                    <span class="absolute inset-0 w-full h-full bg-blue-500/5 filter blur-lg group-hover:bg-blue-500/20 transition-all"></span>
+                    <i class="fas fa-capsules mr-2"></i> Pílula Azul
+                </button>
+                <button onclick="choosePill('red')" class="group relative px-8 py-3 bg-black/50 border border-red-600 text-red-500 font-mono uppercase tracking-widest hover:bg-red-600/10 transition-all duration-300 rounded-sm shadow-[0_0_15px_rgba(220,38,38,0.3)] hover:shadow-[0_0_25px_rgba(220,38,38,0.6)]">
+                    <span class="absolute inset-0 w-full h-full bg-red-600/5 filter blur-lg group-hover:bg-red-600/20 transition-all"></span>
+                    <i class="fas fa-capsules mr-2"></i> Pílula Vermelha
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- About / Concept Section (Fundo Grid - Construct) -->
+    <section id="about" class="py-24 bg-construct border-t border-matrix-dimGreen relative overflow-hidden">
+        <div class="container mx-auto px-6 relative z-10">
+            <div class="grid md:grid-cols-2 gap-12 items-center">
+                <div class="order-2 md:order-1 relative">
+                    <div class="glass-panel p-1 rounded-sm transform rotate-1 hover:rotate-0 transition-transform duration-500">
+                        <div class="bg-black p-4 border border-matrix-dimGreen">
+                            <div class="flex items-center justify-between mb-4 border-b border-gray-800 pb-2">
+                                <span class="text-xs text-matrix-green font-mono">SYSTEM_ROOT://SIMULATION/ABOUT</span>
+                                <div class="flex space-x-2">
+                                    <div class="w-3 h-3 rounded-full bg-red-500"></div>
+                                    <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
+                                    <div class="w-3 h-3 rounded-full bg-green-500"></div>
+                                </div>
+                            </div>
+                            <p class="font-mono text-matrix-green text-sm leading-relaxed">
+                                > Acessando arquivos restritos...<br>
+                                > Descriptografando...<br>
+                                > <span class="text-white">A Matrix é uma simulação de realidade virtual</span> gerada por computador, criada por máquinas sencientes para subjugar a população humana, enquanto o calor e a atividade elétrica de seus corpos são usados como fonte de energia.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="order-1 md:order-2">
+                    <h2 class="text-4xl font-mono text-white mb-6 border-l-4 border-matrix-green pl-4 hover-decoder cursor-default" data-original="O QUE É A MATRIX?">O QUE É A MATRIX?</h2>
+                    <p class="text-gray-400 mb-6 font-sans leading-relaxed text-lg">
+                        Você sente isso há muito tempo. Há algo de errado com o mundo. Você não sabe o que é, mas está lá, como um zumbido em sua mente, te deixando louco.
+                    </p>
+                    <ul class="space-y-4 font-mono text-sm md:text-base">
+                        <li class="flex items-center text-gray-300">
+                            <i class="fas fa-check text-matrix-green mr-3"></i> Controle Neural-Interativo
+                        </li>
+                        <li class="flex items-center text-gray-300">
+                            <i class="fas fa-check text-matrix-green mr-3"></i> Simulação de Física e Leis Quebráveis
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Training Programs (Fundo Scanline) -->
+    <section id="training" class="py-24 bg-training relative border-t border-gray-900">
+        <div class="container mx-auto px-6 relative z-10">
+            <h2 class="text-4xl font-mono text-white mb-12 text-center hover-decoder cursor-default" data-original="PROGRAMAS DE TREINAMENTO">PROGRAMAS DE TREINAMENTO</h2>
+            
+            <div class="grid md:grid-cols-2 gap-12">
+                <div>
+                    <h3 class="text-xl text-matrix-green font-mono mb-6 flex items-center">
+                        <i class="fas fa-download mr-3"></i> Upload de Habilidades
+                    </h3>
+                    <div class="space-y-6 font-mono text-sm">
+                        <!-- Skill 1 -->
+                        <div>
+                            <div class="flex justify-between text-gray-400 mb-1">
+                                <span>JIU JITSU</span>
+                                <span>100%</span>
+                            </div>
+                            <div class="w-full bg-gray-900 h-2 rounded-full overflow-hidden">
+                                <div class="bg-matrix-green h-full w-0 animate-fill-bar" style="animation-delay: 0.2s; width: 100%;"></div>
+                            </div>
+                        </div>
+                        <!-- Skill 2 -->
+                        <div>
+                            <div class="flex justify-between text-gray-400 mb-1">
+                                <span>HACKING DE CÓDIGO</span>
+                                <span>95%</span>
+                            </div>
+                            <div class="w-full bg-gray-900 h-2 rounded-full overflow-hidden">
+                                <div class="bg-matrix-green h-full w-0 animate-fill-bar" style="animation-delay: 0.4s; width: 95%;"></div>
+                            </div>
+                        </div>
+                        <!-- Skill 3 -->
+                        <div>
+                            <div class="flex justify-between text-gray-400 mb-1">
+                                <span>MANIPULAÇÃO DE FÍSICA</span>
+                                <span>88%</span>
+                            </div>
+                            <div class="w-full bg-gray-900 h-2 rounded-full overflow-hidden">
+                                <div class="bg-matrix-green h-full w-0 animate-fill-bar" style="animation-delay: 0.6s; width: 88%;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-panel p-6 flex flex-col justify-center items-center text-center">
+                    <i class="fas fa-microchip text-6xl text-matrix-dimGreen mb-6 animate-pulse"></i>
+                    <h4 class="text-2xl text-white font-bold mb-2">OPERADOR TANK</h4>
+                    <p class="text-gray-400 mb-6">"Eu preciso de armas. Muitas armas."</p>
+                    <button onclick="document.getElementById('terminal').style.display='flex'; document.getElementById('terminal-input').focus();" class="px-6 py-2 border border-matrix-green text-matrix-green hover:bg-matrix-green hover:text-black transition-colors font-mono uppercase text-sm">
+                        Solicitar Upload via Terminal
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Characters Section (Fundo Data Dots) -->
+    <section id="characters" class="py-24 bg-characters relative border-t border-matrix-dimGreen">
+        <div class="container mx-auto px-6 relative z-10">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-5xl font-bold text-white mb-4 hover-decoder cursor-default" data-original="PERSONAGENS">PERSONAGENS</h2>
+                <div class="h-1 w-24 bg-matrix-green mx-auto"></div>
+            </div>
+
+            <div class="grid md:grid-cols-4 gap-6">
+                <!-- Card 1: Neo -->
+                <div class="group relative bg-black/80 border border-gray-800 hover:border-matrix-green transition-all duration-300 overflow-hidden backdrop-blur-sm">
+                    <div class="p-8 text-center">
+                        <div class="w-24 h-24 mx-auto mb-6 rounded-full border-2 border-matrix-dimGreen flex items-center justify-center bg-gray-900 group-hover:shadow-[0_0_15px_#00FF41] transition-all">
+                            <i class="fas fa-user-secret text-4xl text-white"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-white mb-2 font-mono">NEO</h3>
+                        <p class="text-xs text-matrix-green mb-4 uppercase tracking-widest">O Escolhido</p>
+                    </div>
+                </div>
+
+                <!-- Card 2: Trinity -->
+                <div class="group relative bg-black/80 border border-gray-800 hover:border-matrix-green transition-all duration-300 overflow-hidden backdrop-blur-sm">
+                     <div class="p-8 text-center">
+                        <div class="w-24 h-24 mx-auto mb-6 rounded-full border-2 border-matrix-dimGreen flex items-center justify-center bg-gray-900 group-hover:shadow-[0_0_15px_#00FF41] transition-all">
+                            <i class="fas fa-motorcycle text-4xl text-white"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-white mb-2 font-mono">TRINITY</h3>
+                        <p class="text-xs text-matrix-green mb-4 uppercase tracking-widest">Oficial</p>
+                    </div>
+                </div>
+
+                <!-- Card 3: Morpheus -->
+                <div class="group relative bg-black/80 border border-gray-800 hover:border-matrix-green transition-all duration-300 overflow-hidden backdrop-blur-sm">
+                    <div class="p-8 text-center">
+                        <div class="w-24 h-24 mx-auto mb-6 rounded-full border-2 border-matrix-dimGreen flex items-center justify-center bg-gray-900 group-hover:shadow-[0_0_15px_#00FF41] transition-all">
+                            <i class="fas fa-glasses text-4xl text-white"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-white mb-2 font-mono">MORPHEUS</h3>
+                        <p class="text-xs text-matrix-green mb-4 uppercase tracking-widest">Capitão</p>
+                    </div>
+                </div>
+
+                <!-- Card 4: Agent Smith (VIRUS TRIGGER) -->
+                <div class="group relative bg-black/80 border border-red-900 hover:border-red-600 transition-all duration-300 overflow-hidden cursor-pointer backdrop-blur-sm" onclick="triggerVirus()">
+                    <div class="p-8 text-center">
+                        <div class="w-24 h-24 mx-auto mb-6 rounded-full border-2 border-red-900 flex items-center justify-center bg-gray-900 group-hover:shadow-[0_0_15px_rgba(220,38,38,0.5)] transition-all">
+                            <i class="fas fa-user-tie text-4xl text-white"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-white mb-2 font-mono">SMITH</h3>
+                        <p class="text-xs text-red-500 mb-4 uppercase tracking-widest animate-pulse">CLIQUE PARA EXECUTAR</p>
+                    </div>
+                    <!-- Aviso flutuante -->
+                    <div class="absolute top-2 right-2 text-red-600 text-[10px] font-mono border border-red-600 px-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        DANGER.EXE
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Botão de Reboot (Escondido inicialmente) -->
+        <button id="reboot-btn" onclick="rebootSystem()" class="hidden fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-[10000] bg-red-600 text-white font-bold text-2xl py-6 px-12 border-4 border-white shadow-[0_0_50px_red] hover:bg-red-700 animate-pulse font-mono">
+            SYSTEM FAILURE // REBOOT NOW
+        </button>
+    </section>
+
+    <!-- Philosophy / Movies Section (Fundo Neural Net) -->
+    <section id="philosophy" class="py-24 bg-philosophy border-t border-gray-900 relative">
+        <div class="container mx-auto px-6 relative z-10">
+            <div class="grid md:grid-cols-2 gap-16">
+                <div>
+                    <h2 class="text-3xl font-mono text-white mb-8 hover-decoder cursor-default" data-original="TEMAS_FILOSOFICOS.EXE">TEMAS_FILOSOFICOS.EXE</h2>
+                    
+                    <div class="space-y-8">
+                        <div class="flex gap-4">
+                            <div class="text-matrix-green text-xl pt-1">01</div>
+                            <div>
+                                <h4 class="text-xl text-white font-bold mb-2">A Alegoria da Caverna</h4>
+                                <p class="text-gray-400 text-sm leading-relaxed">Referência direta a Platão. A humanidade vê apenas sombras na parede (a Matrix) e acredita que é a realidade. Sair da caverna (despertar) é doloroso e ofuscante.</p>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-4">
+                            <div class="text-matrix-green text-xl pt-1">02</div>
+                            <div>
+                                <h4 class="text-xl text-white font-bold mb-2">Livre Arbítrio vs. Destino</h4>
+                                <p class="text-gray-400 text-sm leading-relaxed">Neo é realmente o escolhido ou foi programado para ser? A escolha é o problema e a solução da equação da Matrix.</p>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-4">
+                            <div class="text-matrix-green text-xl pt-1">03</div>
+                            <div>
+                                <h4 class="text-xl text-white font-bold mb-2">Simulacra e Simulação</h4>
+                                <p class="text-gray-400 text-sm leading-relaxed">Baseado na obra de Jean Baudrillard. Onde a representação da realidade se torna mais importante ou real do que a própria realidade.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-panel p-8 rounded-lg">
+                    <h3 class="text-2xl font-mono text-white mb-6 border-b border-gray-700 pb-4">Timeline da Trilogia</h3>
+                    
+                    <div class="relative border-l border-matrix-dimGreen ml-3 space-y-8">
+                         <div class="ml-6 relative">
+                            <span class="absolute -left-9 top-1 w-5 h-5 bg-black border-2 border-matrix-green rounded-full"></span>
+                            <h4 class="text-white font-bold">The Matrix (1999)</h4>
+                        </div>
+                         <div class="ml-6 relative">
+                            <span class="absolute -left-9 top-1 w-5 h-5 bg-black border-2 border-matrix-green rounded-full"></span>
+                            <h4 class="text-white font-bold">The Matrix Reloaded (2003)</h4>
+                        </div>
+                         <div class="ml-6 relative">
+                            <span class="absolute -left-9 top-1 w-5 h-5 bg-black border-2 border-matrix-green rounded-full"></span>
+                            <h4 class="text-white font-bold">The Matrix Revolutions (2003)</h4>
+                        </div>
+                    </div>
+
+                    <div class="mt-8 p-4 bg-black border border-matrix-green/30 rounded font-mono text-xs text-matrix-green">
+                        <p class="mb-2">> status_sistema: ONLINE</p>
+                        <p class="mb-2">> ameaca_detectada: 0</p>
+                        <p class="animate-pulse">> aguardando_input_usuario...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Call to Action / Contact (Fundo Void Gradient) -->
+    <section id="contact" class="py-24 relative overflow-hidden bg-gradient-to-b from-matrix-dark to-black border-t border-matrix-dimGreen">
+        <div class="absolute top-0 w-full h-px bg-gradient-to-r from-transparent via-matrix-green to-transparent opacity-50"></div>
+
+        <div class="container mx-auto px-6 text-center z-10 relative">
+            <i class="fas fa-phone-alt text-5xl text-matrix-green mb-6 animate-pulse"></i>
+            <h2 class="text-4xl md:text-6xl font-bold text-white mb-6 font-mono hover-decoder cursor-default" data-original="ENCONTRE A SAÍDA">ENCONTRE A SAÍDA</h2>
+            
+            <form class="max-w-lg mx-auto space-y-4 text-left" onsubmit="event.preventDefault(); alert('Conexão criptografada estabelecida. Aguarde contato.');">
+                <div>
+                    <label class="block text-matrix-green font-mono text-xs mb-1">CODENAME</label>
+                    <input type="text" class="w-full bg-gray-900 border border-gray-700 text-white p-3 focus:outline-none focus:border-matrix-green focus:shadow-neon transition-colors font-mono" placeholder="Ex: Neo">
+                </div>
+                <div>
+                    <label class="block text-matrix-green font-mono text-xs mb-1">CANAL_DE_COMUNICACAO</label>
+                    <input type="email" class="w-full bg-gray-900 border border-gray-700 text-white p-3 focus:outline-none focus:border-matrix-green focus:shadow-neon transition-colors font-mono" placeholder="email@resistencia.com">
+                </div>
+                <button type="submit" class="w-full bg-matrix-dimGreen text-black font-bold py-4 hover:bg-matrix-green hover:shadow-neon transition-all duration-300 font-mono text-lg mt-4">
+                    INICIAR UPLOAD
+                </button>
+            </form>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-matrix-dark border-t border-gray-900 py-12">
+        <div class="container mx-auto px-6 flex flex-col md:flex-row justify-between items-center">
+            <div class="mb-6 md:mb-0">
+                <span class="text-2xl font-mono font-bold text-white tracking-widest">THE MATRIX</span>
+                <p class="text-gray-600 text-xs mt-2 font-mono">© 2024 CONSTRUCT OF THE SYSTEM.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script>
+        // ----------------------------------------------------
+        // 0. Loading Screen Logic
+        // ----------------------------------------------------
+        window.addEventListener('load', () => {
+            const loadingScreen = document.getElementById('loading-screen');
+            const loadingText = document.getElementById('loading-text');
+            const loadingBar = document.getElementById('loading-bar');
+            const loadingPercentage = document.getElementById('loading-percentage');
+
+            const messages = [
+                "> ESTABELECENDO CONEXÃO...",
+                "> DECRIPTANDO CÓDIGO FONTE...",
+                "> CARREGANDO CONSTRUTO...",
+                "> HACKEANDO MAINFRAME...",
+                "> ACORDANDO O SUJEITO..."
+            ];
+
+            let percent = 0;
+            
+            // Intervalo para animação de loading
+            const interval = setInterval(() => {
+                // Incremento variável para parecer "real" (às vezes rápido, às vezes devagar)
+                percent += Math.random() * 4; 
+                if (percent > 100) percent = 100;
+
+                // Atualiza UI
+                loadingBar.style.width = `${percent}%`;
+                loadingPercentage.innerText = `${Math.floor(percent)}%`;
+
+                // Muda o texto baseado no progresso
+                if (percent < 20) loadingText.innerText = messages[0];
+                else if (percent < 40) loadingText.innerText = messages[1];
+                else if (percent < 60) loadingText.innerText = messages[2];
+                else if (percent < 80) loadingText.innerText = messages[3];
+                else loadingText.innerText = messages[4];
+
+                // Finaliza
+                if (percent >= 100) {
+                    clearInterval(interval);
+                    
+                    // Pequeno delay para ler "100%"
+                    setTimeout(() => {
+                        loadingScreen.style.opacity = '0';
+                        loadingScreen.style.visibility = 'hidden';
+                        
+                        // Inicia as outras animações (digitação do topo) após o loading sumir
+                        setTimeout(() => {
+                            typeWriter(); 
+                        }, 500);
+                    }, 500);
+                }
+            }, 80); // Velocidade do loop
+        });
+
+
+        // ----------------------------------------------------
+        // 1. Matrix Rain Effect
+        // ----------------------------------------------------
+        const canvas = document.getElementById('matrix-canvas');
+        const ctx = canvas.getContext('2d');
+        let width = canvas.width = window.innerWidth;
+        let height = canvas.height = window.innerHeight;
+        const cols = Math.floor(width / 20) + 1;
+        const ypos = Array(cols).fill(0);
+        const textChars = 'アァカサタナハマヤャラワガザダバパイィキシチニヒミリヰギジヂビピウゥクスツヌフムユュルグズブヅプエェケセテネヘメレヱゲゼデベペオォコソトノホモヨョロヲゴゾドボポ1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+
+        function matrix() {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+            ctx.fillRect(0, 0, width, height);
+            ctx.fillStyle = '#0F0';
+            ctx.font = '15pt monospace';
+            ypos.forEach((y, index) => {
+                const text = textChars.charAt(Math.floor(Math.random() * textChars.length));
+                const x = index * 20;
+                ctx.fillStyle = '#00FF41';
+                ctx.fillText(text, x, y);
+                if (y > 100 + Math.random() * 10000) ypos[index] = 0;
+                else ypos[index] = y + 20;
+            });
+        }
+        let rainInterval = setInterval(matrix, 50);
+        window.addEventListener('resize', () => {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+        });
+
+        // ----------------------------------------------------
+        // 2. Typing Effect for Hero Section
+        // ----------------------------------------------------
+        const textToType = "Follow the white rabbit...";
+        const typingElement = document.getElementById('typing-text');
+        let i = 0;
+        function typeWriter() {
+            if (i < textToType.length) {
+                typingElement.innerHTML += textToType.charAt(i);
+                i++;
+                setTimeout(typeWriter, 100);
+            }
+        }
+        // Nota: A chamada inicial do typeWriter foi movida para o callback do loading screen
+
+        // ----------------------------------------------------
+        // 3. Red/Blue Pill Logic
+        // ----------------------------------------------------
+        function choosePill(color) {
+            if (color === 'blue') {
+                document.body.innerHTML = `
+                    <div class="h-screen w-full flex items-center justify-center bg-blue-900 text-white flex-col text-center p-4">
+                        <h1 class="text-6xl font-bold mb-4">Ignorance is Bliss.</h1>
+                        <p class="text-xl">Você acordará na sua cama e acreditará no que quiser.</p>
+                        <button onclick="location.reload()" class="mt-8 px-6 py-2 border border-white hover:bg-white hover:text-blue-900 transition">Reiniciar a Matrix</button>
+                    </div>
+                `;
+            } else {
+                alert("Bem-vindo ao Deserto do Real.");
+                document.getElementById('about').scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+
+        function toggleMobileMenu() {
+            document.getElementById('mobile-menu').classList.toggle('hidden');
+        }
+
+        // ----------------------------------------------------
+        // 4. Scroll Animation
+        // ----------------------------------------------------
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('opacity-100', 'translate-y-0');
+                    entry.target.classList.remove('opacity-0', 'translate-y-10');
+                }
+            });
+        });
+        document.querySelectorAll('section h2, section p, .glass-panel').forEach((el) => {
+            el.classList.add('transition-all', 'duration-1000', 'opacity-0', 'translate-y-10');
+            observer.observe(el);
+        });
+
+        // ----------------------------------------------------
+        // 5. INTERACTIVE TERMINAL
+        // ----------------------------------------------------
+        const terminal = document.getElementById('terminal');
+        const termInput = document.getElementById('terminal-input');
+        const termBody = document.getElementById('terminal-body');
+
+        function toggleTerminal() {
+            if (terminal.style.display === 'flex') {
+                terminal.style.display = 'none';
+            } else {
+                terminal.style.display = 'flex';
+                termInput.focus();
+            }
+        }
+
+        // Atalho de Teclado (')
+        document.addEventListener('keydown', (e) => {
+            if (e.key === "'" || e.key === "`") {
+                e.preventDefault();
+                toggleTerminal();
+            }
+        });
+
+        termInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                const command = termInput.value.toLowerCase().trim();
+                printOutput(`> ${command}`);
+                processCommand(command);
+                termInput.value = '';
+                termBody.scrollTop = termBody.scrollHeight;
+            }
+        });
+
+        function printOutput(text) {
+            const line = document.createElement('div');
+            line.innerHTML = text;
+            line.classList.add('mb-1');
+            termBody.appendChild(line);
+        }
+
+        function processCommand(cmd) {
+            switch(cmd) {
+                case 'help':
+                    printOutput("COMMANDS: neo, trinity, zion, guns, matrix, clear, exit");
+                    break;
+                case 'neo':
+                    printOutput("Status: O ESCOLHIDO. Localização: Fonte.");
+                    break;
+                case 'trinity':
+                    printOutput("Status: Hackeando banco de dados do IRS...");
+                    break;
+                case 'zion':
+                    printOutput("AVISO: Acesso negado. Nível de segurança insuficiente.");
+                    break;
+                case 'guns':
+                    printOutput("Armas. Muitas armas. (Inventário carregado)");
+                    break;
+                case 'matrix':
+                    printOutput("A Matrix controla você. Olhe pela janela.");
+                    break;
+                case 'clear':
+                    termBody.innerHTML = '';
+                    break;
+                case 'exit':
+                    toggleTerminal();
+                    break;
+                default:
+                    printOutput(`Erro: Comando '${cmd}' desconhecido.`);
+            }
+        }
+
+        // ----------------------------------------------------
+        // 6. REALITY DECODER (Hover Effect)
+        // ----------------------------------------------------
+        const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890!@#$%^&*";
+        
+        document.querySelectorAll('.hover-decoder').forEach(h2 => {
+            h2.onmouseover = event => {
+                let iterations = 0;
+                const interval = setInterval(() => {
+                    event.target.innerText = event.target.innerText
+                        .split("")
+                        .map((letter, index) => {
+                            if(index < iterations) {
+                                return event.target.dataset.original[index];
+                            }
+                            return letters[Math.floor(Math.random() * 26)];
+                        })
+                        .join("");
+                    
+                    if(iterations >= event.target.dataset.original.length) {
+                        clearInterval(interval);
+                    }
+                    iterations += 1 / 2;
+                }, 30);
+            }
+        });
+
+        // ----------------------------------------------------
+        // 7. AGENT SMITH VIRUS
+        // ----------------------------------------------------
+        let virusInterval;
+
+        function triggerVirus() {
+            alert("AVISO: CÓDIGO MALICIOSO DETECTADO. O SISTEMA ESTÁ SENDO SOBRESCRITO.");
+            
+            // Toca som de erro (opcional, aqui só visual)
+            document.body.style.overflow = 'hidden'; // Trava scroll
+            
+            // Botão de Reboot aparece
+            document.getElementById('reboot-btn').classList.remove('hidden');
+
+            // Começa a spawnar agentes
+            virusInterval = setInterval(() => {
+                spawnAgent();
+            }, 300);
+        }
+
+        function spawnAgent() {
+            const agent = document.createElement('div');
+            agent.classList.add('agent-clone');
+            agent.innerHTML = `<i class="fas fa-user-tie text-4xl mb-2"></i><br>MR. ANDERSON`;
+            
+            const x = Math.random() * window.innerWidth;
+            const y = Math.random() * window.innerHeight;
+            
+            agent.style.left = `${x}px`;
+            agent.style.top = `${y}px`;
+            
+            document.body.appendChild(agent);
+
+            // Remover após um tempo para não crashar o browser real
+            setTimeout(() => {
+                agent.remove();
+            }, 5000);
+        }
+
+        function rebootSystem() {
+            clearInterval(virusInterval);
+            document.querySelectorAll('.agent-clone').forEach(el => el.remove());
+            document.getElementById('reboot-btn').classList.add('hidden');
+            document.body.style.overflow = 'auto';
+            alert("Sistema Reiniciado. Ameaça neutralizada.");
+        }
+
+    </script>
+</body>
+</html>

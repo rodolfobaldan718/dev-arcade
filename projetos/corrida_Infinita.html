@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Corrida Infinita - Carro Esportivo</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #222;
+            overflow: hidden; /* Previne rolagem acidental da página */
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            touch-action: none; /* Previne zoom e scroll no mobile ao tocar na tela */
+        }
+
+        /* Container principal que centraliza o jogo */
+        #conteinerJogo {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #333;
+        }
+
+        /* A tela onde o jogo é desenhado (Pista) */
+        canvas {
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            background-color: #555; /* Cor do asfalto */
+            max-width: 600px; /* Limita largura em telas grandes para manter a jogabilidade boa */
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Camada de Interface (Placar e Menus) que fica por cima do Canvas */
+        #camadaInterface {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none; /* Deixa cliques passarem direto para o canvas durante o jogo */
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        /* Estilo do texto da pontuação */
+        #placar {
+            padding: 20px;
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8); /* Sombra para dar destaque */
+            text-align: left;
+        }
+
+        /* Tela de Game Over e Tela de Início */
+        #telaMenu {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85); /* Fundo escuro semi-transparente */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            pointer-events: auto; /* Permite clicar nos botões do menu */
+            z-index: 10;
+        }
+
+        /* Título Principal do Jogo */
+        h1 {
+            font-size: 40px;
+            margin-bottom: 10px;
+            color: #ff4444;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-align: center;
+        }
+
+        /* Subtítulo / Instruções */
+        p {
+            font-size: 18px;
+            margin-bottom: 30px;
+            color: #ddd;
+            text-align: center;
+            padding: 0 20px;
+        }
+
+        /* Botão de Iniciar/Reiniciar */
+        button {
+            background-color: #ff4444;
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 20px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: transform 0.2s, background-color 0.2s;
+            box-shadow: 0 4px 15px rgba(255, 68, 68, 0.4);
+        }
+
+        button:hover {
+            transform: scale(1.05); /* Efeito de aumento ao passar o mouse */
+            background-color: #ff2222;
+        }
+
+        /* Classe utilitária para esconder elementos */
+        .oculto {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+
+<div id="conteinerJogo">
+    <!-- Área de renderização gráfica do jogo -->
+    <canvas id="canvasJogo"></canvas>
+    
+    <!-- Camada que exibe a pontuação durante a partida -->
+    <div id="camadaInterface">
+        <div id="placar">Pontos: 0</div>
+    </div>
+
+    <!-- Menu que aparece antes de começar e quando o jogador perde -->
+    <div id="telaMenu">
+        <h1 id="textoTitulo">TURBO RACER</h1>
+        <p id="textoStatus">Use as Setas ou Toque para desviar!</p>
+        <button id="botaoIniciar" onclick="iniciarJogo()">INICIAR CORRIDA</button>
+    </div>
+</div>
+
+<script>
+    // Capturando os elementos HTML para o JavaScript
+    const canvas = document.getElementById('canvasJogo');
+    const contexto = canvas.getContext('2d');
+    const elementoPlacar = document.getElementById('placar');
+    const telaMenu = document.getElementById('telaMenu');
+    const textoTitulo = document.getElementById('textoTitulo');
+    const textoStatus = document.getElementById('textoStatus');
+    const botaoIniciar = document.getElementById('botaoIniciar');
+
+    // Configurações do Estado do Jogo
+    let jogoRodando = false;
+    let pontuacao = 0;
+    let contadorQuadros = 0; // Conta quantos frames se passaram para calcular tempo/eventos
+    let velocidade = 5;      // Velocidade atual do jogo
+    let velocidadeBase = 5;  // Velocidade inicial ao começar a corrida
+    let velocidadeFaixa = 0; // Velocidade visual das faixas no asfalto
+
+    // Variáveis para guardar o tamanho da tela (Canvas)
+    let larguraCanvas, alturaCanvas;
+
+    // Objeto do Jogador (Carro Principal)
+    const jogador = {
+        x: 0,
+        y: 0,
+        largura: 50,
+        altura: 90,
+        cor: '#ff0000', // Vermelho Ferrari
+        velocidade: 7   // Velocidade de movimento lateral
+    };
+
+    // Listas para armazenar os carros inimigos (obstáculos) e cores possíveis
+    let obstaculos = [];
+    const coresObstaculos = ['#2ecc71', '#3498db', '#9b59b6', '#f1c40f', '#e67e22', '#ecf0f1'];
+
+    // Lista para gerenciar as faixas amarelas no meio da pista
+    let linhasPista = [];
+
+    // Objeto para rastrear quais teclas estão sendo pressionadas
+    const teclas = {
+        ArrowLeft: false, // Seta Esquerda
+        ArrowRight: false // Seta Direita
+    };
+
+    // --- Inicialização ---
+
+    // Função que ajusta o tamanho do canvas para caber na tela
+    function redimensionarCanvas() {
+        // Ajusta o canvas para caber na tela, mantendo uma largura máxima para jogabilidade
+        const conteiner = document.getElementById('conteinerJogo');
+        canvas.width = conteiner.clientWidth > 600 ? 600 : conteiner.clientWidth;
+        canvas.height = conteiner.clientHeight;
+        larguraCanvas = canvas.width;
+        alturaCanvas = canvas.height;
+
+        // Reposiciona o jogador no centro inferior se o jogo não estiver rodando
+        if (!jogoRodando) {
+            jogador.x = larguraCanvas / 2 - jogador.largura / 2;
+            jogador.y = alturaCanvas - jogador.altura - 20; // 20 pixels de margem do fundo
+        }
+    }
+
+    // Escuta o evento de redimensionamento da janela do navegador
+    window.addEventListener('resize', redimensionarCanvas);
+    redimensionarCanvas(); // Chama uma vez ao carregar
+
+    // --- Input de Controles ---
+
+    // Teclado: Quando uma tecla é pressionada
+    document.addEventListener('keydown', (evento) => {
+        // Suporta setas (ArrowLeft/Right) e as teclas A / D
+        if (evento.code === 'ArrowLeft' || evento.key === 'ArrowLeft' || evento.key === 'a' || evento.key === 'A') {
+            teclas.ArrowLeft = true;
+        }
+        if (evento.code === 'ArrowRight' || evento.key === 'ArrowRight' || evento.key === 'd' || evento.key === 'D') {
+            teclas.ArrowRight = true;
+        }
+    });
+
+    // Teclado: Quando uma tecla é solta
+    document.addEventListener('keyup', (evento) => {
+        if (evento.code === 'ArrowLeft' || evento.key === 'ArrowLeft' || evento.key === 'a' || evento.key === 'A') {
+            teclas.ArrowLeft = false;
+        }
+        if (evento.code === 'ArrowRight' || evento.key === 'ArrowRight' || evento.key === 'd' || evento.key === 'D') {
+            teclas.ArrowRight = false;
+        }
+    });
+
+    // Função centralizada para mover o carro com toque ou mouse
+    function moverCarroPeloPonteiro(clientX) {
+        if (!jogoRodando) return;
+        const retanguloCanvas = canvas.getBoundingClientRect();
+        const xRelativo = clientX - retanguloCanvas.left;
+        
+        // Move o carro centralizando-o no ponteiro (dedo ou mouse)
+        jogador.x = xRelativo - jogador.largura / 2;
+
+        // Aplica os limites para não sair da pista (bordas direita e esquerda)
+        if (jogador.x < 0) jogador.x = 0;
+        if (jogador.x + jogador.largura > larguraCanvas) jogador.x = larguraCanvas - jogador.largura;
+    }
+
+    // Toque (Mobile): Captura onde o dedo encostou na tela
+    canvas.addEventListener('touchstart', (evento) => {
+        moverCarroPeloPonteiro(evento.touches[0].clientX);
+    }, {passive: false});
+
+    // Toque (Mobile): Move o carro arrastando o dedo
+    canvas.addEventListener('touchmove', (evento) => {
+        evento.preventDefault(); // Previne o comportamento padrão de rolar a tela
+        moverCarroPeloPonteiro(evento.touches[0].clientX);
+    }, {passive: false});
+
+    // Mouse (Desktop): Permite jogar clicando e arrastando com o mouse (como no celular)
+    let mousePressionado = false;
+    canvas.addEventListener('mousedown', (evento) => {
+        mousePressionado = true;
+        moverCarroPeloPonteiro(evento.clientX);
+    });
+
+    canvas.addEventListener('mousemove', (evento) => {
+        if (mousePressionado) moverCarroPeloPonteiro(evento.clientX);
+    });
+
+    window.addEventListener('mouseup', () => {
+        mousePressionado = false;
+    });
+
+    // --- Lógica do Jogo ---
+
+    // Função que reseta as variáveis e inicia uma nova corrida
+    function iniciarJogo() {
+        window.focus(); // Garante que a janela capture o teclado (importante para iframes/previews)
+        
+        jogoRodando = true;
+        pontuacao = 0;
+        velocidade = velocidadeBase;
+        obstaculos = [];
+        linhasPista = [];
+        contadorQuadros = 0;
+        
+        // Reset da posição do Jogador
+        jogador.x = larguraCanvas / 2 - jogador.largura / 2;
+        
+        // Esconde menu inicial
+        telaMenu.classList.add('oculto');
+        
+        // Cria as linhas iniciais da pista de forma estática
+        criarLinhasIniciaisPista();
+        
+        // Inicia o Loop do Jogo
+        requestAnimationFrame(loopJogo);
+    }
+
+    // Função executada quando o carro colide
+    function fimDeJogo() {
+        jogoRodando = false;
+        telaMenu.classList.remove('oculto'); // Mostra o menu novamente
+        textoTitulo.innerText = "BATEU!";
+        textoStatus.innerHTML = `Pontuação Final: <strong style="color: yellow; font-size: 24px">${Math.floor(pontuacao)}</strong><br>O trânsito estava muito rápido!`;
+        botaoIniciar.innerText = "TENTAR NOVAMENTE";
+    }
+
+    // Gera as linhas tracejadas amarelas no meio da pista
+    function criarLinhasIniciaisPista() {
+        const numeroLinhas = 10;
+        const espacamento = alturaCanvas / 5;
+        for (let i = 0; i < numeroLinhas; i++) {
+            linhasPista.push({
+                y: i * espacamento - espacamento,
+                altura: 40 // Altura de cada traço amarelo
+            });
+        }
+    }
+
+    // Função para criar um novo carro inimigo (obstáculo) na parte superior
+    function gerarObstaculo() {
+        const larguraObstaculo = 50;
+        const alturaObstaculo = 90;
+        // Posição X aleatória dentro da largura do canvas
+        const posicaoX = Math.random() * (larguraCanvas - larguraObstaculo);
+        
+        // Dificuldade: quanto mais pontos, menor a distância mínima entre os carros gerados
+        const distanciaMinima = 200 - (pontuacao / 10); 
+
+        let podeGerar = true;
+        
+        // Verifica se já não existe um obstáculo muito perto desta posição Y
+        for (let obs of obstaculos) {
+            if (obs.y < distanciaMinima) podeGerar = false;
+        }
+
+        // Se o espaço estiver livre, cria o obstáculo
+        if (podeGerar) {
+            obstaculos.push({
+                x: posicaoX,
+                y: -100, // Começa um pouco acima do topo da tela, fora da visão
+                largura: larguraObstaculo,
+                altura: alturaObstaculo,
+                cor: coresObstaculos[Math.floor(Math.random() * coresObstaculos.length)], // Sorteia cor
+                compensacaoVelocidade: (Math.random() * 2) - 1 // Alguns carros são levemente mais rápidos ou lentos (+1 ou -1)
+            });
+        }
+    }
+
+    // Função genérica para desenhar carros (usada para o jogador e inimigos)
+    function desenharCarro(x, y, larg, alt, cor) {
+        // Sombra do carro
+        contexto.fillStyle = 'rgba(0,0,0,0.3)';
+        contexto.fillRect(x + 5, y + 5, larg, alt);
+
+        // Corpo principal do carro
+        contexto.fillStyle = cor;
+        // Usando rect arredondado simples para design mais moderno
+        contexto.beginPath();
+        contexto.roundRect(x, y, larg, alt, 8);
+        contexto.fill();
+
+        // Teto / Vidro (escuro)
+        contexto.fillStyle = '#333';
+        const margemTeto = larg * 0.15;
+        const alturaTeto = alt * 0.4;
+        contexto.fillRect(x + margemTeto, y + alt * 0.25, larg - (margemTeto * 2), alturaTeto);
+
+        // Faróis traseiros
+        contexto.fillStyle = '#cc0000'; // Vermelho escuro
+        contexto.fillRect(x + 5, y + alt - 5, 10, 3);
+        contexto.fillRect(x + larg - 15, y + alt - 5, 10, 3);
+
+        // Se for o jogador (verificando pela cor definida), adiciona listra esportiva branca
+        if (cor === jogador.cor) {
+            contexto.fillStyle = 'white';
+            contexto.fillRect(x + (larg/2) - 3, y, 6, alt);
+        }
+    }
+
+    // Função que atualiza a física e a lógica de tudo no jogo a cada quadro
+    function atualizar() {
+        contadorQuadros++;
+
+        // Aumenta velocidade geral e pontuação constantemente
+        velocidade += 0.002; // Aceleração gradual infinita
+        pontuacao += 0.1; // Ganha pontos apenas por sobreviver ao tempo
+        
+        // Atualiza UI de Placar (arredondando para baixo para não mostrar decimais)
+        elementoPlacar.innerText = `Pontos: ${Math.floor(pontuacao)}`;
+
+        // Movimento do Jogador baseado no Teclado
+        if (teclas.ArrowLeft && jogador.x > 0) {
+            jogador.x -= jogador.velocidade;
+        }
+        if (teclas.ArrowRight && jogador.x < larguraCanvas - jogador.largura) {
+            jogador.x += jogador.velocidade;
+        }
+
+        // Movimento da Estrada (Animação de descida das faixas para dar ilusão de ótica)
+        velocidadeFaixa = velocidade;
+        linhasPista.forEach(linha => {
+            linha.y += velocidadeFaixa;
+            // Se a linha saiu da tela pela parte de baixo, joga ela pra cima novamente
+            if (linha.y > alturaCanvas) {
+                linha.y = -50;
+            }
+        });
+
+        // Gerenciar geração de novos Obstáculos
+        // A chance de spawn (geração) aumenta levemente com a velocidade do jogo
+        if (contadorQuadros % Math.floor(600 / velocidade) === 0) { // Aproximadamente a cada X frames
+            gerarObstaculo();
+        }
+
+        // Atualizar posição dos Obstáculos existentes
+        for (let i = 0; i < obstaculos.length; i++) {
+            let obs = obstaculos[i];
+            obs.y += velocidade + obs.compensacaoVelocidade; // Movimentação vertical
+
+            // Detector de Colisão AABB (Axis-Aligned Bounding Box) - Checa se os retângulos se cruzam
+            if (
+                jogador.x < obs.x + obs.largura &&
+                jogador.x + jogador.largura > obs.x &&
+                jogador.y < obs.y + obs.altura &&
+                jogador.y + jogador.altura > obs.y
+            ) {
+                fimDeJogo();
+                return; // Interrompe o método de atualização imediatamente
+            }
+
+            // Remove o obstáculo da memória se ele já saiu completamente da tela (passou do fundo)
+            if (obs.y > alturaCanvas) {
+                obstaculos.splice(i, 1);
+                i--; // Ajusta o índice pois o array encolheu
+            }
+        }
+    }
+
+    // Função exclusiva para desenhar todos os gráficos na tela (Canvas)
+    function desenhar() {
+        // 1. Limpar tela pintando todo o asfalto (Fundo)
+        contexto.fillStyle = '#555'; // Cinza asfalto
+        contexto.fillRect(0, 0, larguraCanvas, alturaCanvas);
+
+        // 2. Desenhar Bordas da pista (Grama nas laterais)
+        contexto.fillStyle = '#2d8a2d'; // Verde
+        const tamanhoBorda = 20;
+        contexto.fillRect(0, 0, tamanhoBorda, alturaCanvas); // Grama Esquerda
+        contexto.fillRect(larguraCanvas - tamanhoBorda, 0, tamanhoBorda, alturaCanvas); // Grama Direita
+        
+        // 3. Desenhar Zebras (Listras Brancas e Vermelhas nas guias/bordas)
+        const alturaSegmento = 40;
+        // Lógica matemática para criar animação de movimento usando o relógio do sistema
+        const deslocamento = (Date.now() / 5) % (alturaSegmento * 2); 
+        
+        for(let y = -alturaSegmento * 2; y < alturaCanvas; y += alturaSegmento) {
+             const posicaoYDesenho = y + deslocamento;
+             // Alterna as cores entre branco e vermelho baseado no índice de divisão
+             const corZebra = (Math.floor(y / alturaSegmento) % 2 === 0) ? '#fff' : '#c0392b';
+             contexto.fillStyle = corZebra;
+             contexto.fillRect(tamanhoBorda, posicaoYDesenho, 10, alturaSegmento); // Zebra Esquerda
+             contexto.fillRect(larguraCanvas - tamanhoBorda - 10, posicaoYDesenho, 10, alturaSegmento); // Zebra Direita
+        }
+
+        // 4. Desenhar Faixas Centrais (Tracejado Amarelo)
+        contexto.fillStyle = '#f1c40f';
+        linhasPista.forEach(linha => {
+            // Desenha o retângulo amarelo centralizado
+            contexto.fillRect((larguraCanvas / 2) - 5, linha.y, 10, linha.altura);
+        });
+
+        // 5. Desenhar o Jogador (Carro Principal)
+        desenharCarro(jogador.x, jogador.y, jogador.largura, jogador.altura, jogador.cor);
+
+        // 6. Desenhar os Obstáculos (Inimigos)
+        obstaculos.forEach(obs => {
+            desenharCarro(obs.x, obs.y, obs.largura, obs.altura, obs.cor);
+        });
+    }
+
+    // Função que gerencia o fluxo contínuo do jogo
+    function loopJogo() {
+        if (!jogoRodando) return; // Para a recursão se o jogo terminar
+        atualizar(); // 1. Calcula física e lógica
+        desenhar();  // 2. Desenha o novo quadro na tela
+        
+        if (jogoRodando) {
+            // Pede ao navegador para chamar 'loopJogo' novamente no próximo quadro da tela (normalmente 60 FPS)
+            requestAnimationFrame(loopJogo);
+        }
+    }
+
+    // Desenha a tela inicial estática uma vez antes de começar a jogar, para não ficar um buraco preto
+    redimensionarCanvas();
+    desenhar();
+
+</script>
+
+</body>
+</html>
